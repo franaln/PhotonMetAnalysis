@@ -5,22 +5,16 @@ import os
 import ROOT
 from rootutils import RootFile, Value, histogram, histogram_equal_to
 from binning import bins
-from susy_GGM_M3_mu_mc15points import pointdict
-from susy_GGM_mu_mc15points import pointdict as pointdict_ewk
 from xs import gg_xs, ewk_xs
+from xs_dict import xs_dict
 import samples
 
 SpDir    = '~/eos/atlas/user/f/falonso/Susy/sp'
-MiniDir  = '/raid/falonso/tmp/'
+MiniDir  = '/raid/falonso/mini2/'
 TruthDir =  '/afs/cern.ch/work/f/falonso/Susy/Run2/PhotonMetNtuple/output_truth_final/'
+version = 2
+lumi_data = 84.97
 
-# njg    = Value(0.08567, 0.0002)
-# njg_dn = Value(0.04567, 0.0002)
-# njg_up = Value(0.12567, 0.0002)
-
-LUMI = 84.97 #78.7
-#LUMI = 5000.
-XS_FILE = os.path.expanduser('~/work/Susy/Run2/PhotonMetAnalysis/lib/Backgrounds.txt')
 
 def split_cut(s):
     s = s.strip()
@@ -30,6 +24,7 @@ def split_cut(s):
             break
 
     return (var, op, value)
+
 
 def check_cut(value, op, cut):
     if op == '==':
@@ -43,71 +38,29 @@ def check_cut(value, op, cut):
     elif op == '<':
         return (value < cut)
 
+
 def num(s):
     try:
         return int(s)
     except ValueError:
         return float(s)
 
-strong_ewk_fix = {
-    '838': '850',
-    '883': '850', 
-    '928': '950',
-    '973': '950',
-    '1017': '1050',
-    '1062': '1050',
-    '1106': '1150',
-    '1149': '1150',
-
-    '1036': '1050',
-    '1123': '1150',
-    '1209': '1250',
-    '1292': '1250',
-    '1375': '1350',
-    '1459': '1450',
-    '1540': '1550',
-    '1623': '1650',
-    '1700': '1650',
-    '1788': '1750',
-    }
-
-def get_key(sample):
-
-    # EWK
-    if 'GGM_mu' in sample:
-        gmu = int(sample.split('_')[2])
-
-        for key, mu in pointdict_ewk.iteritems():
-            if mu == gmu:
-                return key
-    
-    # 
-    if '_total_' in sample:
-        gm3 = int(sample.split('_')[4])
-        gmu = int(sample.split('_')[5])
-    else:
-        gm3 = int(sample.split('_')[3])
-        gmu = int(sample.split('_')[4])
-
-    for key, (m3, mu) in pointdict.iteritems():
-        if m3 == gm3 and mu == gmu:
-            return key
-    return None
-
 
 def get_xs(did):
+    return xs_dict.get(int(did), 0.0)
     
-    lines = open(XS_FILE).read().split('\n')
+    # lines = open(XS_FILE).read().split('\n')
 
-    for line in lines:
-        if not line or line.startswith('#'):
-            continue
+    # for line in lines:
+    #     if not line or line.startswith('#'):
+    #         continue
 
-        if line.startswith(did):
+    #     if line.startswith(did):
 
-            did, name, xs, kfact, eff, relunc = line.split()
+    #         did, name, xs, kfact, eff, relunc = line.split()
 
-            return float(xs)*float(kfact)*float(eff)
+    #         return float(xs)*float(kfact)*float(eff)
+
 
 def get_signal_xs(sample):
 
@@ -125,7 +78,45 @@ def get_signal_xs(sample):
         xs = ewk_xs.get(mu, None)
 
         return xs
+
             
+def get_sumw(sample):
+
+    path = os.path.join(MiniDir, sample)
+
+    sumw = 0
+    for fpath in os.listdir(path):
+
+        with RootFile(os.path.join(path, fpath)) as f:
+            try:
+                tmp = f.Get('events')
+                sumw += tmp.GetBinContent(3) # bin 3 is the initial sumw
+            except:
+                continue
+
+    return sumw
+
+
+def get_lumi_weight(sample, lumi):
+
+    sumw = get_sumw(sample)
+
+    if 'mc15_13TeV' in sample:
+
+        did = sample.split('.')[3]
+
+        xs = get_xs(did)
+
+        weight = (lumi * xs) / sumw
+
+    elif 'GGM' in sample:
+
+        weight = (get_signal_xs(sample) * lumi) / 1000.
+
+    return weight
+
+
+
 
 def get_datasets(name):
 
@@ -136,30 +127,33 @@ def get_datasets(name):
 
     flist = []
     for s in slist:
-        flist.append('user.falonso.%s.mini_output.root' % '.'.join(s.split('.')[0:3]))
+        flist.append('user.falonso.%s.mini_v%s_output.root' % ('.'.join(s.split('.')[0:3]), version))
 
     return flist
     
 
-def get_histogram(sample, variable='cuts', region='SR', selection='', syst='Nom', 
-                  rootfile=None, scale=True, remove_var=False, truth=False):
+#---------------
+# get_histogram
+#---------------
+def get_histogram(sample, variable='cuts', region='SR', selection='', syst='Nom',
+                  rootfile=None, scale=True, remove_var=False, truth=False, lumi=None):
 
 
     ds = get_datasets(sample)
 
     if not ds:
-        return get_histogram2(sample, variable, region, selection, syst, 
-                              rootfile, scale, remove_var, truth)
+        return _get_histogram(sample, variable, region, selection, syst, 
+                              rootfile, scale, remove_var, truth, lumi)
 
     hist = None
     for s in ds:
 
         if not os.path.exists(os.path.join(MiniDir, s)):
-            print 'error:', s
+            print 'File doesn\'t exist:', s
             continue
 
-        h = get_histogram2(s, variable, region, selection, syst, 
-                          rootfile, scale, remove_var, truth)
+        h = _get_histogram(s, variable, region, selection, syst, 
+                           rootfile, scale, remove_var, truth, lumi)
         
         if hist is None:
             hist = h.Clone()
@@ -169,8 +163,8 @@ def get_histogram(sample, variable='cuts', region='SR', selection='', syst='Nom'
     return hist
 
 
-def get_histogram2(sample, variable='cuts', region='SR', selection='', syst='Nom', 
-                  rootfile=None, scale=True, remove_var=False, truth=False):
+def _get_histogram(sample, variable='cuts', region='SR', selection='', syst='Nom', 
+                   rootfile=None, scale=True, remove_var=False, truth=False, lumi=None):
 
     # strong+ewk
     if 'GGM_M3_mu_total' in sample:
@@ -183,8 +177,8 @@ def get_histogram2(sample, variable='cuts', region='SR', selection='', syst='Nom
             mu = strong_ewk_fix[mu]
         ewk_sample = 'GGM_mu_%s' % mu
 
-        h_strong = get_histogram2(strong_sample, variable, region, selection, syst, rootfile, scale, remove_var, truth)
-        h_ewk    = get_histogram2(ewk_sample,    variable, region, selection, syst, rootfile, scale, remove_var, truth)
+        h_strong = _get_histogram(strong_sample, variable, region, selection, syst, rootfile, scale, remove_var, truth)
+        h_ewk    = _get_histogram(ewk_sample,    variable, region, selection, syst, rootfile, scale, remove_var, truth)
         
         h_sum = h_strong + h_ewk
 
@@ -197,10 +191,10 @@ def get_histogram2(sample, variable='cuts', region='SR', selection='', syst='Nom
             sample = 'GGM_mu_%s' % strong_ewk_fix[mu]
 
 
-    #if syst == 'Nom' or any([s in syst for s in syst_nom]):
-    tree = ROOT.TChain('mini')
-    #else:
-    #    tree = ROOT.TChain('mini_'+syst)
+    if syst == 'Nom': # or any([s in syst for s in syst_nom]):
+        tree = ROOT.TChain('mini')
+    else:
+        tree = ROOT.TChain('mini_'+syst)
         
     if rootfile is not None:
         tree.Add(rootfile)
@@ -210,19 +204,7 @@ def get_histogram2(sample, variable='cuts', region='SR', selection='', syst='Nom
         else:
             tree.Add('%s/mc15_13TeV.*.%s.mini.root' % (TruthDir, sample))
     else:
-
         ds_dir = os.path.join(MiniDir, sample)
-
-        number_events = 0
-        for fname in os.listdir(ds_dir):
-
-            with RootFile(os.path.join(ds_dir, fname)) as f:
-                try:
-                    tmp = f.Get('number_events')
-                    number_events += tmp.GetBinContent(2)
-                except:
-                    continue
-
         tree.Add('%s/*.root' % ds_dir)
 
 
@@ -240,79 +222,30 @@ def get_histogram2(sample, variable='cuts', region='SR', selection='', syst='Nom
     if binning is None:
         raise Exception('Not bins configured for this variable %s' % variable)
 
-    systname = syst
-    # if 'UP' in syst:
-    #     systname = systname.replace('UP', 'High')
-    # elif 'DOWN' in syst:
-    #     systname = systname.replace('DOWN', 'Low')
-    # elif 'LOW' in syst:
-    #     systname = systname.replace('LOW', 'Low')
-    # elif 'Down' in syst:
-    #     systname = systname.replace('Down', 'Low')
-    # elif 'Up' in syst:
-    #     systname = systname.replace('Up', 'High')
-
     try:
         name = sample.split('.')[3]
     except:
         name = sample
     hname = 'h%s%s_%s_obs_%s' % (name, systname, region, variable)
 
-    #htemp = histogram(hname, *binning)
     htemp  = ROOT.TH1F(hname, hname, *binning)
     htemp.Sumw2()
 
-    # if not scale:
-    #     w_str = ''
-    # elif syst == 'PRWDOWN':
-    #     w_str = 'weight_prwdn'
-    # elif syst == 'PRWUP':
-    #     w_str = 'weight_prwup'
-    # else:
-    #     w_str = 'weight'
-
-    # if scale and 'CRL' in region_name:
-    #     if syst == 'BJETDOWN':
-    #         w_str += '*btag_weight[1]'
-    #     elif syst == 'BJETUP':
-    #         w_str += '*btag_weight[4]'
-    #     elif syst == 'CJETDOWN':
-    #         w_str += '*btag_weight[2]'
-    #     elif syst == 'CJETUP':
-    #         w_str += '*btag_weight[5]'
-    #     elif syst == 'BMISTAGDOWN':
-    #         w_str += '*btag_weight[3]'
-    #     elif syst == 'BMISTAGUP':
-    #         w_str += '*btag_weight[6]'
-    #     else:
-    #         w_str += '*btag_weight[0]'
-
-    # if scale and sample == 'efake':
-    #     w_str += '*weight_feg'
-
     # remove variable from selection if n-1
     if remove_var and variable in selection and not variable == 'cuts':
-        if 'ph_pt' in variable or 'jet_n' in variable:
+        if 'ph_pt' in variable:
             pass
         else:
             selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
 
     # MC xs weight (temp)
+    if lumi is None:
+        lumi = lumi_data
+
     w_str = ''
-    if 'mc15_13TeV' in sample:
-
-        did = sample.split('.')[3]
-
-        xs = get_xs(did)
-
-        weight = (LUMI * xs) / number_events
-
-        w_str = '%s' % weight
-
-    elif 'GGM' in sample:
-        weight = (get_signal_xs(sample) * LUMI) / 1000.
-
-        w_str = '%s' % weight
+    if 'mc15' in sample or 'GGM' in sample:
+        lumi_weight = get_lumi_weight(sample, lumi)
+        w_str = '%s' % lumi_weight
 
    
     varexp = ''
@@ -323,7 +256,6 @@ def get_histogram2(sample, variable='cuts', region='SR', selection='', syst='Nom
     elif scale:
         varexp = w_str
 
-#    print sample, varexp
     if variable == 'cuts':
         tree.Project(hname, '1', varexp)
 
@@ -337,24 +269,17 @@ def get_histogram2(sample, variable='cuts', region='SR', selection='', syst='Nom
         tree.Project(hname, variable, varexp)
         hist = htemp.Clone()
 
-#    print w_str, htemp.Integral(1, hist.GetNbinsX())
-
     htemp.Delete()
-
-    # if sample == 'jfake':
-    #     if syst == 'JFAKEUP':
-    #         hist.scale(njg_up)
-    #     elif syst == 'JFAKEDOWN':
-    #         hist.scale(njg_dn)
-    #     else:
-    #         hist.scale(njg)
 
     return hist
 
 
-def get_events(sample, region='SR', selection='', syst='Nom', rootfile=None, scale=True, truth=False):
+#------------
+# get_events
+#------------
+def get_events(sample, region='SR', selection='', syst='Nom', rootfile=None, scale=True, truth=False, lumi=None):
 
-    hist = get_histogram(sample, 'cuts', region, selection, syst, rootfile, scale=scale, truth=truth)
+    hist = get_histogram(sample, 'cuts', region, selection, syst, rootfile, scale, truth, lumi)
 
     mean = hist.GetBinContent(1)
     error = hist.GetBinError(1)
@@ -364,51 +289,24 @@ def get_events(sample, region='SR', selection='', syst='Nom', rootfile=None, sca
     return Value(mean, error)
 
 
-# def get_preselection_cutflow(sample, tag):
-
-
-#     periods = ['A', 'B', 'C', 'D', 'E', 'G', 'H', 'I', 'J', 'L']
-
-#     h = None
-#     if sample == 'data':
-#         for p in periods:
-            
-#             tmp_file = ROOT.TFile.Open('%s/%s%s.tight.%s_spntuple.root' % (SpDir, sample, p, tag))
-#             tmp_h = tmp_file.Get('h_cutflow')
-
-#             if h is None:
-#                 h = tmp_h.Clone('h')
-#             else:
-#                 h.Add(tmp_h, 1)
-
-#             h.SetDirectory(0)
-#             tmp_file.Close()
-#     else:
-#         tmp_file = ROOT.TFile.Open('%s/%s.tight.%s_spntuple.root' % (SpDir, sample, tag))
-#         tmp_h = tmp_file.Get('h_cutflow')
-
-#         h = tmp_h.Clone('h')
-#         h.SetDirectory(0)
-#         tmp_file.Close()
-
-#     return h
-
-
+#-------------
+# get_cutflow
+#-------------
 def get_cutflow(sample='', selection=''):
 
     ds = get_datasets(sample)
 
     if not ds:
-        return get_cutflow2(sample, selection)
+        return _get_cutflow(sample, selection)
 
     hist = None
     for s in ds:
 
         if not os.path.exists(os.path.join(MiniDir, s)):
-            print 'error:', s
+            print 'file doesn\'t exist:', s
             continue
 
-        h = get_cutflow2(s, selection)
+        h = _get_cutflow(s, selection)
         
         if hist is None:
             hist = h.Clone()
@@ -417,28 +315,27 @@ def get_cutflow(sample='', selection=''):
 
     return hist
 
-def get_cutflow2(sample='', selection='', syst='Nom', rootfile=None, scale=True, preselection=False):
+def _get_cutflow(sample='', selection='', syst='Nom', rootfile=None, scale=True, preselection=False):
 
     if not selection:
         return None
 
+    # sum strong+ewk contributions
     if 'GGM_M3_mu_total' in sample:
-        # sum strong+ewk contributions
         strong_sample = sample.replace('_total', '')
 
         mu = sample.split('_')[5]
         ewk_sample = 'GGM_mu_%s' % mu
 
-        h_strong = get_cutflow2(strong_sample, selection) #, tag, syst, rootfile, scale, preselection)
-        h_ewk    = get_cutflow2(ewk_sample, selection) #, tag, syst, rootfile, scale, preselection)
+        h_strong = _get_cutflow(strong_sample, selection) 
+        h_ewk    = _get_cutflow(ewk_sample, selection) 
         
         h_sum = h_strong + h_ewk
 
         return h_sum
 
-
-    if preselection:
-        h_preselection = get_preselection_cutflow(sample, tag)
+    # if preselection:
+    #     h_preselection = get_preselection_cutflow(sample, tag)
 
     if syst == 'Nom' or any([s in syst for s in syst_nom]):
         tree = ROOT.TChain('mini')
@@ -450,20 +347,7 @@ def get_cutflow2(sample='', selection='', syst='Nom', rootfile=None, scale=True,
     elif 'GGM' in sample:
         tree.Add('%s/mc15_13TeV.*.%s.mini.root' % (TruthDir, sample))
     else:
-        #tree.Add("%s/%s.%s_mini.root" % (MiniDir, sample, tag))
-
         ds_dir = os.path.join(MiniDir, sample)
-
-        number_events = 0
-        for fname in os.listdir(ds_dir):
-
-            with RootFile(os.path.join(ds_dir, fname)) as f:
-                try:
-                    tmp = f.Get('number_events')
-                    number_events += tmp.GetBinContent(2)
-                except:
-                    continue
-
         tree.Add('%s/*.root' % ds_dir)
 
 
@@ -474,27 +358,10 @@ def get_cutflow2(sample='', selection='', syst='Nom', rootfile=None, scale=True,
     for i, cut in enumerate(cuts):
         cutflow.GetXaxis().SetBinLabel(i+1, cut[0])
 
-    if 'mc15_13TeV' in sample:
-
-        did = sample.split('.')[3]
-
-        xs = get_xs(did)
-
-        weight = (LUMI * xs) / number_events
-
-    elif 'GGM' in sample:
-
-        weight = (get_signal_xs(sample) * LUMI) / 1000.
-
+    if 'mc15_13TeV' in sample or 'GGM' in sample:
+        weight = get_lumi_weight(sample, lumi)
 
     for event in tree:
-
-        # if scale:
-        #     w = event.weight
-        #     if sample == 'efake':
-        #         w *= event.weight_feg
-        # else:
-        #     w = 1
 
         for i, (varname, op, cutstr) in enumerate(cuts):
 
@@ -536,6 +403,5 @@ def get_cutflow2(sample='', selection='', syst='Nom', rootfile=None, scale=True,
 
     #     cutflow = new_h
 
-    print cutflow.GetBinContent(len(cuts))
     return cutflow
 
