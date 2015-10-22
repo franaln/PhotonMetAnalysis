@@ -22,12 +22,9 @@ def main():
     parser.add_argument('-r', dest='regions', help='Region')
     parser.add_argument('-s', dest='samples', help='Samples separated with ,')
     parser.add_argument('-i', dest='files', help='Files separated with ,')
-    
-    parser.add_argument('--mc', help='Use MC backgrounds instead DD')
-
-    # others
+    parser.add_argument('-l', dest='luminosity', help='Luminosity [pb-1]')
+    parser.add_argument('-p', dest='percentage', action='store_true', help='Show percentage')
     parser.add_argument('--latex', action='store_true', default=False, help='use LatexTable instead PrettyTable')
-    parser.add_argument('--noweight', action='store_true')
 
     if len(sys.argv) < 2:
         parser.print_usage()
@@ -37,8 +34,6 @@ def main():
     
     ## samples
     if args.samples is None and args.files is None:
-        #if args.mc:
-            #samples = ['data', 'qcd', 'wgamma', 'zllgamma', 'znunugamma', 'ttbar', 'ttbarg', 'wjets', 'zjets', 'diboson', 'efake', 'jfake']
         samples = ['data', 'photonjet', 'wgamma', 'zllgamma', 'znunugamma', 'ttbar', 'ttbarg', 'wjets', 'zjets', 'diboson', 'efake', 'jfake']
         
     for region in args.regions.split(','):
@@ -56,7 +51,10 @@ def main():
         if args.samples is not None:
             for sample in args.samples.split(','):
 
-                cutflow = get_cutflow(sample, selection) #, scale=not args.noweight)
+                if args.luminosity is not None:
+                    cutflow = get_cutflow(sample, selection, lumi=args.luminosity) #, scale=not args.noweight)
+                else:
+                    cutflow = get_cutflow(sample, selection, scale=False)
 
                 cuts = [ cutflow.GetXaxis().GetBinLabel(b+1) for b in xrange(cutflow.GetNbinsX()) ]
                 flows[sample] = [ cutflow.GetBinContent(b+1) for b in xrange(cutflow.GetNbinsX()) ]
@@ -77,7 +75,13 @@ def main():
         table.add_column(region, cuts)
     
         for sample, flow in flows.iteritems():
-            table.add_column(sample, ['%.2f' % n for n in flow])
+            
+            total = float(flow[0])
+
+            if args.percentage:
+                table.add_column(sample, ['%.2f (%d%%)' % (n, 100*n/total) for n in flow])
+            else:
+                table.add_column(sample, ['%.2f' % n for n in flow])
     
         print table
 

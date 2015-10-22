@@ -18,6 +18,8 @@ import miniutils
 import regions as regions_
 
 # labels for dict
+mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}}'
+
 labels_dict = dict()
 labels_dict['data']   = 'Data 2015'
 labels_dict['photonjet'] = '#gamma + jets'
@@ -35,8 +37,8 @@ labels_dict['ttbar']  = 't#bar{t}'
 # labels_dict['GGM_M3_mu_total_800_750']   = 'M_{3} = 800, #mu = 750'
 # labels_dict['GGM_M3_mu_total_1050_750']  = 'M_{3} = 1050, #mu = 750'
 # labels_dict['GGM_M3_mu_total_1050_175']  = 'M_{3} = 1050, #mu = 175'
-labels_dict['GGM_M3_mu_total_1300_150']  = 'M_{3} = 1300, #mu = 150'
-labels_dict['GGM_M3_mu_total_1300_650']  = 'M_{3} = 1300, #mu = 650'
+labels_dict['GGM_M3_mu_total_1300_150']  = 'm_{#tilde{g}} = 1429, ' + mn1_text + ' = 147' # 'M_{3} = 1300, #mu = 150'
+labels_dict['GGM_M3_mu_total_1300_650']  = 'm_{#tilde{g}} = 1429, ' + mn1_text + ' = 652'
 # labels_dict['GGM_M3_mu_total_1050_750']  = 'M_{3} = 1050, #mu = 750'
 # labels_dict['GGM_M3_mu_total_1050_950']  = 'M_{3} = 1050, #mu = 950'
 # labels_dict['GGM_M3_mu_total_1250_1150'] = 'M_{3} = 1250, #mu = 1150'
@@ -317,7 +319,7 @@ def do_plot(plotname, variable, h_data, h_bkg, h_signal,
     #    sm_stack.SetMaximum(sm_stack.GetMaximum())
 
     sm_stack.GetXaxis().SetTitle(xtitle)
-    sm_stack.GetXaxis().SetTitleOffset(1.2)
+    sm_stack.GetXaxis().SetTitleOffset(1.3)
     sm_stack.GetXaxis().SetLabelSize(0.)
 
     sm_stack.GetXaxis().SetLabelSize(up_size)
@@ -417,30 +419,30 @@ def do_plot(plotname, variable, h_data, h_bkg, h_signal,
     rl.SetTextSize(0.035)
     rl.SetTextColor(ROOT.kBlack)
 
-    if variable == 'met_et' and region_name == 'SR_L':
-        li.DrawLine(50, 0, 50, 4000)
-        li.DrawLine(200, 0, 200, 4000)
+    # if variable == 'met_et' and region_name == 'SR_L':
+    #     li.DrawLine(50, 0, 50, 4000)
+    #     li.DrawLine(200, 0, 200, 4000)
 
-        ar.DrawArrow(50, 2500, 25, 2500)
-        ar.DrawArrow(200, 10, 225, 10)
+    #     ar.DrawArrow(50, 2500, 25, 2500)
+    #     ar.DrawArrow(200, 10, 225, 10)
 
-        rl.DrawLatex(25, 1000, 'CR_{QCD,L}')
-        rl.DrawLatex(210, 20, 'SR_{L}')
+    #     rl.DrawLatex(25, 1000, 'CR_{QCD,L}')
+    #     rl.DrawLatex(210, 20, 'SR_{L}')
+    # else:
+    if '_L' in region_name:
+        text = region_name.replace('_L', '_{L}')
+    elif '_H' in region_name:
+        text = region_name.replace('_H', '_{H}')
+    
+    t = ROOT.TLatex(0, 0, text)
+    t.SetNDC()
+    t.SetTextColor(ROOT.kBlack)
+    t.SetTextFont(42)
+    t.SetTextSize(0.04)
+    if legpos == 'right':
+        t.DrawLatex(0.20, 0.64, text)
     else:
-        if '_L' in region_name:
-            text = region_name.replace('_L', '_{L}')
-        elif '_H' in region_name:
-            text = region_name.replace('_H', '_{H}')
-        
-        t = ROOT.TLatex(0, 0, text)
-        t.SetNDC()
-        t.SetTextColor(ROOT.kBlack)
-        t.SetTextFont(42)
-        t.SetTextSize(0.04)
-        if legpos == 'right':
-            t.DrawLatex(0.20, 0.64, text)
-        else:
-            t.DrawLatex(0.6, 0.64, text)
+        t.DrawLatex(0.6, 0.64, text)
 
 
     if do_ratio:
@@ -562,7 +564,6 @@ def do_plot(plotname, variable, h_data, h_bkg, h_signal,
 
 def normalize_qcd_to_data():
 
-
     bin0 = hdata.FindBin(0)
     bin1 = hdata.FindBin(50)
 
@@ -619,6 +620,8 @@ def main():
     parser.add_argument('--blind', action='store_true', help='Don\'t include the data')
 
     parser.add_argument('--debug', action='store_true', help='print debug messages')
+
+    parser.add_argument('--pl', action='store_true', help='publink')
 
     global args
     args = parser.parse_args()
@@ -877,16 +880,19 @@ def main():
                 #     pass
 
     
-                if region.endswith('_L'):
-                    s =  0.72
-                elif region.endswith('_H'):
-                    s = 0.67
+                # if region.endswith('_L'):
+                #     s =  0.72
+                # elif region.endswith('_H'):
+                #     s = 0.67
 
-                h_bkg_after['photonjet'].Scale(s)
+                # h_bkg_after['photonjet'].Scale(s)
 
-
-                outname = os.path.join(args.output_dir, 'can_{}_{}_afterFit'.format(region, variable))
+                varname = variable.replace('[', '').replace(']', '')
+                outname = os.path.join(args.output_dir, 'can_{}_{}_afterFit'.format(region, varname))
                 do_plot(outname, variable, h_data, h_bkg_after, h_signal, region_name=region)
+
+                if args.pl:
+                    os.system('publink %s.pdf' % outname)
 
                 # save
                 if args.save is not None:

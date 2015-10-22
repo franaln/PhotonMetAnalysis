@@ -1,14 +1,14 @@
 # samples
 
 data = [
-    'data15_13TeV.00270441.physics_Main.merge.DAOD_SUSY1.f610_m1458_p2375',                                         
+    ## 'data15_13TeV.00270441.physics_Main.merge.DAOD_SUSY1.f610_m1458_p2375',
     'data15_13TeV.00270448.physics_Main.merge.DAOD_SUSY1.f610_m1458_p2375',
     'data15_13TeV.00270588.physics_Main.merge.DAOD_SUSY1.f610_m1458_p2375',
     'data15_13TeV.00270806.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
     'data15_13TeV.00270816.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
     'data15_13TeV.00270949.physics_Main.merge.DAOD_SUSY1.f612_m1463_p2375',
     'data15_13TeV.00270953.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
-    'data15_13TeV.00271044.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
+    ## 'data15_13TeV.00271044.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
     'data15_13TeV.00271048.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
     'data15_13TeV.00271298.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
     'data15_13TeV.00271388.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
@@ -16,9 +16,9 @@ data = [
     'data15_13TeV.00271516.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
     'data15_13TeV.00271595.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2375',
     'data15_13TeV.00271733.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2384',
-    # 'data15_13TeV.00271744.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2384',
-    # 'data15_13TeV.00272529.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2384',
-    # 'data15_13TeV.00272531.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2384',
+    'data15_13TeV.00271744.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2384',
+    ## 'data15_13TeV.00272529.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2384',
+    ## 'data15_13TeV.00272531.physics_Main.merge.DAOD_SUSY1.f611_m1463_p2384',
     ]
 
 photonjet = [
@@ -261,4 +261,12 @@ wjets = [
     'mc15_13TeV.361369.Sherpa_CT10_Wtaunu_Pt2000_E_CMS_CVetoBVeto.merge.DAOD_SUSY1.e3741_s2608_s2183_r6802_r6264_p2375',
     'mc15_13TeV.361370.Sherpa_CT10_Wtaunu_Pt2000_E_CMS_CFilterBVeto.merge.DAOD_SUSY1.e3741_s2608_s2183_r6802_r6264_p2375',
     'mc15_13TeV.361371.Sherpa_CT10_Wtaunu_Pt2000_E_CMS_BFilter.merge.DAOD_SUSY1.e3741_s2608_s2183_r6802_r6264_p2375',
+]
+
+ggm1 = [
+    'mc15_13TeV.GGM_M3_mu_1100_450',
+]
+
+ggm2 = [
+    'mc15_13TeV.GGM_M3_mu_1600_650',
 ]

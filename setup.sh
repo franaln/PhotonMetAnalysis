@@ -1,7 +1,7 @@
 #!/bin/bash
  
 setupATLAS
-localSetupROOT
+localSetupROOT 6.04.02-x86_64-slc6-gcc48-opt
 
 export SUSY_ROOT=$PWD
 
