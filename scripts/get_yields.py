@@ -44,6 +44,7 @@ def main():
         'multijet',
         'vgamma',
         'ttbar',
+        'ttbarg',
         'wjets',
         'zjets',
         ]
