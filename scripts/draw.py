@@ -17,550 +17,7 @@ from collections import OrderedDict
 import miniutils
 import regions as regions_
 
-# labels for dict
-mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}}'
-
-labels_dict = dict()
-labels_dict['data']   = 'Data 2015'
-labels_dict['photonjet'] = '#gamma + jets'
-labels_dict['tgamma'] = 't#bar{t} #gamma /single-t #gamma'
-labels_dict['vgamma'] = 'W/Z #gamma'
-labels_dict['znngam'] = 'Z(#nu#nu) #gamma'
-labels_dict['efake']  = 'e#rightarrow#gamma fake'
-labels_dict['jfake']  = 'jet#rightarrow#gamma fake'
-labels_dict['multijet']  = 'Multijet'
-labels_dict['wjets']  = 'W + jets'
-labels_dict['zjets']  = 'Z + jets'
-labels_dict['vjets']  = 'W/Z + jets'
-labels_dict['ttbar']  = 't#bar{t}'
-# labels_dict['GGM_M3_mu_total_800_175']   = 'M_{3} = 800, #mu = 175'
-# labels_dict['GGM_M3_mu_total_800_750']   = 'M_{3} = 800, #mu = 750'
-# labels_dict['GGM_M3_mu_total_1050_750']  = 'M_{3} = 1050, #mu = 750'
-# labels_dict['GGM_M3_mu_total_1050_175']  = 'M_{3} = 1050, #mu = 175'
-labels_dict['GGM_M3_mu_total_1300_150']  = 'm_{#tilde{g}} = 1429, ' + mn1_text + ' = 147' # 'M_{3} = 1300, #mu = 150'
-labels_dict['GGM_M3_mu_total_1300_650']  = 'm_{#tilde{g}} = 1429, ' + mn1_text + ' = 652'
-# labels_dict['GGM_M3_mu_total_1050_750']  = 'M_{3} = 1050, #mu = 750'
-# labels_dict['GGM_M3_mu_total_1050_950']  = 'M_{3} = 1050, #mu = 950'
-# labels_dict['GGM_M3_mu_total_1250_1150'] = 'M_{3} = 1250, #mu = 1150'
-
-# colours for the dict
-colors_dict = dict()
-colors_dict['photonjet'] = '#E24A33'
-colors_dict['tgamma'] = '#32b45d' #'#48b432'
-colors_dict['vgamma'] = '#f7fab3'
-colors_dict['znngam'] = '#7A68A6'
-colors_dict['efake']  = '#a4cee6'
-colors_dict['jfake']  = '#348ABD'
-colors_dict['multijet']  = '#348ABD'
-colors_dict['wjets']  = '#BCBC93'
-colors_dict['zjets']  = '#36BDBD'
-colors_dict['vjets']  ='#a4cee6'
-colors_dict['ttbar']  = '#32b45d'
-#colors_dict['GGM_M3_mu_1050_750'] = '#141a4d'
-colors_dict['GGM_M3_mu_total_1300_150'] = '#fa423a'
-colors_dict['GGM_M3_mu_total_1300_650'] = '#8453fb'
-# colors_dict['GGM_M3_mu_1050_750']  = '#c73444'
-# colors_dict['GGM_M3_mu_1050_950']  = '#c74934'
-# colors_dict['GGM_M3_mu_1250_1150'] = '#c73469'
-
-
-class PlotConf(object):
-    def __init__(self, xtitle, ytitle, legpos, xmin=None, xmax=None):
-        self.xtitle = xtitle
-        self.ytitle = ytitle
-        self.legpos = legpos
-        self.xmin = xmin
-        self.xmax = xmax
-
-plots_conf = dict()
-plots_conf['cuts']         = PlotConf('', 'Events', 'right')
-plots_conf['ph_n']         = PlotConf('Number of photons', 'Events', 'right')
-plots_conf['el_n']         = PlotConf('Number of electrons', 'Events', 'right')
-plots_conf['jet_n']        = PlotConf('Number of jets', 'Events', 'right')
-plots_conf['ph_pt']        = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_eta']       = PlotConf('Photon #eta', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_phi']       = PlotConf('Photon #phi', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_iso']       = PlotConf('Isolation (Etcone20) [GeV]', 'Events (1/BIN GeV)', 'right')
-plots_conf['met_et']       = PlotConf('E_{T}^{miss} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['met_phi']      = PlotConf('#phi^{miss}', 'Events', 'right')
-plots_conf['ht']           = PlotConf('H_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt']      = PlotConf('Jet p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_eta']     = PlotConf('Jet #eta', 'Events', 'right')
-# plots_conf['jet1_phi']     = PlotConf('leading jet #phi', 'Events', 'right')
-# plots_conf['jet2_pt']      = PlotConf('2nd leading jet p_{T} [GeV]', 'Events', 'right')
-# plots_conf['jet2_eta']     = PlotConf('2nd leading #eta', 'Events', 'right')
-# plots_conf['jet2_phi']     = PlotConf('2nd leading #phi', 'Events', 'right')
-plots_conf['rt2']          = PlotConf('R_{T}^{2}', 'Events', 'left', 0.3, 1.1)
-plots_conf['rt4']          = PlotConf('R_{T}^{4}', 'Events / BIN', 'left', 0.3, 1.1)
-plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet^{1,2}, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_jetmet_alt'] = PlotConf('#Delta#phi(jet^{1..4}, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_jet1met'] = PlotConf('#Delta#phi(j^{1}, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_jet2met'] = PlotConf('#Delta#phi(j^{2}, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_jet3met'] = PlotConf('#Delta#phi(j^{3}, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'right')
-plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'right')
-plots_conf['default'] = PlotConf('','', 'right')
-
-
-def do_plot(plotname, variable, h_data, h_bkg, h_signal, 
-            do_bkg_total=True, do_ratio=True, include_ratio=True, region_name=''):
-    
-    
-    if '[' in variable:
-        vartmp = variable[:variable.find('[')]
-        conf = plots_conf.get(vartmp)
-    else:
-        conf = plots_conf.get(variable)
-
-    xtitle = conf.xtitle
-    ytitle = conf.ytitle
-    xmin = conf.xmin
-    xmax = conf.xmax
-    legpos = conf.legpos
-
-
-    can = canvas(plotname, plotname, 800, 800)
-    can.cd()
-
-    def calc_size(pad):
-        pad_width = pad.XtoPixel(pad.GetX2())
-        pad_height = pad.YtoPixel(pad.GetY1())
-
-        if pad_width < pad_height:
-            tsize = 28.6 / pad_width
-        else:
-            tsize = 28.6 / pad_height
-        return tsize
-
-    if do_ratio:
-
-        cup   = ROOT.TPad("u", "u", 0., 0.305, 0.99, 1)
-        cdown = ROOT.TPad("d", "d", 0., 0.01, 0.99, 0.295)
-        cup.SetRightMargin(0.05)
-        cup.SetBottomMargin(0.005)
-
-        cup.SetTickx()
-        cup.SetTicky()
-        cdown.SetTickx()
-        cdown.SetTicky()
-        cdown.SetRightMargin(0.05)
-        cdown.SetBottomMargin(0.3)
-        cdown.SetTopMargin(0.0054)
-        cdown.SetFillColor(ROOT.kWhite)
-        cup.Draw()
-        cdown.Draw()
-
-        #if logy:
-        cup.SetLogy()
-
-        cup.SetTopMargin(0.08)
-        cdown.SetBottomMargin(0.4)
-
-        up_size = calc_size(cup)
-        dn_size = calc_size(cdown)
-
-    else:
-        #if logy:
-        can.SetLogy()
-
-        can.SetLeftMargin(0.15)
-        up_size = calc_size(can)
-        dn_size = calc_size(can) 
-
-
-    # configure histograms
-    for name, hist in h_bkg.iteritems():
-        set_style(hist, color=colors_dict[name], fill=True)
-        hist.SetLineColor(ROOT.kBlack)
-
-    set_style(h_data, msize=1, lwidth=2, color=ROOT.kBlack)
-
-    for sig, hist in h_signal.iteritems():
-        set_style(hist, msize=1.2, lwidth=2, lstyle=2, color=colors_dict[sig])
-
-    # create SM stack
-    sm_stack = ROOT.THStack()
-
-    def _compare(a, b):
-        amax = a.GetMaximum()
-        bmax = b.GetMaximum()
-        return cmp(int(amax), int(bmax))
-
-    for hist in sorted(h_bkg.itervalues(), _compare):
-        sm_stack.Add(hist)
-    #sm_stack.Add(h_data)
-
-    # Total background
-    sm_total = None
-    sm_totalerr = None
-
-    sm_total_style = 3354
-    sm_total_color = ROOT.kGray+3
-
-    sm_stat_color = ROOT.kGray+1
-    sm_syst_color = ROOT.kGray+3
-
-    for h in h_bkg.itervalues():
-        if sm_total is None:
-            sm_total = histogram_equal_to(h)
-        sm_total += h
-
-    sm_total_stat = sm_total.Clone()
-    #sm_total_all  = sm_total.Clone()
-
-    # for b in xrange(sm_total_all.GetNbinsX()):
-    
-    #     mean = sm_total_all.GetBinContent(b+1)
-
-    #     if mean < 0.000000001:
-    #         continue
-
-    #     stat = sm_total_all.GetBinError(b+1) / mean
-    #     syst = systematics[region_name]
-
-    #     err = math.sqrt(stat*stat + syst*syst)
-
-    #     self.sm_total_all.SetBinError(b+1, err*mean)
-
-    if sm_total is not None:
-        sm_total.SetLineWidth(2)
-        sm_total.SetLineColor(sm_total_color)
-        sm_total.SetFillColor(0)
-        sm_total.SetMarkerSize(0)
-
-        sm_total_stat.SetFillColor(sm_total_color)
-        sm_total_stat.SetLineColor(sm_total_color)
-        sm_total_stat.SetFillStyle(sm_total_style)
-        sm_total_stat.SetLineWidth(2)
-        sm_total_stat.SetMarkerSize(0)
-
-        # sm_total_all.SetFillColor(sm_syst_color)
-        # sm_total_all.SetLineColor(sm_syst_color)
-        # sm_total_all.SetFillStyle(sm_total_style)
-        # sm_total_all.SetLineWidth(2)
-        # sm_total_all.SetMarkerSize(0)
-
-    # add entries to legend
-    if do_ratio:
-        legymin = 0.65
-        legymax = 0.88
-
-        if legpos == 'left':
-            legxmin = 0.20
-            legxmax = 0.53
-        elif legpos == 'right':
-            legxmin = 0.55
-            legxmax = 0.88
-    else:
-        legymin = 0.80
-        legymax = 0.94
-
-        if legpos == 'left':
-            legxmin = 0.20
-            legxmax = 0.53
-        elif legpos == 'right':
-            legxmin = 0.65
-            legxmax = 0.92
-
-    legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
-    legend2 = legend(legxmin, legymin-.15, legxmax-0.035, legymin -.01)
-
-    for name, hist in h_bkg.iteritems():
-        legend1.AddEntry(hist, labels_dict[name], 'f')
-
-    if do_bkg_total and sm_total is not None:
-        legend1.AddEntry(sm_total_stat, "SM Total", 'f')
-        #legend1.AddEntry(sm_total_all, "stat #oplus syst", 'f')
-    
-    if h_data is not None:
-        legend1.AddEntry(h_data, labels_dict['data'], 'pl')
-
-    # we don't want to plot signals in Control Regions
-    if 'CR' in region_name:
-        h_signal = {}
-
-    if h_signal :
-        for name, hist in h_signal.iteritems():
-            legend2.AddEntry(hist, labels_dict[name], 'f')
-
-    if do_ratio:
-        cup.cd()
-
-    # first histogram to configure (ROO de mierda)
-    # if h_bkg:
-    #     chist = sm_stack
-    # else:
-    #     chist = h_data
-
-    #if sm_stack is not None:
-    sm_stack.Draw('hist')
-
-    if xmin is not None and xmax is not None:
-        sm_stack.GetXaxis().SetRangeUser(xmin, xmax)
-
-    if sm_stack.GetXaxis().GetXmax() < 5.:
-        sm_stack.GetXaxis().SetNdivisions(512)
-    else:
-        sm_stack.GetXaxis().SetNdivisions(508)
-
-    if do_ratio:
-        cup.RedrawAxis()
-    else:
-        can.RedrawAxis()
-
-    sm_stack.SetMinimum(0.01)
-
-    #if logy:
-    if 'dphi' in variable:
-        sm_stack.SetMaximum(sm_stack.GetMaximum()*100000)
-    else:
-        sm_stack.SetMaximum(sm_stack.GetMaximum()*1000)
-    #else:
-    #    sm_stack.SetMaximum(sm_stack.GetMaximum())
-
-    sm_stack.GetXaxis().SetTitle(xtitle)
-    sm_stack.GetXaxis().SetTitleOffset(1.3)
-    sm_stack.GetXaxis().SetLabelSize(0.)
-
-    sm_stack.GetXaxis().SetLabelSize(up_size)
-    sm_stack.GetXaxis().SetTitleSize(up_size*1.3)
-    sm_stack.GetYaxis().SetLabelSize(up_size)
-    sm_stack.GetYaxis().SetTitleSize(up_size*1.3)
-
- 
-    if 'BIN' in ytitle:
-        if h_bkg:
-            width = sm_total.GetBinWidth(1)
-        else:
-            width = h_data.GetBinWidth(1)
-        if width > 10:
-            ytitle = ytitle.replace('BIN', '{:.0f}'.format(width))
-        else:
-            ytitle = ytitle.replace('BIN', '{:.2f}'.format(width))
-
-    sm_stack.GetYaxis().SetTitle(ytitle)
-    if do_ratio:
-        sm_stack.GetYaxis().SetTitleOffset(0.8)
-    else:
-        sm_stack.GetYaxis().SetTitleOffset(1.2)
-
-
-    h_data.Draw("P same")
-
-    if sm_total is not None:
-        sm_total.Draw("histsame")
-        sm_total_stat.Draw("E2same][")
-
-
-    for h in h_signal.itervalues():
-        h.Draw('histsame')
-
-    h_data.Draw("Psame")
-
-    if do_ratio:
-        cup.RedrawAxis()
-    else:
-        can.RedrawAxis()
-
-    legend1.Draw()
-    legend2.Draw()
-
-    # ATLAS label
-    l = ROOT.TLatex(0,0,'ATLAS')
-    l.SetNDC()
-    l.SetTextFont(72)
-    l.SetTextSize(0.05)
-    l.SetTextColor(ROOT.kBlack)
-    p = ROOT.TLatex(0,0, 'Internal')
-    p.SetNDC()
-    p.SetTextFont(42)
-    p.SetTextColor(ROOT.kBlack)
-    p.SetTextSize(0.05)
-    delx = 0.085*696*ROOT.gPad.GetWh()/(472*ROOT.gPad.GetWw())
-    if not do_ratio:
-        delx += 0.05
-    if legpos == 'right':
-        axmin = 0.20 ; aymin = 0.83
-        if not do_ratio:
-            aymin = 0.88
-    else:
-        axmin = 0.60 ; aymin = 0.83
-
-    l.DrawLatex(axmin, aymin, "ATLAS")
-    p.DrawLatex(axmin+delx, aymin, 'Internal')
-
-    # luminosity
-    text = '#sqrt{s} = 13 TeV, 84.97 pb^{-1}' 
-    t = ROOT.TLatex(0, 0, text)
-    t.SetNDC()
-    t.SetTextFont(42)
-    t.SetTextSize(0.04)
-    t.SetTextColor(ROOT.kBlack)
-    if legpos == 'right':
-        if do_ratio:
-            t.DrawLatex(0.20, 0.73, text)
-        else:
-            t.DrawLatex(0.20, 0.78, text)
-    else:
-        t.DrawLatex(0.60, 0.73, text)
-
-      
-    # text = 'Selection: '
-    li = ROOT.TLine()
-    li.SetLineStyle(2)
-    li.SetLineWidth(2)
-    li.SetLineColor(ROOT.kBlack)
-
-    ar = ROOT.TArrow(0, 0, 0, 0, 0.008, "|>")
-    ar.SetLineWidth(2)
-    ar.SetLineColor(ROOT.kBlack)
-
-    rl = ROOT.TLatex()
-    rl.SetTextSize(0.035)
-    rl.SetTextColor(ROOT.kBlack)
-
-    # if variable == 'met_et' and region_name == 'SR_L':
-    #     li.DrawLine(50, 0, 50, 4000)
-    #     li.DrawLine(200, 0, 200, 4000)
-
-    #     ar.DrawArrow(50, 2500, 25, 2500)
-    #     ar.DrawArrow(200, 10, 225, 10)
-
-    #     rl.DrawLatex(25, 1000, 'CR_{QCD,L}')
-    #     rl.DrawLatex(210, 20, 'SR_{L}')
-    # else:
-    if '_L' in region_name:
-        text = region_name.replace('_L', '_{L}')
-    elif '_H' in region_name:
-        text = region_name.replace('_H', '_{H}')
-    
-    t = ROOT.TLatex(0, 0, text)
-    t.SetNDC()
-    t.SetTextColor(ROOT.kBlack)
-    t.SetTextFont(42)
-    t.SetTextSize(0.04)
-    if legpos == 'right':
-        t.DrawLatex(0.20, 0.64, text)
-    else:
-        t.DrawLatex(0.6, 0.64, text)
-
-
-    if do_ratio:
-        ratio = h_data.Clone()
-        ratio.Divide(sm_total)
-
-        # remove the point from the plot if zero
-        for b in xrange(ratio.GetNbinsX()):
-            if ratio.GetBinContent(b+1) < 0.00001:
-                ratio.SetBinContent(b+1, -1)
-
-        cdown.cd()
-        ratio.SetTitle('')
-        ratio.SetStats(0)
-        ratio.SetMarkerStyle(20)
-        ratio.SetMarkerSize(1)
-        ratio.SetLineWidth(2)
-        ratio.SetLineColor(ROOT.kBlack)
-        ratio.SetMarkerColor(ROOT.kBlack)
-
-        # x axis
-        ratio.GetXaxis().SetTitle(xtitle)
-        if xmin is not None and xmax is not None:
-            ratio.GetXaxis().SetRangeUser(xmin, xmax)
-        ratio.GetXaxis().SetLabelSize(dn_size)
-        ratio.GetXaxis().SetTitleSize(dn_size*1.3)
-        ratio.GetXaxis().SetTitleOffset(1.)
-        ratio.GetXaxis().SetLabelOffset(0.03)
-        ratio.GetXaxis().SetTickLength(0.06)
-
-        if ratio.GetXaxis().GetXmax() < 5.:
-            ratio.GetXaxis().SetNdivisions(512)
-        else:
-            ratio.GetXaxis().SetNdivisions(508)
-
-        # y axis
-        ratio.GetYaxis().SetTitle('Data / SM')
-        ratio.GetYaxis().SetLabelSize(dn_size)
-        ratio.GetYaxis().SetTitleSize(dn_size*1.3)
-        ratio.GetYaxis().SetRangeUser(0, 2.2)
-        ratio.GetYaxis().SetNdivisions(504)
-        ratio.GetYaxis().SetTitleOffset(0.3)
-        ratio.GetYaxis().SetLabelOffset(0.01)
-
-        err_band_stat = ROOT.TGraphAsymmErrors(ratio.GetNbinsX())
-        # self.err_band_all  = ROOT.TGraphAsymmErrors(self.ratio.GetNbinsX())
-
-        for bin_ in xrange(ratio.GetNbinsX()):
-
-            x    = sm_total.GetBinCenter(bin_+1)
-            xerr = sm_total.GetBinWidth(bin_+1)/2
-
-            sm_y     = sm_total.GetBinContent(bin_+1)
-
-            sm_stat_high = sm_total_stat.GetBinError(bin_+1)
-            sm_stat_low  = sm_total_stat.GetBinError(bin_+1)
-
-            #     sm_all_high = self.sm_total_all.GetBinError(bin_+1)
-            #     sm_all_low  = self.sm_total_all.GetBinError(bin_+1)
-
-            try:
-                stat_low  = sm_stat_low/sm_y
-            #         all_low  = sm_all_low/sm_y
-            except ZeroDivisionError:
-                stat_low = 0.0
-            #         all_low = 0.0
-
-            try:
-                stat_high = sm_stat_high/sm_y
-            #         all_high = sm_all_high/sm_y
-            except ZeroDivisionError:
-                stat_high = 0.0
-            #         all_high = 0.0
-
-            err_band_stat.SetPoint(bin_, x, 1.)
-            err_band_stat.SetPointError(bin_, xerr, xerr, stat_low, stat_high)
-
-            #     self.err_band_all.SetPoint(bin_, x, 1.)
-            #     self.err_band_all.SetPointError(bin_, xerr, xerr, all_low, all_high)
-
-
-        err_band_stat.SetLineWidth(2)
-        err_band_stat.SetMarkerSize(0)
-        err_band_stat.SetFillStyle(sm_total_style)
-        err_band_stat.SetLineColor(sm_total_color)
-        err_band_stat.SetFillColor(sm_total_color)
-
-        # self.err_band_all.SetMarkerSize(0)
-        # self.err_band_all.SetFillStyle(self.sm_total_style)
-        # self.err_band_all.SetLineColor(self.sm_syst_color)
-        # self.err_band_all.SetFillColor(self.sm_syst_color)
-        # self.err_band_all.SetLineWidth(2)
-
-        ratio.Draw()
-        # self.err_band_all.Draw('P2same')
-        err_band_stat.Draw('P2same')
-        ratio.Draw('same e0')
-
-        firstbin = ratio.GetXaxis().GetFirst()
-        lastbin  = ratio.GetXaxis().GetLast()
-        xmax     = ratio.GetXaxis().GetBinUpEdge(lastbin)
-        xmin     = ratio.GetXaxis().GetBinLowEdge(firstbin)
-
-        lines = [None, None, None,]
-        lines[0] = ROOT.TLine(xmin, 1., xmax, 1.)
-        lines[1] = ROOT.TLine(xmin, 0.5,xmax, 0.5)
-        lines[2] = ROOT.TLine(xmin, 1.5,xmax, 1.5)
-
-        lines[0].SetLineWidth(1)
-        lines[0].SetLineStyle(2)
-        lines[1].SetLineStyle(3)
-        lines[2].SetLineStyle(3)
-
-        for line in lines:
-            line.Draw()
-
-    can.Print(plotname+'.pdf')
-
+from drawlib import *
 
 def normalize_qcd_to_data():
 
@@ -612,6 +69,7 @@ def main():
     parser.add_argument('--normqcd', action='store_true')
 
     # other
+    parser.add_argument('--opt', action='store_true', help='Optimization plot')
     parser.add_argument('--sel', dest='selection', default='', help='Custom selection')
     parser.add_argument('--n1', action='store_true', help='N-1 plot')
     parser.add_argument('--comp', action='store_true', dest='region_composition',
@@ -662,87 +120,85 @@ def main():
         'photonjet',
         'multijet',
         'vgamma',
-        #'diboson',
         'wjets',
         'zjets',
         'ttbar',
-        #'ttbarg',
-        #'topgamma',
+        'ttbarg',
         ]
-
+    # dibsoon, topgamma?
 
     # Region composition
-    if args.region_composition:
+    # if args.region_composition:
 
-        h_comp_bkg = OrderedDict()
-        for name in backgrounds:
-            h_comp_bkg[name] = Hist(name, len(regions), 0, len(regions))
+    #     h_comp_bkg = OrderedDict()
+    #     for name in backgrounds:
+    #         h_comp_bkg[name] = Hist(name, len(regions), 0, len(regions))
 
-        h_comp_data = Hist('data', len(regions), 0, len(regions))
+    #     h_comp_data = Hist('data', len(regions), 0, len(regions))
 
-        for i, region in enumerate(regions):
+    #     for i, region in enumerate(regions):
 
-            if args.input_file:
-                selection = region
-            else:
-                if not args.selection:
-                    selection = getattr(regions_, region)
-                else:
-                    selection = args.selection
+    #         if args.input_file:
+    #             selection = region
+    #         else:
+    #             if not args.selection:
+    #                 selection = getattr(regions_, region)
+    #             else:
+    #                 selection = args.selection
 
-            region_name = region[:-2]
+    #         region_name = region[:-2]
 
-            # get regions histogram
-            h_region_data = get_histogram('data', 'cuts', '', selection, syst)
+    #         # get regions histogram
+    #         h_region_data = get_histogram('data', 'cuts', '', selection, syst)
 
-            if args.blind and 'SR' in region:
-                h_region_data.SetBinContent(1, 0)
-                h_region_data.SetBinError(1, 0)
+    #         if args.blind and 'SR' in region:
+    #             h_region_data.SetBinContent(1, 0)
+    #             h_region_data.SetBinError(1, 0)
 
-            h_region_bkg = dict()
-            for name in h_comp_bkg.iterkeys():
-                h_region_bkg[name] = get_histogram(name, 'cuts', '', selection, syst)
+    #         h_region_bkg = dict()
+    #         for name in h_comp_bkg.iterkeys():
+    #             h_region_bkg[name] = get_histogram(name, 'cuts', '', selection, syst)
 
-            # normalize
-            if not all(v is None for v in [args.mu_qcd, args.mu_wgam, args.mu_tgam]):
-                normalize_backgrounds(h_region_bkg)
-            elif args.normqcd:
-                normalize_qcd_to_data(h_region_data, h_region_bkg)
+    #         # normalize
+    #         if not all(v is None for v in [args.mu_qcd, args.mu_wgam, args.mu_tgam]):
+    #             normalize_backgrounds(h_region_bkg)
+    #         elif args.normqcd:
+    #             normalize_qcd_to_data(h_region_data, h_region_bkg)
 
-            # add to composition histogram
-            n = h_region_data.GetBinContent(1)
-            e = h_region_data.GetBinError(1)
+    #         # add to composition histogram
+    #         n = h_region_data.GetBinContent(1)
+    #         e = h_region_data.GetBinError(1)
 
-            h_comp_data.SetBinContent(i+1, n)
-            h_comp_data.SetBinError(i+1, e)
+    #         h_comp_data.SetBinContent(i+1, n)
+    #         h_comp_data.SetBinError(i+1, e)
 
-            h_comp_data.GetXaxis().SetBinLabel(i+1, region_name)
+    #         h_comp_data.GetXaxis().SetBinLabel(i+1, region_name)
 
-            for name in h_comp_bkg.iterkeys():
-                n = h_region_bkg[name].GetBinContent(1)
-                e = h_region_bkg[name].GetBinError(1)
+    #         for name in h_comp_bkg.iterkeys():
+    #             n = h_region_bkg[name].GetBinContent(1)
+    #             e = h_region_bkg[name].GetBinError(1)
 
-                h_comp_bkg[name].SetBinContent(i+1, n)
-                h_comp_bkg[name].SetBinError(i+1, e)
+    #             h_comp_bkg[name].SetBinContent(i+1, n)
+    #             h_comp_bkg[name].SetBinError(i+1, e)
 
-                h_comp_bkg[name].GetXaxis().SetBinLabel(i+1, region_name)
+    #             h_comp_bkg[name].GetXaxis().SetBinLabel(i+1, region_name)
 
 
-        for bkg, hist in h_comp_bkg.iteritems():
-            set_hist_style(hist, color=colors_dict[bkg], fill=True)
+    #     for bkg, hist in h_comp_bkg.iteritems():
+    #         set_hist_style(hist, color=colors_dict[bkg], fill=True)
 
-        set_hist_style(h_comp_data, markersize=1.2, linewidth=1, color=kBlack)
+    #     set_hist_style(h_comp_data, markersize=1.2, linewidth=1, color=kBlack)
 
-        plot(h_comp_bkg, h_comp_data, None, 'cuts',
-             os.path.join(args.output_dir, 'region_composition'))
+    #     plot(h_comp_bkg, h_comp_data, None, 'cuts',
+    #          os.path.join(args.output_dir, 'region_composition'))
 
-        if args.save:
-            file_name = os.path.join(args.output_dir, args.save)
-            with RootFile(file_name, 'update') as f:
-                f.write(h_comp_bkg)
-                f.write(h_comp_data)
+    #     if args.save:
+    #         file_name = os.path.join(args.output_dir, args.save)
+    #         with RootFile(file_name, 'update') as f:
+    #             f.write(h_comp_bkg)
+    #             f.write(h_comp_data)
 
-        return
+    #     return
 
     # Custom plot
     # if args.samples is not None:
@@ -799,8 +255,11 @@ def main():
 
     #     return
 
+    
+
     # Standard DATA/Backgrounds plot
     if not args.input_file:
+
         for region in regions:
             for variable in variables:
                 print 'plotting %s in region %s ...' % (variable, region)
@@ -828,11 +287,17 @@ def main():
                 h_bkg['vjets'] = h_bkg['wjets'].Clone()
                 h_bkg['vjets'].Add(h_bkg['zjets'], 1)
 
+                h_bkg['tgamma'] = h_bkg['ttbarg'].Clone()
+                h_bkg['tgamma'].Add(h_bkg['ttbar'], 1)
+
                 del h_bkg['wjets']
                 del h_bkg['zjets']
+                del h_bkg['ttbarg']
+                del h_bkg['ttbar']
+
 
                 ## data
-                if args.blind:
+                if args.blind or args.opt:
                     h_data = None
                 else:
                     h_data = get_histogram('data', variable, region_name, selection, syst)
@@ -848,14 +313,17 @@ def main():
                 h_signal = OrderedDict()
                 if 'SR' in region:
 
-                    signals = ['GGM_M3_mu_total_1300_150', 'GGM_M3_mu_total_1300_650', ]
+                    signals = {
+                        'GGM_M3_mu_1500_450': 'ggm1',
+                        'GGM_M3_mu_1400_1250': 'ggm2', 
+                        }
 
-                    for sig in signals:
-                        h_signal[sig] = get_histogram(sig, variable, region_name, selection, syst, truth=True)
-                        histogram_add_overflow_bin(h_signal[sig])
+                    for name, sig in signals.iteritems():
+                        h_signal[name] = get_histogram(sig, variable, region_name, selection, syst)
+                        histogram_add_overflow_bin(h_signal[name])
 
 
-                blinded = args.blind and (region == 'SR')
+                #blinded = args.blind and (region == 'SR')
 
                 ## before fit plot
                 # plot(h_bkg, h_data, h_signal, variable, os.path.join(args.output_dir, 'can_{}_{}_beforeFit'.format(region_name, variable)), blinded)
@@ -879,17 +347,17 @@ def main():
                 #     #     s = normalize_qcd_to_data(h_data_met, h_bkg_met)
                 #     pass
 
-    
-                # if region.endswith('_L'):
-                #     s =  0.72
-                # elif region.endswith('_H'):
-                #     s = 0.67
-
-                # h_bkg_after['photonjet'].Scale(s)
-
                 varname = variable.replace('[', '').replace(']', '')
-                outname = os.path.join(args.output_dir, 'can_{}_{}_afterFit'.format(region, varname))
-                do_plot(outname, variable, h_data, h_bkg_after, h_signal, region_name=region)
+                
+                if args.opt:
+
+                    outname = os.path.join(args.output_dir, 'opt_{}_{}'.format(region, varname))
+                    do_plot(outname, variable, bkg=h_bkg_after, signal=h_signal, region_name=region)
+
+                else:
+
+                    outname = os.path.join(args.output_dir, 'can_{}_{}_afterFit'.format(region, varname))
+                    do_plot(outname, variable, h_data, h_bkg_after, h_signal, region_name=region)
 
                 if args.pl:
                     os.system('publink %s.pdf' % outname)

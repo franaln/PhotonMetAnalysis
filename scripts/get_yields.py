@@ -15,6 +15,8 @@ from functools import partial
 import regions as regions_
 import miniutils
 from rootutils import Value
+from significance import get_significance
+
 
 def main():
 
@@ -50,8 +52,15 @@ def main():
         ]
 
     signal = [
-        'ggm1',
-        'ggm2',
+        # 'GGM_M3_mu_1500_150',
+        # 'GGM_M3_mu_1500_450',
+        # 'GGM_M3_mu_1500_1050',
+        # 'GGM_M3_mu_1400_1250',
+
+        'GGM_M3_mu_1400_200',
+        'GGM_M3_mu_1500_450',
+        'GGM_M3_mu_1400_1050',
+        'GGM_M3_mu_1400_1250',
         ]
 
     get_events = partial(miniutils.get_events, lumi=args.lumi)
@@ -95,7 +104,8 @@ def main():
 
         # Signals
         for sig in signal:
-            cols[sig] = get_events(sig, region, selection)
+            n_s = get_events(sig, region, selection)
+            cols[sig] = '%s (%s)' % (n_s, get_significance(n_s, total_bkg))
 
         table.add_column(region[:10], cols.values())
     
