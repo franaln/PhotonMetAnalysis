@@ -369,7 +369,8 @@ def _get_histogram(sample, **kwargs):
         w_str += '*%s' % lumi_weight
 
         # scale factors
-        #w_str = '%s*weight_sf' % lumi_weight
+        if 'v19' in sample:
+            w_str += '*weight_sf' 
 
         # pile-up
         # w_str += '*weight_pu'
