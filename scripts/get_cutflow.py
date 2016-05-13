@@ -11,7 +11,6 @@ from prettytable import PrettyTable
 from latextable import LatexTable
 from collections import OrderedDict
 
-#from samples import MiniDir
 import regions as regions_
 from miniutils import get_cutflow
 
@@ -22,9 +21,12 @@ def main():
     parser.add_argument('-r', dest='regions', help='Region')
     parser.add_argument('-s', dest='samples', help='Samples separated with ,')
     parser.add_argument('-i', dest='files', help='Files separated with ,')
-    parser.add_argument('-l', dest='luminosity', help='Luminosity [pb-1]')
+    parser.add_argument('-l', dest='luminosity', help='Luminosity [fb-1]')
     parser.add_argument('-p', dest='percentage', action='store_true', help='Show percentage')
     parser.add_argument('--latex', action='store_true', default=False, help='use LatexTable instead PrettyTable')
+    parser.add_argument('--sel', dest='selection', help='Selection')
+    parser.add_argument('--pre', dest='preselection', action='store_true', help='add preselection cutflow')
+    parser.add_argument('--noscale', dest='noscale', action='store_true', help='no scale')
 
     if len(sys.argv) < 2:
         parser.print_usage()
@@ -34,8 +36,25 @@ def main():
     
     ## samples
     if args.samples is None and args.files is None:
-        samples = ['data', 'photonjet', 'wgamma', 'zllgamma', 'znunugamma', 'ttbar', 'ttbarg', 'wjets', 'zjets', 'diboson', 'efake', 'jfake']
+        samples = [
+            'data', 
+            'photonjet', 
+            'wgamma', 
+            'zllgamma', 
+            'znunugamma', 
+            'ttbar', 
+            'ttbarg', 
+            'wjets', 
+            'zjets', 
+            'diboson', 
+            'efake', 
+            'jfake'
+            ]
         
+
+    if args.regions is None:
+        args.regions = 'Sel'
+
     for region in args.regions.split(','):
 
         #if args.samples is not None:
@@ -43,18 +62,18 @@ def main():
 
         #if args.files is not None:
         #    files = args.files.split(',')
+        
+        try:
+            selection = getattr(regions_, region)
+        except:
+            selection = args.selection
 
-        selection = getattr(regions_, region)
-     
         flows = OrderedDict()
 
         if args.samples is not None:
             for sample in args.samples.split(','):
 
-                if args.luminosity is not None:
-                    cutflow = get_cutflow(sample, selection, lumi=args.luminosity) #, scale=not args.noweight)
-                else:
-                    cutflow = get_cutflow(sample, selection, scale=False)
+                cutflow = get_cutflow(sample, selection=selection, lumi=args.luminosity, preselection=args.preselection, scale=(not args.noscale))
 
                 cuts = [ cutflow.GetXaxis().GetBinLabel(b+1) for b in xrange(cutflow.GetNbinsX()) ]
                 flows[sample] = [ cutflow.GetBinContent(b+1) for b in xrange(cutflow.GetNbinsX()) ]
@@ -62,7 +81,7 @@ def main():
         if args.files is not None:
             for fname in args.files.split(','):
 
-                cutflow = get_cutflow(rootfile=fname, selection=selection, scaled=not args.noweight)
+                cutflow = get_cutflow(rootfile=fname, selection=selection, preselection=args.preselection, scale=(not args.scale))
     
                 cuts = [ cutflow.GetXaxis().GetBinLabel(b+1) for b in xrange(cutflow.GetNbinsX()) ]
                 flows[sample] = [ cutflow.GetBinContent(b+1) for b in xrange(cutflow.GetNbinsX()) ]

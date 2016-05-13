@@ -3,8 +3,10 @@
 import ROOT
 ROOT.gROOT.SetBatch(1)
 
+from collections import OrderedDict
+
 from rootutils import *
-from significance import get_significance
+from statutils import *
 
 
 # labels for dict
@@ -25,32 +27,36 @@ labels_dict['zjets']  = 'Z + jets'
 labels_dict['vjets']  = 'W/Z + jets'
 labels_dict['ttbar']  = 't#bar{t}'
 
-# labels_dict['GGM_M3_mu_1500_150']  = 'm_{#tilde{g}} = 1429, ' + mn1_text + ' = 147' # 'M_{3} = 1300, #mu = 150'
-# labels_dict['GGM_M3_mu_1400_650']  = 'm_{#tilde{g}} = 1429, ' + mn1_text + ' = 652'
-labels_dict['GGM_M3_mu_1400_200']  = 'm_{#tilde{g}} = 1522, ' + mn1_text + ' = 191'
-labels_dict['GGM_M3_mu_1500_450']  = 'm_{#tilde{g}} = 1614, ' + mn1_text + ' = 442'
-labels_dict['GGM_M3_mu_1400_1050'] = 'm_{#tilde{g}} = 1522, ' + mn1_text + ' = 1072'
-labels_dict['GGM_M3_mu_1400_1250'] = 'm_{#tilde{g}} = 1522, ' + mn1_text + ' = 1283'
+labels_dict['GGM_M3_mu_1400_250']  = '(1400, 250)' ##m_{#tilde{g}} = 1522, ' + mn1_text + ' = 191 GeV'
+labels_dict['GGM_M3_mu_1400_650']  = '(1400, 650)' ##)m_{#tilde{g}} = 1522, ' + mn1_text + ' = 442 GeV'
+labels_dict['GGM_M3_mu_1400_1050'] = '(1400, 1050)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1072 GeV'
+labels_dict['GGM_M3_mu_1400_1375'] = '(1400, 1375)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1283 GeV'
 
 # colours for the dict
 colors_dict = dict()
 colors_dict['photonjet'] = '#E24A33'
-colors_dict['photonjet_25ns'] = '#E24A33'
-colors_dict['tgamma'] = '#32b45d' 
-colors_dict['vgamma'] = '#f7fab3'
-colors_dict['znngam'] = '#7A68A6'
-colors_dict['efake']  = '#a4cee6'
-colors_dict['jfake']  = '#348ABD'
+colors_dict['tgamma']    = '#32b45d'
+colors_dict['vgamma']    = '#f7fab3'
+colors_dict['znngam']    = '#7A68A6'
+colors_dict['efake']     = '#a4cee6'
+colors_dict['jfake']     = '#348ABD'
 colors_dict['multijet']  = '#348ABD'
-colors_dict['wjets']  = '#BCBC93'
-colors_dict['zjets']  = '#36BDBD'
-colors_dict['vjets']  ='#a4cee6'
-colors_dict['ttbar']  = '#32b45d'
+colors_dict['wjets']     = '#BCBC93'
+colors_dict['zjets']     = '#36BDBD'
+colors_dict['vjets']     = '#a4cee6'
+colors_dict['ttbar']     = '#32b45d'
 
-colors_dict['GGM_M3_mu_1400_200']  = '#fa423a'
-colors_dict['GGM_M3_mu_1500_450']  = '#fa3a92'
+colors_dict['wgamma']    = '#f7fab3'
+colors_dict['zllgamma']    = '#f7fab4'
+colors_dict['znunugamma']    = '#f7fab5'
+colors_dict['ttbar']    = '#32b422'
+colors_dict['ttbarg']    = '#32b45d'
+colors_dict['data']    = ROOT.kBlack
+
+colors_dict['GGM_M3_mu_1400_250']  = '#85ea7a' 
+colors_dict['GGM_M3_mu_1400_650']  = '#fa3a92'
 colors_dict['GGM_M3_mu_1400_1050'] = '#8453fb'
-colors_dict['GGM_M3_mu_1400_1250'] = '#53fb84'
+colors_dict['GGM_M3_mu_1400_1375'] = '#53fb84'
 
 # plots configuration
 class PlotConf(object):
@@ -73,23 +79,18 @@ plots_conf['ph_iso']       = PlotConf('Isolation (Etcone20) [GeV]', 'Events (1/B
 plots_conf['met_et']       = PlotConf('E_{T}^{miss} [GeV]', 'Events / (BIN GeV)', 'right')
 plots_conf['met_phi']      = PlotConf('#phi^{miss}', 'Events', 'right')
 plots_conf['ht']           = PlotConf('H_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt']      = PlotConf('Jet p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt[0]']      = PlotConf('Jet1 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt[1]']      = PlotConf('Jet2 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_eta']     = PlotConf('Jet #eta', 'Events', 'right')
-# plots_conf['jet1_phi']     = PlotConf('leading jet #phi', 'Events', 'right')
-# plots_conf['jet2_pt']      = PlotConf('2nd leading jet p_{T} [GeV]', 'Events', 'right')
-# plots_conf['jet2_eta']     = PlotConf('2nd leading #eta', 'Events', 'right')
-# plots_conf['jet2_phi']     = PlotConf('2nd leading #phi', 'Events', 'right')
+plots_conf['jet_pt']       = PlotConf('Jet p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['jet_pt[0]']    = PlotConf('Jet1 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['jet_pt[1]']    = PlotConf('Jet2 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['jet_eta']      = PlotConf('Jet #eta', 'Events', 'right')
 plots_conf['rt2']          = PlotConf('R_{T}^{2}', 'Events', 'left', 0.3, 1.1)
 plots_conf['rt4']          = PlotConf('R_{T}^{4}', 'Events / BIN', 'left', 0.3, 1.1)
-plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet^{1,2}, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_jetmet_alt'] = PlotConf('#Delta#phi(jet^{1..4}, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_jet1met'] = PlotConf('#Delta#phi(j^{1}, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_jet2met'] = PlotConf('#Delta#phi(j^{2}, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_jet3met'] = PlotConf('#Delta#phi(j^{3}, E_{T}^{miss})', 'Events', 'right')
+plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet, E_{T}^{miss})', 'Events', 'right')
 plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'right')
 plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'right')
+
+plots_conf['ht+met_et'] = PlotConf('M_{eff} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['meff']      = PlotConf('M_{eff} [GeV]', 'Events / (BIN GeV)', 'right')
 
 plots_conf['mgj']    = PlotConf('m_{#gammaj} [GeV]', 'Events / (BIN GeV)', 'right')
 plots_conf['mgjj']   = PlotConf('m_{#gammajj} [GeV]', 'Events / (BIN GeV)', 'right')
@@ -98,26 +99,6 @@ plots_conf['mgjjj']  = PlotConf('m_{#gammajjj} [GeV]', 'Events / (BIN GeV)', 'ri
 plots_conf['default'] = PlotConf('','', 'right')
 
 
-def pvalue(obs, exp):
-    if obs > exp:
-        return 1 - ROOT.Math.inc_gamma_c(obs, exp)
-    else:
-        return ROOT.Math.inc_gamma_c(obs+1, exp)
-
-def zvalue(pvalue):
-    return ROOT.TMath.Sqrt(2) * ROOT.TMath.ErfInverse(1. - 0.2*pvalue)
-
-def poisson_significance(obs, exp):
-
-    p = pvalue(obs, exp)
-
-    if p < 0.5:
-        if obs > exp:
-            return zvalue(p)
-        else:
-            return - zvalue(p)
-
-    return 0.0
 
 def calc_poisson_cl_lower(q, obs):
     """
@@ -170,7 +151,7 @@ def make_poisson_cl_errors(hist):
         data_graph = ROOT.TGraphAsymmErrors(len(x_val), x_val, y_val, x_errL, x_errU, y_errL, y_errU)
         return data_graph
     else:
-        return None
+        return ROOT.TGraph()
 
 
 def do_plot(plotname, 
@@ -179,14 +160,22 @@ def do_plot(plotname,
             do_bkg_total=True, 
             do_ratio=True, 
             region_name='',
-            is25ns=False, 
+            is25ns=True,
             ratio_type='', 
             normalize=False,
             do_fit=False,
             logy=True):
+
+    if data is None:
+        data = {}
+    if signal is None:
+        signal = {}
+    if bkg is None:
+        bkg = {}
+
     
     
-    if varible not in plots_conf:
+    if variable not in plots_conf:
         vartmp = variable[:variable.find('[')]
         conf = plots_conf.get(vartmp, plots_conf['default'])
     else:
@@ -288,19 +277,18 @@ def do_plot(plotname,
                 sm_total = histogram_equal_to(h)
             sm_total += h
 
-
-        if normalize and 'photonjet_25ns' in bkg:
+        # if normalize and 'photonjet' in bkg:
                 
-            data_integral = data.Integral()
-            sm_integral = sm_total.Integral()
-            bkg_integral = bkg['photonjet_25ns'].Integral()
+        #     data_integral = data.Integral()
+        #     sm_integral = sm_total.Integral()
+        #     bkg_integral = bkg['photonjet'].Integral()
 
-            others = sm_integral - bkg_integral
-            factor = (data_integral - others)/bkg_integral
+        #     others = sm_integral - bkg_integral
+        #     factor = (data_integral - others)/bkg_integral
             
-            print 'Normalizing gamjet to data: %s' % factor
+        #     print 'Normalizing gamjet to data: %s' % factor
 
-            bkg['photonjet_25ns'].Scale(factor)
+        #     bkg['photonjet'].Scale(factor)
 
 
         sm_total = None
@@ -308,8 +296,6 @@ def do_plot(plotname,
             if sm_total is None:
                 sm_total = histogram_equal_to(h)
             sm_total += h
-
-
 
         sm_total_stat = sm_total.Clone()
         #sm_total_all  = sm_total.Clone()
@@ -372,7 +358,8 @@ def do_plot(plotname,
             legxmax = 0.92
 
     legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
-    legend2 = legend(legxmin, legymin-.15, legxmax-0.035, legymin -.01)
+    if signal:
+        legend2 = legend(legxmin, legymin-.15, legxmax-0.035, legymin -.01)
 
     if bkg:
         for name, hist in bkg.iteritems():
@@ -403,8 +390,9 @@ def do_plot(plotname,
     elif data:
         chist = data
     else:
-        print 'No data and no bkg. return'
-        return
+        for name, hist in signal.iteritems():
+            break
+        chist = signal[name]
 
     if xmin is not None and xmax is not None:
         chist.GetXaxis().SetRangeUser(xmin, xmax)
@@ -421,10 +409,11 @@ def do_plot(plotname,
 
     chist.SetMinimum(0.01)
 
-    if 'dphi' in variable:
-        chist.SetMaximum(chist.GetMaximum()*100000)
-    else:
-        chist.SetMaximum(chist.GetMaximum()*100)
+    if logy:
+        if 'dphi' in variable:
+            chist.SetMaximum(chist.GetMaximum()*100000)
+        else:
+            chist.SetMaximum(chist.GetMaximum()*100)
     #else:
     #    sm_stack.SetMaximum(sm_stack.GetMaximum())
 
@@ -441,7 +430,8 @@ def do_plot(plotname,
         if bkg:
             width = sm_total.GetBinWidth(1)
         else:
-            width = data.GetBinWidth(1)
+            width = chist.GetBinWidth(1)
+
         if width > 10:
             ytitle = ytitle.replace('BIN', '{:.0f}'.format(width))
         else:
@@ -472,7 +462,6 @@ def do_plot(plotname,
     if data:
         data_graph.Draw('P0Z') 
         #data.Draw("Psame")
-
 
     model = None
     if do_fit and data:
@@ -511,37 +500,38 @@ def do_plot(plotname,
         can.RedrawAxis()
 
     legend1.Draw()
-    legend2.Draw()
+    if signal:
+        legend2.Draw()
 
     # ATLAS label
-    if data:
-        l = ROOT.TLatex(0,0,'ATLAS')
-        l.SetNDC()
-        l.SetTextFont(72)
-        l.SetTextSize(0.05)
-        l.SetTextColor(ROOT.kBlack)
-        p = ROOT.TLatex(0,0, 'Internal')
-        p.SetNDC()
-        p.SetTextFont(42)
-        p.SetTextColor(ROOT.kBlack)
-        p.SetTextSize(0.05)
-        delx = 0.085*696*ROOT.gPad.GetWh()/(472*ROOT.gPad.GetWw())
-        if not do_ratio:
-            delx += 0.05
-        if legpos == 'right':
-            axmin = 0.20 ; aymin = 0.83
-            if not do_ratio:
-                aymin = 0.88
-        else:
-            axmin = 0.60 ; aymin = 0.83
+    # if data:
+    #     l = ROOT.TLatex(0,0,'ATLAS')
+    #     l.SetNDC()
+    #     l.SetTextFont(72)
+    #     l.SetTextSize(0.05)
+    #     l.SetTextColor(ROOT.kBlack)
+    #     p = ROOT.TLatex(0,0, 'Internal')
+    #     p.SetNDC()
+    #     p.SetTextFont(42)
+    #     p.SetTextColor(ROOT.kBlack)
+    #     p.SetTextSize(0.05)
+    #     delx = 0.085*696*ROOT.gPad.GetWh()/(472*ROOT.gPad.GetWw())
+    #     if not do_ratio:
+    #         delx += 0.05
+    #     if legpos == 'right':
+    #         axmin = 0.20 ; aymin = 0.83
+    #         if not do_ratio:
+    #             aymin = 0.88
+    #     else:
+    #         axmin = 0.60 ; aymin = 0.83
 
-        l.DrawLatex(axmin, aymin, "ATLAS")
-        p.DrawLatex(axmin+delx, aymin, 'Internal')
+    #     l.DrawLatex(axmin, aymin, "ATLAS")
+    #     p.DrawLatex(axmin+delx, aymin, 'Internal')
 
     # luminosity
     if data:
         if is25ns:
-            text = '#sqrt{s} = 13 TeV, ~ 1.71 fb^{-1}'
+            text = '#sqrt{s} = 13 TeV, ~ 3.2 fb^{-1}'
         else:
             text = '#sqrt{s} = 13 TeV, 84.97 pb^{-1}' 
         t = ROOT.TLatex(0, 0, text)
@@ -821,13 +811,15 @@ def do_plot(plotname,
     elif do_ratio and signal and bkg:
 
         names = []
-        ratios = []
+        ratio_z = []
+        ratio_e = []
         for name in signal.iterkeys():
             names.append(name)
-            ratios.append(histogram_equal_to(sm_total))
+            ratio_z.append(histogram_equal_to(sm_total))
+            ratio_e.append(histogram_equal_to(sm_total))
 
         # remove the point from the plot if zero
-        max_bins = ratios[0].GetNbinsX()
+        max_bins = ratio_z[0].GetNbinsX()
         for bin_ in xrange(max_bins):
 
             if 'rt4' in variable or 'dphi_gamjet' in variable:
@@ -838,82 +830,114 @@ def do_plot(plotname,
                 imax = max_bins
 
             b = sm_total.Integral(imin, imax)
+            s0 = signal[name].Integral()
 
             for i, name in enumerate(names):
 
                 s = signal[name].Integral(imin, imax)
 
                 z = get_significance(s, b)
+                eff = s/s0 if s0 > 0 else 0
 
-                ratios[i].SetBinContent(bin_, z)
+                ratio_z[i].SetBinContent(bin_, z)
+                ratio_e[i].SetBinContent(bin_, eff)
 
         for i, name in enumerate(names):
-            set_style(ratios[i], msize=1.2, lwidth=2, lstyle=2, color=colors_dict[name])
+            set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=colors_dict[name])
+            set_style(ratio_e[i], msize=1.2, lwidth=2, lstyle=3, color=colors_dict[name])
 
 
         cdown.cd()
 
         # x axis
-        ratios[0].GetXaxis().SetTitle(xtitle)
+        ratio_z[0].GetXaxis().SetTitle(xtitle)
         if xmin is not None and xmax is not None:
-            ratios[0].GetXaxis().SetRangeUser(xmin, xmax)
-        ratios[0].GetXaxis().SetLabelSize(ratio_xlabel_size)
-        ratios[0].GetXaxis().SetTitleSize(ratio_xtitle_size)
-        ratios[0].GetXaxis().SetTitleOffset(1.)
-        ratios[0].GetXaxis().SetLabelOffset(0.03)
-        ratios[0].GetXaxis().SetTickLength(0.06)
+            ratio_z[0].GetXaxis().SetRangeUser(xmin, xmax)
+        ratio_z[0].GetXaxis().SetLabelSize(ratio_xlabel_size)
+        ratio_z[0].GetXaxis().SetTitleSize(ratio_xtitle_size)
+        ratio_z[0].GetXaxis().SetTitleOffset(1.)
+        ratio_z[0].GetXaxis().SetLabelOffset(0.03)
+        ratio_z[0].GetXaxis().SetTickLength(0.06)
 
-        if ratios[0].GetXaxis().GetXmax() < 5.:
-            ratios[0].GetXaxis().SetNdivisions(512)
+        if ratio_z[0].GetXaxis().GetXmax() < 5.:
+            ratio_z[0].GetXaxis().SetNdivisions(512)
         else:
-            ratios[0].GetXaxis().SetNdivisions(508)
+            ratio_z[0].GetXaxis().SetNdivisions(508)
 
         # y axis
-        ratios[0].GetYaxis().SetTitle('Significance')
-        ratios[0].GetYaxis().SetLabelSize(ratio_ylabel_size)
-        ratios[0].GetYaxis().SetTitleSize(ratio_ytitle_size)
-        ratios[0].GetYaxis().SetRangeUser(0, 5.2)
-        ratios[0].GetYaxis().SetNdivisions(504)
-        ratios[0].GetYaxis().SetTitleOffset(0.4)
-        ratios[0].GetYaxis().SetLabelOffset(0.01)
+        ratio_z[0].GetYaxis().SetTitle('Significance')
+        ratio_z[0].GetYaxis().SetLabelSize(ratio_ylabel_size)
+        ratio_z[0].GetYaxis().SetTitleSize(ratio_ytitle_size)
+        ratio_z[0].GetYaxis().SetNdivisions(504)
+        ratio_z[0].GetYaxis().SetTitleOffset(0.4)
+        ratio_z[0].GetYaxis().SetLabelOffset(0.01)
 
-        ratios[0].GetYaxis().SetLabelOffset(99)
-        ratios[0].GetYaxis().SetLabelSize(0.)
+        # ratio_z[0].GetYaxis().SetLabelOffset(99)
+        # ratio_z[0].GetYaxis().SetLabelSize(0.)
 
-        ratios[0].Draw()
-        for ratio in ratios[1:]:
+        zmax = 0
+        for ratio in ratio_z:
+            if ratio.GetMaximum() > zmax:
+                zmax = ratio.GetMaximum()
+
+        ratio_z[0].GetYaxis().SetRangeUser(0, zmax)
+
+        ratio_z[0].Draw()
+        for ratio in ratio_z[1:]:
             ratio.Draw('same')
 
-        firstbin = ratios[0].GetXaxis().GetFirst()
-        lastbin  = ratios[0].GetXaxis().GetLast()
-        xmax     = ratios[0].GetXaxis().GetBinUpEdge(lastbin)
-        xmin     = ratios[0].GetXaxis().GetBinLowEdge(firstbin)
+        # emax = 0
+        # for ratio in ratio_e:
+        #     if ratio.GetMaximum() > emax:
+        #         emax = ratio.GetMaximum()
 
-        lines = [None, None, None, None, None]
-        lines[0] = ROOT.TLine(xmin, 1., xmax, 1.)
-        lines[1] = ROOT.TLine(xmin, 2., xmax, 2.)
-        lines[2] = ROOT.TLine(xmin, 3., xmax, 3.)
-        lines[3] = ROOT.TLine(xmin, 4., xmax, 4.)
-        lines[4] = ROOT.TLine(xmin, 5., xmax, 5.)
+        # for ratio in ratio_e:
+        #     ratio.Scale(zmax)
+        #     ratio.Draw('same')
 
-        lines[0].SetLineStyle(2)
-        lines[1].SetLineStyle(2)
-        lines[2].SetLineStyle(2)
-        lines[3].SetLineStyle(2)
-        lines[4].SetLineStyle(2)
+        # firstbin = ratio.GetXaxis().GetFirst()
+        # lastbin  = ratio.GetXaxis().GetLast()
+        # xmax     = ratio.GetXaxis().GetBinUpEdge(lastbin)
+        # xmin     = ratio.GetXaxis().GetBinLowEdge(firstbin)
 
-        for line in lines:
-            line.Draw()
+        # axis = ROOT.TGaxis(xmax, 0, xmax, zmax, 0, 1, 510, "+L")
+        # axis.SetTitle("Efficiency")
+        # axis.SetNdivisions(504)
+        # axis.SetLabelSize(ratio_ylabel_size)
+        # axis.SetTitleSize(ratio_ytitle_size)
+        # axis.SetTitleFont(ratio_z[0].GetYaxis().GetTitleFont())
+        # axis.Draw()
 
-        x = ROOT.gPad.GetUxmin() - 0.1*ratios[0].GetXaxis().GetBinWidth(1);
+        # firstbin = ratio_z[0].GetXaxis().GetFirst()
+        # lastbin  = ratio_z[0].GetXaxis().GetLast()
+        # xmax     = ratio_z[0].GetXaxis().GetBinUpEdge(lastbin)
+        # xmin     = ratio_z[0].GetXaxis().GetBinLowEdge(firstbin)
 
-        t = ROOT.TLatex()
-        t.SetTextSize(0.10)
-        t.SetTextAlign(32)
-        t.SetTextAngle(0);
-        for i in xrange(5):
-            y = ratios[0].GetYaxis().GetBinCenter(i+1)
-            t.DrawLatex(x, y+0.5, '%s#sigma' % (i+1))
+        # lines = [None, None, None, None, None]
+        # lines[0] = ROOT.TLine(xmin, 1., xmax, 1.)
+        # lines[1] = ROOT.TLine(xmin, 2., xmax, 2.)
+        # lines[2] = ROOT.TLine(xmin, 3., xmax, 3.)
+        # lines[3] = ROOT.TLine(xmin, 4., xmax, 4.)
+        # lines[4] = ROOT.TLine(xmin, 5., xmax, 5.)
+
+        # lines[0].SetLineStyle(2)
+        # lines[1].SetLineStyle(2)
+        # lines[2].SetLineStyle(2)
+        # lines[3].SetLineStyle(2)
+        # lines[4].SetLineStyle(2)
+
+        # for line in lines:
+        #     line.Draw()
+
+        # x = ROOT.gPad.GetUxmin() - 0.1*ratio_z[0].GetXaxis().GetBinWidth(1);
+
+        # t = ROOT.TLatex()
+        # t.SetTextSize(0.10)
+        # t.SetTextAlign(32)
+        # t.SetTextAngle(0);
+        # for i in xrange(5):
+        #     y = ratio_z[0].GetYaxis().GetBinCenter(i+1)
+        #     t.DrawLatex(x, y+0.5, '%s' % (i+1))
 
 
     can.Print(plotname+'.pdf')
@@ -922,8 +946,6 @@ def do_plot(plotname,
 def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
                zmin=None, zmax=None):
     
-    set_palette()
-
     varx, vary = variable.split(':')
 
     if '[' in varx:
@@ -982,3 +1004,264 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     outname = plotname.replace(':', '_').replace('[','').replace(']', '')
     
     can.SaveAs(outname+'.pdf')
+
+
+def do_plot_cmp(plotname, 
+                variable, 
+                histograms,
+                do_ratio=True, 
+                normalize=False,
+                logy=True):
+    
+
+    if isinstance(histograms, dict):
+        tmp = ()
+        for name, hist in histograms:
+            tmp.append((name, hist))
+
+        histograms = tmp
+
+
+    if normalize:
+        hist0norm = histograms[0][1].Integral()
+        for (name, hist) in histograms[1:]:
+            try:
+                hist.Scale(hist0norm/hist.Integral())
+            except ZeroDivisionError:
+                pass
+
+
+    if variable not in plots_conf:
+        vartmp = variable[:variable.find('[')]
+        conf = plots_conf.get(vartmp, plots_conf['default'])
+    else:
+        conf = plots_conf.get(variable, plots_conf['default'])
+
+    xtitle = conf.xtitle
+    ytitle = conf.ytitle
+    xmin = conf.xmin
+    xmax = conf.xmax
+    legpos = conf.legpos
+
+    can = canvas(plotname, plotname, 800, 800)
+    can.cd()
+
+    can.SetLeftMargin(0.2)
+
+    def calc_size(pad):
+        pad_width = pad.XtoPixel(pad.GetX2())
+        pad_height = pad.YtoPixel(pad.GetY1())
+
+        if pad_width < pad_height:
+            tsize = 28.6 / pad_width
+        else:
+            tsize = 28.6 / pad_height
+        return tsize
+
+    if do_ratio:
+
+        cup   = ROOT.TPad("u", "u", 0., 0.305, 0.99, 1)
+        cdown = ROOT.TPad("d", "d", 0., 0.01, 0.99, 0.295)
+        cup.SetRightMargin(0.05)
+        cup.SetBottomMargin(0.005)
+
+        cup.SetTickx()
+        cup.SetTicky()
+        cdown.SetTickx()
+        cdown.SetTicky()
+        cdown.SetRightMargin(0.05)
+        cdown.SetBottomMargin(0.3)
+        cdown.SetTopMargin(0.0054)
+        cdown.SetFillColor(ROOT.kWhite)
+        cup.Draw()
+        cdown.Draw()
+
+        if logy:
+            cup.SetLogy()
+
+        cup.SetTopMargin(0.08)
+        cdown.SetBottomMargin(0.4)
+
+        up_size = calc_size(cup)
+        dn_size = calc_size(cdown)
+
+    else:
+        if logy:
+            can.SetLogy()
+
+        can.SetLeftMargin(0.15)
+        up_size = calc_size(can)
+        dn_size = calc_size(can) 
+
+
+    # configure histograms
+    # for (name, hist) in histograms:
+    #     try:
+    #         set_style(hist, color=colors_dict[name], fill=True)
+    #         hist.SetLineColor(ROOT.kBlack)
+    #     except:
+    #         pass
+
+
+
+    # add entries to legend
+    if do_ratio:
+        legymin = 0.65
+        legymax = 0.88
+
+        if legpos == 'left':
+            legxmin = 0.20
+            legxmax = 0.53
+        elif legpos == 'right':
+            legxmin = 0.55
+            legxmax = 0.88
+    else:
+        legymin = 0.80
+        legymax = 0.94
+
+        if legpos == 'left':
+            legxmin = 0.20
+            legxmax = 0.53
+        elif legpos == 'right':
+            legxmin = 0.65
+            legxmax = 0.92
+
+    legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
+
+    for (name, hist) in histograms:
+        legend1.AddEntry(hist, labels_dict.get(name, name))
+
+    if do_ratio:
+        cup.cd()
+
+    # first histogram to configure (ROOT de mierda)
+    (cname, chist) = histograms[0]
+
+    if xmin is not None and xmax is not None:
+        chist.GetXaxis().SetRangeUser(xmin, xmax)
+
+    if chist.GetXaxis().GetXmax() < 5.:
+        chist.GetXaxis().SetNdivisions(512)
+    else:
+        chist.GetXaxis().SetNdivisions(508)
+
+    if do_ratio:
+        cup.RedrawAxis()
+    else:
+        can.RedrawAxis()
+
+    chist.SetMinimum(0.1)
+
+    if logy:
+        if 'dphi' in variable:
+            chist.SetMaximum(chist.GetMaximum()*100000)
+        else:
+            chist.SetMaximum(chist.GetMaximum()*100)
+
+    chist.GetXaxis().SetTitle(xtitle)
+    chist.GetXaxis().SetTitleOffset(1.3)
+    chist.GetXaxis().SetLabelSize(0.)
+
+    chist.GetXaxis().SetLabelSize(up_size)
+    chist.GetXaxis().SetTitleSize(up_size)
+    chist.GetYaxis().SetLabelSize(up_size)
+    chist.GetYaxis().SetTitleSize(up_size)
+ 
+    if 'BIN' in ytitle:
+        width = chist.GetBinWidth(1)
+
+        if width > 10:
+            ytitle = ytitle.replace('BIN', '{:.0f}'.format(width))
+        else:
+            ytitle = ytitle.replace('BIN', '{:.2f}'.format(width))
+
+    chist.GetYaxis().SetTitle(ytitle)
+    chist.GetYaxis().SetTitleOffset(1.)
+    
+
+    chist.Draw('hist')
+    for (name, hist) in histograms[1:]:
+        hist.Draw('hist same')
+
+
+    if do_ratio:
+        cup.RedrawAxis()
+    else:
+        can.RedrawAxis()
+
+    legend1.Draw()
+
+    ratio_ylabel_size = dn_size
+    ratio_ytitle_size = dn_size
+    
+    ratio_xlabel_size = dn_size
+    ratio_xtitle_size = dn_size
+    
+    if do_ratio and len(histograms) > 1:
+
+        ratios = []
+        for (name, hist) in histograms[1:]:
+
+            ratio = hist.Clone()
+            ratio.Divide(histograms[0][1])
+
+            ratios.append(ratio)
+
+        # remove the point from the plot if zero
+        # for b in xrange(ratio.GetNbinsX()):
+        #     if ratio.GetBinContent(b+1) < 0.00001:
+        #         ratio.SetBinContent(b+1, -1)
+
+        cdown.cd()
+        ratios[0].SetTitle('')
+        ratios[0].SetStats(0)
+
+        # x axis
+        ratios[0].GetXaxis().SetTitle(xtitle)
+        if xmin is not None and xmax is not None:
+            ratios[0].GetXaxis().SetRangeUser(xmin, xmax)
+        ratios[0].GetXaxis().SetLabelSize(ratio_xlabel_size)
+        ratios[0].GetXaxis().SetTitleSize(ratio_xtitle_size)
+        ratios[0].GetXaxis().SetTitleOffset(1.)
+        ratios[0].GetXaxis().SetLabelOffset(0.03)
+        ratios[0].GetXaxis().SetTickLength(0.06)
+
+        if ratios[0].GetXaxis().GetXmax() < 5.:
+            ratios[0].GetXaxis().SetNdivisions(512)
+        else:
+            ratios[0].GetXaxis().SetNdivisions(508)
+
+        # y axis
+        ratios[0].GetYaxis().SetTitle('Ratio')
+        ratios[0].GetYaxis().CenterTitle()
+        ratios[0].GetYaxis().SetLabelSize(ratio_ylabel_size)
+        ratios[0].GetYaxis().SetTitleSize(ratio_ytitle_size)
+        ratios[0].GetYaxis().SetRangeUser(0, 2.2)
+        ratios[0].GetYaxis().SetNdivisions(504)
+        ratios[0].GetYaxis().SetTitleOffset(0.3)
+        ratios[0].GetYaxis().SetLabelOffset(0.01)
+
+        ratios[0].Draw()
+        for ratio in ratios[1:]:
+            ratio.Draw('same')
+
+        firstbin = ratios[0].GetXaxis().GetFirst()
+        lastbin  = ratios[0].GetXaxis().GetLast()
+        xmax     = ratios[0].GetXaxis().GetBinUpEdge(lastbin)
+        xmin     = ratios[0].GetXaxis().GetBinLowEdge(firstbin)
+
+        lines = [None, None, None,]
+        lines[0] = ROOT.TLine(xmin, 1., xmax, 1.)
+        lines[1] = ROOT.TLine(xmin, 0.5,xmax, 0.5)
+        lines[2] = ROOT.TLine(xmin, 1.5,xmax, 1.5)
+
+        lines[0].SetLineWidth(1)
+        lines[0].SetLineStyle(2)
+        lines[1].SetLineStyle(3)
+        lines[2].SetLineStyle(3)
+
+        for line in lines:
+            line.Draw()
+
+
+    can.Print(plotname+'.pdf')

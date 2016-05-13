@@ -15,7 +15,38 @@ from functools import partial
 import regions as regions_
 import miniutils
 from rootutils import Value
-from significance import get_significance
+from stattools import get_significance
+from mass_dict import mass_dict
+
+
+def scale_gamjet(sel):
+
+    get_histogram = partial(miniutils.get_histogram, lumi='data', remove_var=True)
+
+    
+    h_met_gamjet = get_histogram('photonjet', 'met_et', 'SR', sel)
+
+    h_met_data = get_histogram('data', 'met_et', 'SR', sel) - \
+        get_histogram('multijet', 'met_et', 'SR', sel) - \
+        get_histogram('vgamma', 'met_et', 'SR', sel) - \
+        get_histogram('ttbar', 'met_et', 'SR', sel) - \
+        get_histogram('ttbarg', 'met_et', 'SR', sel) - \
+        get_histogram('wjets', 'met_et', 'SR', sel) - \
+        get_histogram('zjets', 'met_et', 'SR', sel)
+
+    
+    maxbin = h_met_gamjet.FindBin(50)
+
+    n_gamjet = h_met_gamjet.Integral(1, maxbin)
+    n_data   = h_met_data.Integral(1, maxbin) 
+
+    mu = n_data / n_gamjet
+
+    print n_gamjet, n_data, mu
+
+    return mu
+    
+
 
 
 def main():
@@ -28,11 +59,20 @@ def main():
     parser.add_argument('-l', dest='lumi', help='Luminosity to scale')
     parser.add_argument('--sel', dest='selection')
 
-    parser.add_argument('--mc', help='Use MC backgrounds instead DD')
+    parser.add_argument('--prw', action='store_true', help='apply prw weights')
+
+    parser.add_argument('--data', action='store_true', help='Include data')
+    parser.add_argument('--signal', action='store_true', help='Include signal')
+    parser.add_argument('--dd', action='store_true', help='Use data driven backgrounds')
+
+    parser.add_argument('--m3', default='1400', help='M3')
+
+    parser.add_argument('-v', dest='version', help='force mini version')
 
     # others
-    parser.add_argument('--latex', action='store_true', default=False, help='use LatexTable instead PrettyTable')
+    parser.add_argument('--latex', action='store_true', help='use LatexTable instead PrettyTable')
     parser.add_argument('--nw', action='store_true')
+
 
     if len(sys.argv) < 2:
         parser.print_usage()
@@ -44,37 +84,65 @@ def main():
     bkgs = [
         'photonjet',
         'multijet',
-        'vgamma',
+        'wgamma',
+        'zgamma',
+        #'znunugamma',
         'ttbar',
         'ttbarg',
-        'wjets',
-        'zjets',
+        'vjets',
         ]
+    
+    if args.dd:
+        bkgs = [
+            'photonjet',
+            'wgamma',
+            'zgamma',
+            'ttbarg',
+            'jfake',
+            'efake',
+            ]
 
-    signal = [
-        # 'GGM_M3_mu_1500_150',
-        # 'GGM_M3_mu_1500_450',
-        # 'GGM_M3_mu_1500_1050',
-        # 'GGM_M3_mu_1400_1250',
+    signal = []
+    for (m3, mu) in sorted(mass_dict.iterkeys()):
+        if int(args.m3) == m3:
+            signal.append('GGM_M3_mu_%d_%d' % (m3, mu))
 
-        'GGM_M3_mu_1400_200',
-        'GGM_M3_mu_1500_450',
-        'GGM_M3_mu_1400_1050',
-        'GGM_M3_mu_1400_1250',
-        ]
 
-    get_events = partial(miniutils.get_events, lumi=args.lumi)
+    if args.prw:
+        get_events = partial(miniutils.get_events, lumi=args.lumi, version=args.version, prw=True)
+    elif args.nw:
+        get_events = partial(miniutils.get_events, lumi=args.lumi, version=args.version, scale=False)
+    else:
+        get_events = partial(miniutils.get_events, lumi=args.lumi, version=args.version)
+
+
         
-    regions = args.regions.split(',')
+    if args.regions:
+        regions = args.regions.split(',')
+
+    samples = args.samples.split(',') if args.samples is not None else []
 
     if args.selection is not None:
+        regions = []
         regions.append(args.selection)
     if args.latex:
         table = LatexTable()
     else:
         table = PrettyTable()
 
-    table.add_column('', ['Data',]+bkgs+['Total bkg']+signal)
+    # # files = args.files.split(',')
+    # filelabels = [f[:10] for f in files]
+
+    if samples:
+        table.add_column('', [s for s in samples])
+    elif args.data and args.signal:
+        table.add_column('', ['Data',]+bkgs+['Total bkg']+signal)
+    elif args.data:
+        table.add_column('', ['Data',]+bkgs+['Total bkg'])
+    elif args.signal:
+        table.add_column('', bkgs+['Total bkg']+signal)
+    else:
+        table.add_column('', bkgs+['Total bkg'])
 
     for region in regions:
 
@@ -88,28 +156,57 @@ def main():
 
         cols = OrderedDict()
 
-        # Data
-        cols['Data'] = get_events('data', region, selection)
+        if samples:
 
-        # Bkgs
-        total_bkg = Value(0)
-        for sample in bkgs:
-        
-            evts = get_events(sample, region, selection)
-            cols[sample] = evts
+            for sample in samples:
+                evts = get_events(sample, region=region, selection=selection)
+                cols[sample] = evts
 
-            total_bkg += evts
+        else:
             
-        cols['Total bkg'] = total_bkg
+            # Data
+            if args.data:
+                if 'SR' in region:
+                    cols['data'] = '-1'
+                else:
+                    cols['data'] = get_events('data', region=region, selection=selection)
 
-        # Signals
-        for sig in signal:
-            n_s = get_events(sig, region, selection)
-            cols[sig] = '%s (%s)' % (n_s, get_significance(n_s, total_bkg))
+            # Bkgs
+            total_bkg = Value(0)
+            for sample in bkgs:
+        
+                evts = get_events(sample, region=region, selection=selection)
+
+                cols[sample] = evts
+
+                total_bkg += evts
+           
+            cols['Total bkg'] = total_bkg
+
+            if region.startswith('CR') and args.data:
+                if 'CRQ' in region:
+                    mu = (cols['data']-(total_bkg-cols['photonjet']))/cols['photonjet']
+                    cols['photonjet'] = '%s (%s)' % (cols['photonjet'], mu)
+
+                elif 'CRT' in region:
+                    mu = (cols['data']-(total_bkg-cols['ttbarg']))/cols['ttbarg']
+                    cols['ttbarg'] = '%s (%s)' % (cols['ttbarg'], mu)
+
+                elif 'CRW' in region:
+                    mu = (cols['data']-(total_bkg-cols['wgamma']))/cols['wgamma']
+                    cols['wgamma'] = '%s (%s)' % (cols['wgamma'], mu)
+
+
+            # Signals
+            if args.signal:
+
+                for sig in signal:
+                    n_s = get_events(sig, region=region, selection=selection)
+                    cols[sig] = '%s (%s)' % (n_s, get_significance(n_s, total_bkg))
 
         table.add_column(region[:10], cols.values())
     
-
+        
     print table
 
 
