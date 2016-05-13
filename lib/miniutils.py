@@ -114,8 +114,8 @@ def get_signal_xs(sample, fs=0):
         l = re.findall(ur'[\w.]*mc15_13TeV\.(\d*)\..*GGM_M3_mu_(\d*)_(\d*).[\w.]*', sample)[0]
 
         did, m3, mu = int(l[0]), int(l[1]), int(l[2])
-        
-        xs, unc = get_gg_xs(did, m3)
+
+        xs, unc = get_gg_xs(did, m3, mu)
 
         return xs
 
@@ -513,7 +513,7 @@ def get_events(sample, **kwargs):
 #-------------
 # get_cutflow
 #-------------
-def _get_cutflow(sample, selection, scale, lumi, preselection):
+def get_cutflow(sample, selection, scale, lumi, preselection):
 
     if not selection:
         return None
@@ -596,26 +596,26 @@ def _get_cutflow(sample, selection, scale, lumi, preselection):
 
 
 
-def get_cutflow(sample='', selection='', scale=True, lumi=None, preselection=False):
+# def get_cutflow(sample='', selection='', scale=True, lumi=None, preselection=False):
 
-    ds = get_datasets(sample)
+#     ds = get_datasets(sample)
 
-    if not ds:
-        return _get_cutflow(sample, selection, scale, lumi, preselection)
+#     if not ds:
+#         return _get_cutflow(sample, selection, scale, lumi, preselection)
 
-    hist = None
-    for s in ds:
+#     hist = None
+#     for s in ds:
 
-        if not os.path.exists(os.path.join(MiniDir, s)):
-            print 'file doesn\'t exist:', s
-            continue
+#         if not os.path.exists(os.path.join(MiniDir, s)):
+#             print 'file doesn\'t exist:', s
+#             continue
 
-        h = _get_cutflow(s, selection, scale, lumi, preselection)
+#         h = _get_cutflow(s, selection, scale, lumi, preselection)
 
-        if hist is None:
-            hist = h.Clone()
-        else:
-            hist.Add(h, 1)
+#         if hist is None:
+#             hist = h.Clone()
+#         else:
+#             hist.Add(h, 1)
 
-    return hist
+#     return hist
 

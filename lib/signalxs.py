@@ -51,9 +51,9 @@ gg_xs_unc = {
     2000:    0.332606643,
 }
 
-def get_gg_xs(did, m3):
+def get_gg_xs(did, m3, mu):
 
-    slha = 'susy.%s.GGM_M3_mu_%s_150.slha' % (did, m3)
+    slha = 'susy.%s.GGM_M3_mu_%s_%s.slha' % (did, m3, mu)
 
     with open(gg_xs_file) as f:
         for line in f:
