@@ -163,7 +163,7 @@ def draw_m3mu_frame(m3min, m3max, mumin, mumax):
 
 def draw_grid_frame():
 
-    canvas = ROOT.TCanvas('', '', 800,600)
+    canvas = ROOT.TCanvas('', '', 600,600)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
 
@@ -194,12 +194,12 @@ def draw_grid_frame():
     frame.SetLabelOffset(0.012, "Y") # label offset on x axis
     frame.SetXTitle('m_{#tilde{g}} [GeV]')
     frame.SetYTitle('%s [GeV]' % mn1_text)
-    frame.GetXaxis().SetTitleSize(0.03)
-    frame.GetYaxis().SetTitleSize(0.03)
-    frame.GetXaxis().SetLabelSize(0.03)
-    frame.GetYaxis().SetLabelSize(0.03)
-    frame.GetXaxis().SetTitleOffset(1.4)
-    frame.GetYaxis().SetTitleOffset(2.0)
+    frame.GetXaxis().SetTitleSize(0.035)
+    frame.GetYaxis().SetTitleSize(0.035)
+    frame.GetXaxis().SetLabelSize(0.035)
+    frame.GetYaxis().SetLabelSize(0.035)
+    frame.GetXaxis().SetTitleOffset(1.3)
+    frame.GetYaxis().SetTitleOffset(1.9)
 
     frame.GetXaxis().SetNdivisions(10, 3, 0)
     frame.GetYaxis().SetNdivisions(10, 5, 0)
@@ -210,13 +210,13 @@ def draw_grid_frame():
     fl = ROOT.TLine(glmin, glmin, glmax, glmax)
     ROOT.SetOwnership(fl, False)
     fl.SetLineStyle(2)
-    fl.SetLineColor(ROOT.kGray)
+    fl.SetLineColor(ROOT.kGray+2)
     fl.Draw()
 
     flabel = ROOT.TLatex(glmax-300, n1max-250, '%s > m_{#tilde{g}}' % mn1_text)
     ROOT.SetOwnership(flabel, False)
     flabel.SetTextSize(0.02)
-    flabel.SetTextColor(ROOT.kGray)
+    flabel.SetTextColor(ROOT.kGray+2)
     flabel.SetTextAngle(30)
     flabel.Draw()
 

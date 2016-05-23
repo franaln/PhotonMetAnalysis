@@ -86,6 +86,10 @@ def get_binning_single_variable(variable):
             binning = bins.get(variable.split('_')[0], None)
         except:
             binning = None
+
+    if binning is None and 'ht+' in variable:
+        binning = (100, 0., 10000.) #bins.get('meff', None)
+
     
     return binning
 

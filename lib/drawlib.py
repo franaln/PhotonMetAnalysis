@@ -32,6 +32,11 @@ labels_dict['GGM_M3_mu_1400_650']  = '(1400, 650)' ##)m_{#tilde{g}} = 1522, ' + 
 labels_dict['GGM_M3_mu_1400_1050'] = '(1400, 1050)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1072 GeV'
 labels_dict['GGM_M3_mu_1400_1375'] = '(1400, 1375)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1283 GeV'
 
+labels_dict['GGM_M3_mu_1700_250']  = '(1700, 250)' ##m_{#tilde{g}} = 1522, ' + mn1_text + ' = 191 GeV'
+labels_dict['GGM_M3_mu_1700_650']  = '(1700, 650)' ##)m_{#tilde{g}} = 1522, ' + mn1_text + ' = 442 GeV'
+labels_dict['GGM_M3_mu_1700_1050'] = '(1700, 1050)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1072 GeV'
+labels_dict['GGM_M3_mu_1700_1375'] = '(1700, 1375)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1283 GeV'
+
 # colours for the dict
 colors_dict = dict()
 colors_dict['photonjet'] = '#E24A33'
@@ -57,6 +62,11 @@ colors_dict['GGM_M3_mu_1400_250']  = '#85ea7a'
 colors_dict['GGM_M3_mu_1400_650']  = '#fa3a92'
 colors_dict['GGM_M3_mu_1400_1050'] = '#8453fb'
 colors_dict['GGM_M3_mu_1400_1375'] = '#53fb84'
+
+colors_dict['GGM_M3_mu_1700_250']  = '#85ea7a' 
+colors_dict['GGM_M3_mu_1700_650']  = '#fa3a92'
+colors_dict['GGM_M3_mu_1700_1050'] = '#8453fb'
+colors_dict['GGM_M3_mu_1700_1375'] = '#53fb84'
 
 # plots configuration
 class PlotConf(object):
@@ -277,20 +287,6 @@ def do_plot(plotname,
                 sm_total = histogram_equal_to(h)
             sm_total += h
 
-        # if normalize and 'photonjet' in bkg:
-                
-        #     data_integral = data.Integral()
-        #     sm_integral = sm_total.Integral()
-        #     bkg_integral = bkg['photonjet'].Integral()
-
-        #     others = sm_integral - bkg_integral
-        #     factor = (data_integral - others)/bkg_integral
-            
-        #     print 'Normalizing gamjet to data: %s' % factor
-
-        #     bkg['photonjet'].Scale(factor)
-
-
         sm_total = None
         for h in bkg.itervalues():
             if sm_total is None:
@@ -332,8 +328,6 @@ def do_plot(plotname,
             # sm_total_all.SetLineWidth(2)
             # sm_total_all.SetMarkerSize(0)
             
-
-
 
     # add entries to legend
     if do_ratio:
@@ -383,7 +377,7 @@ def do_plot(plotname,
     if do_ratio:
         cup.cd()
 
-    # first histogram to configure (ROO de mierda)
+    # first histogram to configure (ROOT de mierda)
     if bkg:
         sm_stack.Draw('hist')
         chist = sm_stack
@@ -414,8 +408,7 @@ def do_plot(plotname,
             chist.SetMaximum(chist.GetMaximum()*100000)
         else:
             chist.SetMaximum(chist.GetMaximum()*100)
-    #else:
-    #    sm_stack.SetMaximum(sm_stack.GetMaximum())
+
 
     chist.GetXaxis().SetTitle(xtitle)
     chist.GetXaxis().SetTitleOffset(1.3)
@@ -454,7 +447,6 @@ def do_plot(plotname,
     if bkg and sm_total is not None:
         sm_total.Draw("histsame")
         sm_total_stat.Draw("E2same][")
-
 
     for h in signal.itervalues():
         h.Draw('histsame')
@@ -531,7 +523,7 @@ def do_plot(plotname,
     # luminosity
     if data:
         if is25ns:
-            text = '#sqrt{s} = 13 TeV, ~ 3.2 fb^{-1}'
+            text = '#sqrt{s} = 13 TeV, 3.2 fb^{-1}'
         else:
             text = '#sqrt{s} = 13 TeV, 84.97 pb^{-1}' 
         t = ROOT.TLatex(0, 0, text)
@@ -541,7 +533,7 @@ def do_plot(plotname,
         t.SetTextColor(ROOT.kBlack)
         if legpos == 'right':
             if do_ratio:
-                t.DrawLatex(0.20, 0.73, text)
+                t.DrawLatex(0.20, 0.78, text)
             else:
                 t.DrawLatex(0.20, 0.78, text)
         else:
@@ -586,7 +578,6 @@ def do_plot(plotname,
     #     t.DrawLatex(0.20, 0.64, text)
     # else:
     #     t.DrawLatex(0.6, 0.64, text)
-
 
     ratio_ylabel_size = dn_size
     ratio_ytitle_size = dn_size
@@ -944,8 +935,15 @@ def do_plot(plotname,
 
 
 def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
-               zmin=None, zmax=None):
-    
+               zmin=None, zmax=None, options='colz'):
+
+    if 'text' in options:
+        for bx in xrange(hist.GetNbinsX()):
+            for by in xrange(hist.GetNbinsY()):
+                
+                content = hist.GetBinContent(bx+1, by+1)
+                hist.SetBinContent(bx+1, by+1, round(content, 2))
+
     varx, vary = variable.split(':')
 
     if '[' in varx:
@@ -997,9 +995,9 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     if zmin is not None and zmax is not None:
         hist.SetContour(999)
         hist.GetZaxis().SetRangeUser(zmin, zmax)
-        hist.Draw('colz')
+        hist.Draw(options)
     else:
-        hist.Draw('colz')
+        hist.Draw(options)
 
     outname = plotname.replace(':', '_').replace('[','').replace(']', '')
     
@@ -1020,7 +1018,6 @@ def do_plot_cmp(plotname,
             tmp.append((name, hist))
 
         histograms = tmp
-
 
     if normalize:
         hist0norm = histograms[0][1].Integral()

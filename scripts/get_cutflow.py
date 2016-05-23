@@ -26,7 +26,6 @@ def main():
     parser.add_argument('--latex', action='store_true', default=False, help='use LatexTable instead PrettyTable')
     parser.add_argument('--sel', dest='selection', help='Selection')
     parser.add_argument('--pre', dest='preselection', action='store_true', help='add preselection cutflow')
-    parser.add_argument('--noscale', dest='noscale', action='store_true', help='no scale')
 
     if len(sys.argv) < 2:
         parser.print_usage()
@@ -55,6 +54,10 @@ def main():
     if args.regions is None:
         args.regions = 'Sel'
 
+    do_scale = True
+    if args.luminosity == "0":
+        do_scale = False
+
     for region in args.regions.split(','):
 
         #if args.samples is not None:
@@ -73,7 +76,7 @@ def main():
         if args.samples is not None:
             for sample in args.samples.split(','):
 
-                cutflow = get_cutflow(sample, selection=selection, lumi=args.luminosity, preselection=args.preselection, scale=(not args.noscale))
+                cutflow = get_cutflow(sample, selection=selection, lumi=args.luminosity, preselection=args.preselection, scale=do_scale)
 
                 cuts = [ cutflow.GetXaxis().GetBinLabel(b+1) for b in xrange(cutflow.GetNbinsX()) ]
                 flows[sample] = [ cutflow.GetBinContent(b+1) for b in xrange(cutflow.GetNbinsX()) ]
@@ -81,10 +84,10 @@ def main():
         if args.files is not None:
             for fname in args.files.split(','):
 
-                cutflow = get_cutflow(rootfile=fname, selection=selection, preselection=args.preselection, scale=(not args.scale))
+                cutflow = get_cutflow(fname, selection=selection, preselection=args.preselection, scale=do_scale)
     
                 cuts = [ cutflow.GetXaxis().GetBinLabel(b+1) for b in xrange(cutflow.GetNbinsX()) ]
-                flows[sample] = [ cutflow.GetBinContent(b+1) for b in xrange(cutflow.GetNbinsX()) ]
+                flows[os.path.basename(fname)] = [ cutflow.GetBinContent(b+1) for b in xrange(cutflow.GetNbinsX()) ]
         
         if args.latex:
             table = LatexTable()

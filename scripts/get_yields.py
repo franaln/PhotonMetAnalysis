@@ -63,7 +63,7 @@ def main():
 
     parser.add_argument('--data', action='store_true', help='Include data')
     parser.add_argument('--signal', action='store_true', help='Include signal')
-    parser.add_argument('--dd', action='store_true', help='Use data driven backgrounds')
+    parser.add_argument('--mc', action='store_true', help='Use MC backgrounds')
 
     parser.add_argument('--m3', default='1400', help='M3')
 
@@ -83,25 +83,25 @@ def main():
     ## samples
     bkgs = [
         'photonjet',
-        'multijet',
         'wgamma',
         'zgamma',
-        #'znunugamma',
-        'ttbar',
         'ttbarg',
-        'vjets',
+        'jfake',
+        'efake',
         ]
     
-    if args.dd:
+    if args.mc:
         bkgs = [
             'photonjet',
+            'multijet',
             'wgamma',
             'zgamma',
+            #'znunugamma',
+            'ttbar',
             'ttbarg',
-            'jfake',
-            'efake',
+            'vjets',
             ]
-
+       
     signal = []
     for (m3, mu) in sorted(mass_dict.iterkeys()):
         if int(args.m3) == m3:
@@ -186,15 +186,20 @@ def main():
             if region.startswith('CR') and args.data:
                 if 'CRQ' in region:
                     mu = (cols['data']-(total_bkg-cols['photonjet']))/cols['photonjet']
-                    cols['photonjet'] = '%s (%s)' % (cols['photonjet'], mu)
+                    purity = cols['photonjet'] / total_bkg
+                    cols['photonjet'] = '%s (%.2f, mu=%.2f)' % (cols['photonjet'], purity.mean, mu.mean)
 
                 elif 'CRT' in region:
                     mu = (cols['data']-(total_bkg-cols['ttbarg']))/cols['ttbarg']
-                    cols['ttbarg'] = '%s (%s)' % (cols['ttbarg'], mu)
+                    purity = cols['ttbarg'] / total_bkg
+
+                    cols['ttbarg'] = '%s (%.2f%%, mu=%.2f)' % (cols['ttbarg'], purity.mean, mu.mean)
 
                 elif 'CRW' in region:
                     mu = (cols['data']-(total_bkg-cols['wgamma']))/cols['wgamma']
-                    cols['wgamma'] = '%s (%s)' % (cols['wgamma'], mu)
+                    purity = cols['wgamma'] / total_bkg
+
+                    cols['wgamma'] = '%s (%.2f%%, mu=%.2f)' % (cols['wgamma'], purity.mean, mu.mean)
 
 
             # Signals

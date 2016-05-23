@@ -871,6 +871,9 @@ class PrettyTable(object):
         self._field_names = []
         self._widths = []
 
+    def add_line(self):
+        pass
+
     ##############################
     # MISC PUBLIC METHODS        #
     ##############################

@@ -9,14 +9,16 @@ from binning import get_binning
 from signalxs import get_gg_xs, get_ewk_xs, get_ewk_sumw
 from xs_dict import xs_dict
 import samples
+from systematics import get_affected_variables
 
-MiniDir  = '/raid/falonso/mini2/'
+
+MiniDir  = '/ar/pcunlp001/raid/falonso/mini2/'
 TruthDir =  '/afs/cern.ch/work/f/falonso/Susy/Run2/PhotonMetNtuple/output_truth_final/'
 
 #lumi_data = 3316.68 # 3.32 fb-1
 lumi_data = 3209.80 # 3.2 fb-1
 
-versions = ['19', '18d', '16e', '16d', '13', '10', '9']
+versions = ['21', '20', '19', '18f', '16f',]
 
 #------------
 # Cuts utils
@@ -205,6 +207,9 @@ def get_datasets(name, version=None):
                 print path + ' doesn\'t exist'
             
         else:
+            # if 'GGM_mu' in s:
+            #     versions.insert(0, '19')
+
             for version in versions:
                 
                 path = MiniDir + '/v' + version + '/' + '%s.mini_v%s_output.root' % ('.'.join(s.split('.')[0:3]), version)
@@ -240,13 +245,12 @@ def show_datasets():
 #---------------
 # get_histogram
 #---------------
-def _get_histogram(sample, **kwargs):
+def _get_histogram(sample, path, **kwargs):
 
     variable   = kwargs.get('variable', 'cuts')
     region     = kwargs.get('region', 'SR')
     selection  = kwargs.get('selection', '')
     syst       = kwargs.get('syst', 'Nom')
-    rootfile   = kwargs.get('rootfile', None)
     scale      = kwargs.get('scale', True)
     remove_var = kwargs.get('remove_var', False)
     invert_var = kwargs.get('invert_var', False)
@@ -257,6 +261,12 @@ def _get_histogram(sample, **kwargs):
     prw        = kwargs.get('prw', False)
     version    = kwargs.get('version', None)
     fs         = kwargs.get('fs', None)
+
+    # weights
+    use_sfw     = kwargs.get('use_sfw', True)
+    use_mcw     = kwargs.get('use_mcw', True)
+    use_puw     = kwargs.get('use_puw', False)
+
     debug      = kwargs.get('debug', False)
 
     #-----------
@@ -266,17 +276,7 @@ def _get_histogram(sample, **kwargs):
         varx, vary = variable.split(':')
 
     tree = ROOT.TChain('mini')
-
-    if rootfile is not None:
-        tree.Add(rootfile)
-    elif truth:
-        if sample in ['efake', 'jfake', 'data']:
-            return None
-        else:
-            tree.Add('%s/mc15_13TeV.*_%s.mini.root' % (TruthDir, sample))
-    else:
-        path = os.path.join(MiniDir, sample)
-        tree.Add(path)
+    tree.Add(path)
 
 
     #-----------
@@ -349,6 +349,18 @@ def _get_histogram(sample, **kwargs):
         else:
             selection = 'fs==%s' % fs
 
+    # change selection and variable for systematics
+    if syst != 'Nom':
+        print syst
+        for var in get_affected_variables(syst):
+            if var in selection:
+                selection = selection.replace(var, var + '_' + syst)
+            
+        if variable in get_affected_variables(syst):
+            variable = variable.replace(var, var + '_' + syst)
+        
+        
+
     #---------
     # Weights
     #---------
@@ -361,19 +373,21 @@ def _get_histogram(sample, **kwargs):
     w_str = ''
     if 'mc15' in sample:
 
-        # mc weight
-        w_str = 'weight_mc'
-
         # lumi weight
         lumi_weight = get_lumi_weight(sample, lumi, fs)        
-        w_str += '*%s' % lumi_weight
+        w_str += '%s' % lumi_weight
+
+        # mc weight
+        if use_mcw:
+            w_str += '*weight_mc'
 
         # scale factors
-        if 'v19' in sample:
+        if use_sfw:
             w_str += '*weight_sf' 
 
         # pile-up
-        # w_str += '*weight_pu'
+        if use_puw:
+            w_str += '*weight_pu'
 
         
     if 'efake' in sample:
@@ -422,8 +436,12 @@ def get_histogram(sample, **kwargs):
     rootfile   = kwargs.get('rootfile', None)
     version    = kwargs.get('version', None)
 
-    if rootfile is not None:
-        return _get_histogram(sample, **kwargs)
+    if '.root' in sample:
+
+        path = sample
+        sample = os.path.basename(sample).split('.')[0]
+
+        return _get_histogram(sample, path, **kwargs)
 
     # sum strong+ewk contributions
     if 'GGM_M3_mu_total' in sample:
@@ -432,8 +450,8 @@ def get_histogram(sample, **kwargs):
         mu = sample.split('_')[5]
         ewk_sample = 'GGM_mu_%s' % mu
 
-        h_strong = get_histogram(strong_sample, **kwargs)
-        h_ewk    = get_histogram(ewk_sample, **kwargs)
+        h_strong = get_histogram(strong_sample, strong_sample, **kwargs)
+        h_ewk    = get_histogram(ewk_sample, ewk_sample, **kwargs)
         
         h_sum = h_strong + h_ewk
 
@@ -450,7 +468,7 @@ def get_histogram(sample, **kwargs):
             ds.append(s.replace('data15_13TeV', sample))
 
     if not ds:
-        return _get_histogram(sample, **kwargs)
+        return _get_histogram(sample, sample, **kwargs)
 
 
     hist = None
@@ -458,10 +476,13 @@ def get_histogram(sample, **kwargs):
     # ewk grid: sum over all sub-processes
     if 'GGM_mu' in sample and len(ds) == 1:
 
+        spath = os.path.join(MiniDir, ds[0])
+
+
         relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
         for fs in relevant_fs:
             
-            h = _get_histogram(ds[0], fs=fs, **kwargs)
+            h = _get_histogram(sample, spath, fs=fs, **kwargs)
 
             if hist is None:
                 hist = h.Clone()
@@ -473,11 +494,13 @@ def get_histogram(sample, **kwargs):
         
         for s in ds:
 
-            if not os.path.exists(os.path.join(MiniDir, s)):
+            spath = os.path.join(MiniDir, s)
+
+            if not os.path.exists(spath):
                 print 'file doesn\'t exist:', s
                 continue
 
-            h = _get_histogram(s, **kwargs)
+            h = _get_histogram(s, spath, **kwargs)
 
             if hist is None:
                 hist = h.Clone()
@@ -514,24 +537,24 @@ def get_events(sample, **kwargs):
 #-------------
 # get_cutflow
 #-------------
-def get_cutflow(sample, selection, scale, lumi, preselection):
+def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False):
 
     if not selection:
         return None
 
     # sum strong+ewk contributions
-    if 'GGM_M3_mu_total' in sample:
-        strong_sample = sample.replace('_total', '')
+    # if 'GGM_M3_mu_total' in sample:
+    #     strong_sample = sample.replace('_total', '')
 
-        mu = sample.split('_')[5]
-        ewk_sample = 'GGM_mu_%s' % mu
+    #     mu = sample.split('_')[5]
+    #     ewk_sample = 'GGM_mu_%s' % mu
 
-        h_strong = _get_cutflow(strong_sample, selection) 
-        h_ewk    = _get_cutflow(ewk_sample, selection) 
+    #     h_strong = _get_cutflow(strong_sample, selection) 
+    #     h_ewk    = _get_cutflow(ewk_sample, selection) 
         
-        h_sum = h_strong + h_ewk
+    #     h_sum = h_strong + h_ewk
 
-        return h_sum
+    #     return h_sum
 
 
     cuts = [ split_cut(cut) for cut in selection.split('&&') ]
@@ -564,21 +587,33 @@ def get_cutflow(sample, selection, scale, lumi, preselection):
 
     if preselection:
 
-        f = ROOT.TFile.Open(sample)
-        htmp = f.Get('cutflow')
+        if '.root' in sample:
+            ds = [sample, ]
+        else:
+            ds = get_datasets(sample)
 
-        h_preselection = htmp.Clone()
-        h_preselection.SetDirectory(0)
+        h_preselection = None
+        for s in ds:
+            f = ROOT.TFile.Open(s)
+            htmp = f.Get('cutflow')
 
-        f.Close()
+            # Weight
+            if lumi is None or lumi == 'data':
+                lumi = lumi_data
+
+            if scale and 'data' not in sample:
+                lumi_weight = get_lumi_weight(sample, lumi)
+                htmp.Scale(lumi_weight)
+
+
+            if h_preselection is None:
+                h_preselection = htmp.Clone()
+                h_preselection.SetDirectory(0)
+            else:
+                h_preselection.Add(htmp, 1)
+
+            f.Close()
         
-        # Weight
-        if lumi is None or lumi == 'data':
-            lumi = lumi_data
-
-        if scale and 'data' not in sample:
-            lumi_weight = get_lumi_weight(sample, lumi)
-            h_preselection.Scale(lumi_weight)
 
         pre_cuts = h_preselection.GetNbinsX()
         new_h = ROOT.TH1F('cutflow', 'cutflow', len(cuts)+pre_cuts, 0.5, len(cuts)+pre_cuts+0.5)

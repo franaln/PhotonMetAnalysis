@@ -41,8 +41,6 @@ def normalize_qcd_to_data():
     return s
 
 
-
-
 def main():
 
     parser = argparse.ArgumentParser(description='')
@@ -59,11 +57,11 @@ def main():
     # Backgrounds
     parser.add_argument('--mc', action='store_true', help='use all backgrounds from MC')
     # parser.add_argument('--qcd', default='sherpa', help='alpgen, pythia or sherpa')
+
     # normalization
-    # parser.add_argument('--muqcd',  dest='mu_qcd', help='Normalization factor for gam+jet')
-    # parser.add_argument('--muwgam', dest='mu_wgam', help='Normalization factor for W gamma')
-    # parser.add_argument('--mutgam', dest='mu_tgam', help='Normalization factor for ttbar gamma')
-    # parser.add_argument('--norm', action='store_true')
+    parser.add_argument('--muq', help='Normalization factor for gam+jet')
+    parser.add_argument('--muw', help='Normalization factor for W gamma')
+    parser.add_argument('--mut', help='Normalization factor for ttbar gamma')
 
     parser.add_argument('--normqcd', action='store_true')
     parser.add_argument('--after', dest='after_fit', action='store_true')
@@ -100,12 +98,6 @@ def main():
     else:
         get_histogram = partial(miniutils.get_histogram, remove_var=False, lumi=args.lumi)
 
-    
-
-    # output directory
-    if args.output != '.':
-        utils.mkdirp(args.output)
-
     # regions
     if args.regions is not None:
         regions = args.regions.split(',')
@@ -114,12 +106,13 @@ def main():
 
     # variables
     if args.variables == 'all':
-        variables = ['ph_pt[0]', 'ph_eta', 'ph_phi', 
+        variables = ['ph_pt[0]', 
                      'jet_n', 'bjet_n', 'jet_pt', 
                      'met_et', 'ht', 'meff', 
                      'rt2', 'rt4', 
-                     'dphi_gammet', 'dphi_gamjet', 
-                     'dphi_jetmet', 'dphi_jetmet1', 'dphi_jetmet4', 'dphi_jetmetA']
+                     'dphi_gammet', 
+                     'dphi_gamjet', 
+                     'dphi_jetmet', ]
     else:
         variables = args.variables.split(',')
 
@@ -153,10 +146,8 @@ def main():
             'jfake',
             'efake'
             ]
-    
+   
     # dibsoon, topgamma?
-
-    use_mc = True
 
     # mu_t = Value(1.70, 0.62) 
     # mu_w = Value(0.40, 0.32)
@@ -188,18 +179,26 @@ def main():
 
                 
             if args.after_fit:
+
+                if args.muq is not None:
+                    
+                    if ',' in args.muq:
+                        mu = ( float(n) for n in args.muq.split(',') )
+                        histogram_scale(h_bkg['photonjet'], *mu)
+
+                    else:
+                        h_bkg['photonjet'].Scale(float(args.muq))
+
+
                 
-                if '_L' in region:
-                    # h_bkg['photonjet'].Scale(1.16)
-                    # h_bkg['wgamma']   .Scale(0.84)
-                    # h_bkg['ttbarg']   .Scale(0.70)
+                # else:
+                #     if '_L' in region:
+                #         h_bkg['photonjet'].Scale(0.85)
+                #         h_bkg['wgamma']   .Scale(0.52)
+                #         h_bkg['ttbarg']   .Scale(0.78)
 
-                    h_bkg['photonjet'].Scale(0.85)
-                    h_bkg['wgamma']   .Scale(0.52)
-                    h_bkg['ttbarg']   .Scale(0.78)
-
-                elif '_H' in region:
-                    pass
+                #     elif '_H' in region:
+                #         pass
 
 
             if args.mc:
@@ -249,39 +248,45 @@ def main():
                 h_signal = OrderedDict()
                     
                 if region.endswith('_L'):
-                    h_signal['GGM_M3_mu_1400_250'] = get_histogram('GGM_M3_mu_1400_250', variable, region_name, selection, syst)
-                    h_signal['GGM_M3_mu_1400_650'] = get_histogram('GGM_M3_mu_1400_650', variable, region_name, selection, syst)
+                    h_signal['GGM_M3_mu_1700_250'] = get_histogram('GGM_M3_mu_1700_250', variable=variable, region=region_name, selection=selection, syst=syst)
+                    h_signal['GGM_M3_mu_1700_650'] = get_histogram('GGM_M3_mu_1700_650', variable=variable, region=region_name, selection=selection, syst=syst)
 
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1400_250'])
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1400_650'])
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1700_250'])
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1700_650'])
 
                 elif region.endswith('_H'):
-                    h_signal['GGM_M3_mu_1400_1050'] = get_histogram('GGM_M3_mu_1400_1050', variable, region_name, selection, syst)
-                    h_signal['GGM_M3_mu_1400_1375'] = get_histogram('GGM_M3_mu_1400_1375', variable, region_name, selection, syst)
+                    h_signal['GGM_M3_mu_1400_1050'] = get_histogram('GGM_M3_mu_1400_1050', variable=variable, region=region_name, selection=selection, syst=syst)
+                    h_signal['GGM_M3_mu_1400_1375'] = get_histogram('GGM_M3_mu_1400_1375', variable=variable, region=region_name, selection=selection, syst=syst)
                     
                     histogram_add_overflow_bin(h_signal['GGM_M3_mu_1400_1050'])
                     histogram_add_overflow_bin(h_signal['GGM_M3_mu_1400_1375'])
+                else:
+                    h_signal['GGM_M3_mu_1700_650'] = get_histogram('GGM_M3_mu_1700_650', variable=variable, region=region_name, selection=selection, syst=syst)
+                    h_signal['GGM_M3_mu_1700_1050'] = get_histogram('GGM_M3_mu_1700_1050', variable=variable, region=region_name, selection=selection, syst=syst)
+
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1700_650'])
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1700_1050'])
                     
                 
             
             varname = variable.replace('[', '').replace(']', '')
                 
-            if args.opt:
-                outname = os.path.join(args.output, 'opt_{}_{}'.format(region, varname))
-                do_plot(outname, variable, bkg=h_bkg, signal=h_signal, region_name=region)
-                
+            
+            if args.selection and args.outname:
+                tag = args.outname
             else:
-                
-                if args.selection and args.outname:
-                    tag = args.outname
-                else:
-                    tag = region
+                tag = region
 
-                if args.after_fit:
-                    outname = os.path.join(args.output, 'can_{}_{}_afterFit'.format(tag, varname))
-                else:
-                    outname = os.path.join(args.output, 'can_{}_{}_beforeFit'.format(tag, varname))
-                    
+            if args.opt:
+                outname = os.path.join(args.output, 'can_{}_{}_opt'.format(tag, varname))
+            elif args.after_fit:
+                outname = os.path.join(args.output, 'can_{}_{}_afterFit'.format(tag, varname))
+            else:
+                outname = os.path.join(args.output, 'can_{}_{}_beforeFit'.format(tag, varname))
+            
+            if args.opt:
+                do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region) ##, do_ratio=False)
+            else:
                 do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region)
                 
             if args.pl:
