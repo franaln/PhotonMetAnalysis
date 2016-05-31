@@ -11,116 +11,60 @@ import os
 import sys
 import argparse
 import math
+import string, pickle, copy
 from rootutils import *
 from collections import OrderedDict
 
 from drawlib import colors_dict, labels_dict, calc_poisson_cl_upper, calc_poisson_cl_lower
 import subprocess
 
-region_name = 'SRL'
+parser = argparse.ArgumentParser(description='plot regions pull')
+    
+parser.add_argument('--ws', dest='workspace', required=True, help='Input workspace')
+parser.add_argument('-n', dest='region', help='L or H')
 
+args = parser.parse_args()
+
+workspace = args.workspace
+region_name = args.region
 region_type = region_name[-1]
-filename = "BkgOnlyFit_combined_BasicMeasurement_model_afterFit_%s.root" % region_name
 
+do_blind = True
 
 # regions
-if region_name == 'SRL':
-    regions = [
-        'CRM',
-        'CRLW',
-        'CRLT',
-        'VRQ',
-        # 'VRM50',
-        'VRM75',
-        'VRM100',
-        'VRR',
-        'VCRLWrt',
-        'VCRLWmet',
-        'VCRLTrt',
-        'VCRLTmet',
-        'SR',
+regions = [
+    'CRQ',
+    'CRW',
+    'CRT',
+    
+    'VRM1',
+    'VRM2',
+    # 'VRM3',
+    
+    'VRD1',
+    'VRD2',
+    # 'VRD3',
+    
+    'VRL1',
+    'VRL2',
+    # 'VRL3',
+    # 'VRL4',
+    
+    'SR',
     ]
-else:
-    regions = [
-        'CRM',
-        'CRLW',
-        'CRLT',
-        'VRQ',
-        'VRH',
-        'VCRLWht',
-        'VCRLWmet',
-        'VCRLTht',
-        'VCRLTmet',
-        'SR',
-    ]
-
-region_labels = {
-    'SR': 'SR',
-    'CRM': 'CRQ',
-    'CRLW': 'CRW',
-    'CRLT': 'CRT',
-    'VRQ': 'VRQ',
-    'VRM50': 'VRM50',
-    'VRM75': 'VRM75',
-    'VRM100': 'VRM100',
-    'VCRLWrt': 'VRWM',
-    'VCRLWmet':'VRWR',
-    'VCRLTrt': 'VRTM',
-    'VCRLTmet':'VRTR',
-    'VRH': 'VRH',
-    'VCRLWht': 'VRWH',
-    'VCRLTht': 'VRTH',
-}
-
 
 set_atlas_style()
 
 # Backgrounds
 backgrounds = [
+    'photonjet',
     'wgamma',
-    'zllgamma',
+    'zllgamma', 
     'znunugamma',
     'ttbarg',
-    'topgamma',
-    'vqqgamma',
-    'ttbarghad',
-    'efake',
     'jfake',
-    'photonjet_sherpa'
-]
-
-mu_q = {
-    'L': Value(0.94, 0.44),
-    'H': Value(1.22, 0.58),
-}
-
-mu_w = {
-    'L': Value(1.34, 0.89),
-    'H': Value(1.24, 0.39),
-}
-
-mu_t = {
-    'L': Value(1.40, 0.77),
-    'H': Value(0.54, 0.37),
-}
-
-
-def get_histogram(sample, variable, selection='', syst='Nom'):
-    hname = 'h%s%s_%s_obs_%s' % (sample, syst, region, variable)
-    hname = hname.replace('_all_', '_')
-    print hname
-
-    hist = cutsfile.Get(hname)
-    hist.SetDirectory(0)
-
-    return hist.Clone()
-
-
-
-import os, string, pickle, copy
-
-def getSampleColor(sample):
-    return 1
+    'efake',
+    ]
 
 def get_region_color(region):
 
@@ -133,14 +77,12 @@ def get_region_color(region):
 
     return 1
 
-def PoissonError(obs):
+def get_poisson_error(obs):
 
     posError = ROOT.TMath.ChisquareQuantile(1. - (1. - 0.68)/2. , 2.* (obs + 1.)) / 2. - obs - 1
     negError = obs - ROOT.TMath.ChisquareQuantile((1. - 0.68)/2., 2.*obs) / 2
 
-    symError = abs(posError-negError)/2.
-
-    return (posError, negError, symError)
+    return (posError, negError)
 
 def MakeBox(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
 
@@ -159,8 +101,6 @@ def MakeBox(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
 
     graph.SetFillColor(color)
     graph.SetLineColor(color)
-    # graph.SetLineWidth(1)
-    # graph.SetLineStyle(1)
 
     return graph
 
@@ -198,43 +138,44 @@ def GetFrame(prefix, npar, horizontal=False):
         frame.SetTitleOffset(1. , "X")
         frame.SetTitleSize(0.06, "X" )
         frame.GetYaxis().CenterLabels(1)
-        frame.GetYaxis().SetNdivisions( frame.GetNbinsY()+10, 1 );
+        frame.GetYaxis().SetNdivisions(frame.GetNbinsY()+10, 1)
 
     # global style settings
     ROOT.gPad.SetTicks();
-    frame.SetLabelFont(42,"X");
-    frame.SetTitleFont(42,"X");
-    frame.SetLabelFont(42,"Y");
-    frame.SetTitleFont(42,"Y");
+    frame.SetLabelFont(42, "X");
+    frame.SetTitleFont(42, "X");
+    frame.SetLabelFont(42, "Y");
+    frame.SetTitleFont(42, "Y");
 
     return copy.deepcopy(frame)
 
-def GetBoxes(allp, results, frame, horizontal=False):
+def GetBoxes(allp, regions_pull, frame, horizontal=False):
 
     counter = 0
-    myr = reversed(results)
+    myr = reversed(regions_pull)
     if horizontal:
-        myr = results
-    for info in myr:
-        name = info[0].replace(" ","")
-        name = info[0].replace("_cuts","")
+        myr = regions_pull
 
-        if name in region_labels.keys():
-            name = region_labels[name]
+    for region, pull in myr:
+        name = region.replace(" ","")
+        name = region.replace("_cuts","")
+        
+        if name == 'SR':
+            continue
 
 
         if horizontal:
             for b in xrange(1,frame.GetNbinsX()+2):
-                if frame.GetXaxis().GetBinLabel(b) != name: continue
+                if frame.GetXaxis().GetBinLabel(b) != name: 
+                    continue
                 counter = b - 1
                 break
-            #frame.GetXaxis().SetBinLabel(counter+1,name);
         else:
             frame.GetYaxis().SetBinLabel(counter+1,name);
 
         color = get_region_color(name)
 
-        graph = MakeBox(offset=counter, pull=float(info[1]), color=color, horizontal=horizontal)
+        graph = MakeBox(offset=counter, pull=pull, color=color, horizontal=horizontal)
         graph.Draw("LF")
 
         counter += 1
@@ -242,78 +183,101 @@ def GetBoxes(allp, results, frame, horizontal=False):
 
     return
 
-def make_hist(regions, results, hdata, hbkg, hbkg_up, hbkg_dn, graph_bkg, graph_bkg2, graph_bkg3, graph_data, graph_pull, hbkg_components):
 
+
+def make_hist_pull_plot(samples, regions, prefix, hresults):
+
+    ROOT.gStyle.SetOptStat(0000)
+
+    npar = len(regions)
+
+    # Make histograms
     ymax = 0
     ymin = 99999999999.
 
+    hdata = ROOT.TH1F(prefix, prefix, npar, 0, npar)
+    hbkg  = ROOT.TH1F("hbkg", "hbkg", npar,0, npar)
+
+    hbkg_components = []
+    for sam in samples.split(","):
+        h = ROOT.TH1F("hbkg_"+sam,"hbkg_"+sam, npar, 0, npar)
+        hbkg_components.append(h)
+
+    graph_bkg  = ROOT.TGraphAsymmErrors(npar)
+    graph_data = ROOT.TGraphAsymmErrors(npar)
+
     # loop over all the regions
-    for counter in xrange(len(regions)):
+    regions_pull = []
+    for counter, region in enumerate(regions):
 
-        n_obs = 0
-        n_exp = 0
+        # extract the information
+        for info in results:
+            if info[0] == region:
+                break
 
-        exp_syst = 0
+        name = region.replace(" ","")
 
+        n_obs = info[1]
+        n_exp = info[2]
+        exp_syst = info[3]
+        
         exp_stat = 0
         exp_stat_up = 0
         exp_stat_dn = 0
+
+        if n_exp > 0:
+            exp_stat = ROOT.TMath.Sqrt(n_exp)
+            exp_stat_up, exp_stat_dn = get_poisson_error(n_exp)
+        
 
         exp_total = 0
         exp_total_up = 0
         exp_total_dn = 0
 
+        # if not CR
+        #if name.find("CR") < 0:
+        exp_total    = ROOT.TMath.Sqrt(exp_stat*exp_stat + exp_syst*exp_syst)
+        exp_total_up = ROOT.TMath.Sqrt(exp_stat_up*exp_stat_up + exp_syst*exp_syst)
+        exp_total_dn = ROOT.TMath.Sqrt(exp_stat_dn*exp_stat_dn + exp_syst*exp_syst)
+      
+        # # if CR
+        # else:
+        #     exp_total = exp_syst
+
+
         pull = 0
+        if (n_obs - n_exp) > 0 and exp_total_up != 0:
+            pull = (n_obs - n_exp)/exp_total_up
+        if (n_obs - n_exp) <= 0 and exp_total_dn != 0:
+            pull = (n_obs - n_exp)/exp_total_dn
 
-        name = regions[counter].replace(" ","")
-        if name in region_labels.keys():
-            name = region_labels[name]
+        if -0.02 < pull < 0: 
+            pull = -0.02 ###ATT: ugly
+        if 0 < pull < 0.02:  
+            pull = 0.02 ###ATT: ugly
 
-        # extract the information
-        for info in results:
-            if regions[counter] in info[0]:
-                n_obs = info[2]
-                n_exp = info[3]
-                exp_syst = info[4]
+        if region.find("SR")>=0 and do_blind:
+            n_obs = -100
+            pull = 0
 
-                if n_exp > 0:
-                    exp_stat = ROOT.TMath.Sqrt(n_exp)
+        if n_obs == 0 and n_exp == 0:
+            pull = 0
+            n_obs = -100
+            n_pred = -100
+            exp_total = 0
+            exp_syst = 0
+            exp_stat = 0
+            exp_stat_up = 0
+            exp_stat_dn = 0
+            exp_total_up = 0
+            exp_total_dn = 0
 
-                exp_stat_tuple = PoissonError(n_exp)
-                exp_stat_up = exp_stat_tuple[0]
-                exp_stat_dn = exp_stat_tuple[1]
+        regions_pull.append((region, pull))
 
-                if name.find("CR") < 0:
-                    exp_total    = ROOT.TMath.Sqrt(exp_stat*exp_stat + exp_syst*exp_syst)
-                    exp_total_up = ROOT.TMath.Sqrt(exp_stat_up*exp_stat_up + exp_syst*exp_syst)
-                    exp_total_dn = ROOT.TMath.Sqrt(exp_stat_dn*exp_stat_dn + exp_syst*exp_syst)
-                else:
-                    exp_total = exp_syst
-
-                if (n_obs - n_exp)>=0 and exp_total_up != 0:
-                    pull = (n_obs-n_exp)/exp_total_up
-
-                if (n_obs - n_exp)<=0 and exp_total_dn != 0:
-                    pull = (n_obs-n_exp)/exp_total_dn
-
-                if n_obs == 0 and n_exp == 0:
-                    pull = 0
-                    n_obs = -100
-                    n_pred = -100
-                    exp_total = 0
-                    exp_syst = 0
-                    exp_stat = 0
-                    exp_stat_up = 0
-                    exp_stat_dn = 0
-                    exp_total_up = 0
-                    exp_total_dn = 0
-
-                #bkg components
-                compInfo = info[6]
-                for i in xrange(len(compInfo)):
-                    hbkg_components[i].SetBinContent(counter+1, compInfo[i][1])
-
-                break
+        #bkg components
+        compInfo = info[4]
+        for i in xrange(len(compInfo)):
+            hbkg_components[i].SetBinContent(counter+1, compInfo[i][1])
 
         if n_obs > ymax:
             ymax = n_obs
@@ -327,21 +291,18 @@ def make_hist(regions, results, hdata, hbkg, hbkg_up, hbkg_dn, graph_bkg, graph_
         if n_exp < ymin and n_exp != 0:
             ymin = n_exp
 
-
         graph_bkg.SetPoint(counter, hbkg.GetBinCenter(counter+1), n_exp)
-        graph_bkg.SetPointError(counter,0.5,0.5, exp_total_dn, exp_total_up)
+        graph_bkg.SetPointError(counter, 0.5, 0.5, exp_total_dn, exp_total_up)
 
-        # graph_bkg_up.SetPoint(counter,hbkg.GetBinCenter(counter+1), n_exp)
-        # graph_bkg_up.SetPointError(counter,0.5,0.5, exp_total_dn, exp_total_up)
-
-        # graph_bkg3.SetPoint(counter,hbkg.GetBinCenter(counter+1), n_exp)
-        # graph_bkg3.SetPointError(counter, 0.5, 0.5, 0, 0)
+        # graph_bkg2.SetPoint(counter, hbkg.GetBinCenter(counter+1), n_exp)
+        # graph_bkg2.SetPointError(counter, 0.5, 0.5, exp_total_dn, exp_total_up)
 
         graph_data.SetPoint(counter, hbkg.GetBinCenter(counter+1), n_obs)
 
-        #if n_obs > 0.:
-        binErrUp   = calc_poisson_cl_upper(0.68, n_obs) - n_obs
-        binErrLow  = n_obs - calc_poisson_cl_lower(0.68, n_obs)
+        binErrUp, binErrLow = 0,0
+        if n_obs > 0.:
+            binErrUp   = calc_poisson_cl_upper(0.68, n_obs) - n_obs
+            binErrLow  = n_obs - calc_poisson_cl_lower(0.68, n_obs)
 
         y_eu = binErrUp
         y_el = binErrLow
@@ -353,61 +314,23 @@ def make_hist(regions, results, hdata, hbkg, hbkg_up, hbkg_dn, graph_bkg, graph_
             x_eu = 0
             x_el = 0
 
-        graph_data.SetPointError(counter, x_el, x_eu, y_el, y_eu)
-
-        graph_pull.SetPoint(counter,hbkg.GetBinCenter(counter+1), pull)
-        graph_pull.SetPointError(counter,0.,0,0,0)
-
-
         hdata.GetXaxis().SetBinLabel(counter+1, name)
         hdata.SetBinContent(counter+1, n_obs)
-        #hdata.SetBinError(counter+1,0.00001)
         hdata.SetBinErrorOption(ROOT.TH1.kPoisson)
 
-        hbkg.SetBinContent(counter+1, n_exp)
-        hbkg.SetBinError(counter+1, exp_stat)
+        graph_data.SetPointError(counter, x_el, x_eu, y_el, y_eu)
 
-        hbkg_up.SetBinContent(counter+1, n_exp + exp_total_up)
-        hbkg_dn.SetBinContent(counter+1, n_exp - exp_total_dn)
+
+        hbkg.SetBinContent(counter+1, n_exp)
+        hbkg.SetBinError(counter+1, exp_total)
 
 
     hdata.SetMaximum(1000*ymax)
     hdata.SetMinimum(0.05)
 
-    return
 
 
-def make_hist_pull_plot(samples, regions, prefix, hresults):
-
-    ROOT.gStyle.SetOptStat(0000)
-
-    npar = len(regions)
-
-    hdata = ROOT.TH1F(prefix, prefix, npar, 0, npar);
-    #hdata.SetMarkerStyle(20)
-
-    hbkg    = ROOT.TH1F("hbkg", "hbkg", npar,0, npar);
-
-    hbkg_up = ROOT.TH1F("hbkg_up","hbkg_up", npar, 0, npar);
-    hbkg_up.SetLineStyle(2)
-
-    hbkg_dn = ROOT.TH1F("hbkg_dn", "hbkg_dn", npar, 0, npar);
-    hbkg_dn.SetLineStyle(2)
-
-    hbkg_components = []
-    for sam in samples.split(","):
-        h = ROOT.TH1F("hbkg_"+sam,"hbkg_"+sam, npar, 0, npar)
-        hbkg_components.append(h)
-
-
-    graph_bkg  = ROOT.TGraphAsymmErrors(npar)
-    graph_bkg2 = ROOT.TGraphAsymmErrors(npar)
-    graph_bkg3 = ROOT.TGraphAsymmErrors(npar)
-    graph_data = ROOT.TGraphAsymmErrors(npar)
-    graph_pull = ROOT.TGraphAsymmErrors(npar)
-
-    make_hist(regions, hresults, hdata, hbkg, hbkg_dn, hbkg_up, graph_bkg, graph_bkg2, graph_bkg3, graph_data, graph_pull, hbkg_components)
-
+    # Plot
     c = ROOT.TCanvas("c"+prefix,prefix,800,600);
 
     cup   = ROOT.TPad("u", "u", 0., 0.305, 0.99, 1)
@@ -444,66 +367,51 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     cup.cd()
 
+    ## bkg stack
     stack = ROOT.THStack("stack","stack")
 
-
-    # merge backgrounds
     to_merge = {}
     merged_bkgs = OrderedDict()
 
     for sample, hist in zip(samples.split(','), hbkg_components):
         to_merge[sample] = hist
 
-    merged_bkgs['gamjet'] = to_merge['photonjet_sherpa']
-    merged_bkgs['tgamma'] = to_merge['topgamma'] + to_merge['ttbarg'] + to_merge['ttbarghad']
+    merged_bkgs['gamjet'] = to_merge['photonjet']
+    merged_bkgs['tgamma'] = to_merge['ttbarg'] #+ to_merge['ttbarghad'] to_merge['topgamma'] + 
     merged_bkgs['efake'] = to_merge['efake']
     merged_bkgs['jfake'] = to_merge['jfake']
-    merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['vqqgamma'] + to_merge['znunugamma']
+    merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] #+ to_merge['vqqgamma']
 
-    hbkgComponents = merged_bkgs
-
-    for sam, h in hbkgComponents.iteritems():
+    for sam, h in merged_bkgs.iteritems():
         set_style(h, color=colors_dict[sam], fill=True)
 
-    # SM stack
     def _compare(a, b):
         amax = a.GetMaximum()
         bmax = b.GetMaximum()
         return cmp(int(amax), int(bmax))
 
-    for hist in sorted(hbkgComponents.itervalues(), _compare):
+    for hist in sorted(merged_bkgs.itervalues(), _compare):
         stack.Add(hist)
 
+    # for hist in merged_bkgs.itervalues():
+    #     stack.Add(hist)
 
     # Total background
-    sm_total = None
-    sm_totalerr = None
     sm_total_style = 3354
     sm_total_color = ROOT.kGray+3
 
-    sm_stat_color = ROOT.kGray+1
-    sm_syst_color = ROOT.kGray+3
+    hbkg_total = hbkg.Clone()
 
-    for h in hbkgComponents.itervalues():
-        if sm_total is None:
-            sm_total = histogram_equal_to(h)
+    hbkg.SetLineWidth(2)
+    hbkg.SetLineColor(sm_total_color)
+    hbkg.SetFillColor(0)
+    hbkg.SetMarkerSize(0)
 
-        sm_total += h
-
-
-    sm_total_stat = sm_total.Clone()
-
-
-    sm_total.SetLineWidth(2)
-    sm_total.SetLineColor(sm_total_color)
-    sm_total.SetFillColor(0)
-    sm_total.SetMarkerSize(0)
-
-    sm_total_stat.SetFillColor(sm_total_color)
-    sm_total_stat.SetLineColor(sm_total_color)
-    sm_total_stat.SetFillStyle(sm_total_style)
-    sm_total_stat.SetLineWidth(2)
-    sm_total_stat.SetMarkerSize(0)
+    hbkg_total.SetFillColor(sm_total_color)
+    hbkg_total.SetLineColor(sm_total_color)
+    hbkg_total.SetFillStyle(sm_total_style)
+    hbkg_total.SetLineWidth(2)
+    hbkg_total.SetMarkerSize(0)
 
     # add entries to legend
     legymin = 0.55
@@ -515,23 +423,20 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
     legend2 = legend(legxmin, legymin-.15, legxmax-0.035, legymin -.01)
 
-    for name, hist in hbkgComponents.iteritems():
+    for name, hist in merged_bkgs.iteritems():
         legend1.AddEntry(hist, labels_dict[name], 'f')
 
-    legend1.AddEntry(sm_total_stat, "stat #oplus syst", 'f')
+    legend1.AddEntry(hbkg_total, "stat #oplus syst", 'f')
     legend1.AddEntry(graph_data, labels_dict['data'], 'pl')
 
-
-
-    graph_bkg.SetLineWidth(2)
-    graph_bkg.SetMarkerSize(0)
-    graph_bkg.SetFillStyle(sm_total_style)
-    graph_bkg.SetLineColor(sm_total_color)
-    graph_bkg.SetFillColor(sm_total_color)
+    # graph_bkg.SetLineWidth(2)
+    # graph_bkg.SetMarkerSize(0)
+    # graph_bkg.SetFillStyle(sm_total_style)
+    # graph_bkg.SetLineColor(sm_total_color)
+    # graph_bkg.SetFillColor(sm_total_color)
 
     set_style(graph_data, msize=1, lwidth=2, color=ROOT.kBlack)
     set_style(hdata, msize=1, lwidth=2, color=ROOT.kBlack)
-
 
     hdata.GetYaxis().SetTitle("Number of events")
     hdata.GetYaxis().SetTitleSize(0.05)
@@ -539,27 +444,22 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     hdata.GetXaxis().SetLabelSize(0.06)
     hdata.GetYaxis().SetLabelSize(0.05)
 
+    # current
+    hdata.Draw('p')
+    stack.Draw("histsame")
+    graph_data.Draw("P0Z")
+    hbkg.Draw("histsame")
+    hbkg_total.Draw("E2same][")
+    graph_data.Draw("P0Z")
 
-    hdata.Draw('e0')
-    #graph_data.Draw("P0Z")
-    stack.Draw("same")
-    # hbkg.Draw("hist,same")
-    # hbkg_up.Draw("hist,same")
-    # hbkg_dn.Draw("hist,same")
-    # sm_total.Draw("histsame")
 
-    graph_bkg.Draw("P2same")
-    sm_total.Draw("histsame")
-    #graph_data.Draw("P0Z")
-    hdata.Draw('e0same')
-
-    text = '#sqrt{s} = 8 TeV, 20.3 fb^{-1}'
+    text = '#sqrt{s} = 13 TeV, ~3.2 fb^{-1}'
     t = ROOT.TLatex(0, 0, text)
     t.SetNDC()
     t.SetTextFont(42)
     t.SetTextSize(0.05)
     t.SetTextColor(ROOT.kBlack)
-    t.DrawLatex(0.15, 0.70, text)
+    t.DrawLatex(0.15, 0.73, text)
 
 
     legend1.Draw()
@@ -576,79 +476,13 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     frame.Draw()
 
     allp = []
-    GetBoxes(allp, hresults, frame, True)
-
-    c.Print("histpull_"+prefix+".pdf")
+    GetBoxes(allp, regions_pull, frame, True)
+    
+    c.Print("pull_regions_"+prefix+".pdf")
 
     return
 
 
-
-# h_comp_bkg = OrderedDict()
-# for name in backgrounds:
-#     h_comp_bkg[name] = ROOT.TH1F(name, name, len(regions), 0, len(regions))
-
-# h_comp_data = ROOT.TH1F('data', 'data', len(regions), 0, len(regions))
-
-
-# for i, region in enumerate(regions):
-
-#     # get regions histogram
-#     h_region_data = get_histogram('data', 'cuts', region)
-
-
-#     h_region_bkg = dict()
-#     for name in h_comp_bkg.iterkeys():
-#         h_region_bkg[name] = get_histogram(name, 'cuts', region)
-
-
-#     # scale bkgs
-#     histogram_scale(h_region_bkg['photonjet_sherpa'], mu_q[region_type])
-
-#     histogram_scale(h_region_bkg['wgamma'], mu_w[region_type])
-#     histogram_scale(h_region_bkg['vqqgamma'], mu_w[region_type])
-
-#     histogram_scale(h_region_bkg['ttbarg'], mu_t[region_type])
-#     histogram_scale(h_region_bkg['ttbarghad'], mu_t[region_type])
-
-
-
-
-#     # add to composition histogram
-#     n = h_region_data.GetBinContent(1)
-#     e = h_region_data.GetBinError(1)
-
-#     h_comp_data.SetBinContent(i+1, n)
-#     h_comp_data.SetBinError(i+1, e)
-
-#     h_comp_data.GetXaxis().SetBinLabel(i+1, region)
-
-#     for name in h_comp_bkg.iterkeys():
-#         n = h_region_bkg[name].GetBinContent(1)
-#         e = h_region_bkg[name].GetBinError(1)
-
-#         h_comp_bkg[name].SetBinContent(i+1, n)
-#         h_comp_bkg[name].SetBinError(i+1, e)
-
-#         h_comp_bkg[name].GetXaxis().SetBinLabel(i+1, region)
-
-
-
-
-# # merge backgrounds
-# merged_bkgs = OrderedDict()
-
-# merged_bkgs['gamjet'] = h_comp_bkg['photonjet_sherpa']
-# merged_bkgs['tgamma'] = h_comp_bkg['topgamma'] + h_comp_bkg['ttbarg'] + h_comp_bkg['ttbarghad']
-# merged_bkgs['efake'] = h_comp_bkg['efake']
-# merged_bkgs['jfake'] = h_comp_bkg['jfake']
-# merged_bkgs['vgamma'] = h_comp_bkg['wgamma'] + h_comp_bkg['zllgamma'] + h_comp_bkg['vqqgamma'] + h_comp_bkg['znunugamma']
-
-# h_comp_bkg = merged_bkgs
-
-
-# # plot!
-# drawlib.do_plot('region_composition', 'cuts', data=h_comp_data, bkg=h_comp_bkg, do_ratio=True, ratio_type='significance')
 
 
 # Run YieldsTable.py with all regions and samples requested
@@ -656,16 +490,10 @@ pickleFilename = "yield_%s_all.pickle" % (region_name)
 
 samples = ','.join(backgrounds)
 
-if not os.path.isfile(pickleFilename):
-    cmd = "YieldsTable.py -c %s -s %s -w %s -o yield_%s_all.tex -t %s" % (",".join(regions), samples, filename, region_name, region_name)
-    print cmd
-    subprocess.call(cmd, shell=True)
-
-
-# Open the pickle
-# makePullPlot(pickleFilename, regionList, samples, renamedRegions, region, False)
-
-
+#if not os.path.isfile(pickleFilename):
+cmd = "YieldsTable.py -c %s -s %s -w %s -o yield_%s_all.tex -t %s" % (",".join(regions), samples, workspace, region_name, region_name)
+print cmd
+subprocess.call(cmd, shell=True)
 
 try:
     picklefile = open(pickleFilename,'rb')
@@ -685,34 +513,16 @@ for region in mydict["names"]:
 
     exp_syst = mydict["TOTAL_FITTED_bkg_events_err"][index]
 
-    exp_stat_tuple = PoissonError(n_exp)
-    exp_stat = exp_stat_tuple[2]
+    # exp_stat_dn, exp_stat_up = get_poisson_error(n_exp)
 
-    total_u  = ROOT.TMath.Sqrt(exp_syst*exp_syst + exp_stat_tuple[2]*exp_stat_tuple[2])
-    total_ul = ROOT.TMath.Sqrt(exp_syst*exp_syst + exp_stat_tuple[1]*exp_stat_tuple[1])
-    total_uh = ROOT.TMath.Sqrt(exp_syst*exp_syst + exp_stat_tuple[0]*exp_stat_tuple[0])
-
-    if (n_obs-n_exp) > 0 and total_uh != 0:
-        pull = (n_obs-n_exp)/total_uh
-
-    if (n_obs-n_exp) <= 0 and total_ul != 0:
-        pull = (n_obs-n_exp)/total_ul
+    # exp_tot_up = ROOT.TMath.Sqrt(exp_syst*exp_syst + pEr[2]*pEr[2])                
+    # exp_tot_dn = ROOT.TMath.Sqrt(exp_syst*exp_syst + pEr[1]*pEr[1])
 
     n_exp_components = []
     for sam in samples.split(","):
         n_exp_components.append((sam, mydict["Fitted_events_"+sam][index]))
 
-    if -0.02 < pull < 0:
-        pull = -0.02 ###ATT: ugly
-
-    if 0 < pull < 0.02:
-        pull = 0.02 ###ATT: ugly
-
-    # if region.find("SR")>=0 and doBlind:
-    #     nbObs = -100
-    #     pull = 0
-
-    results.append((region, pull, n_obs, n_exp, exp_syst, total_u, n_exp_components))
+    results.append((region, n_obs, n_exp, exp_syst, n_exp_components))
 
 
 #pull

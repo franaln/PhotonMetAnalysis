@@ -79,7 +79,7 @@ systematics_jet_w = [
     'FT_EFF_C_systematics__1down',     'FT_EFF_C_systematics__1up',
     'FT_EFF_Light_systematics__1down',     'FT_EFF_Light_systematics__1up',
     'FT_EFF_extrapolation__1down',     'FT_EFF_extrapolation__1up',
-    'FT_EFF_extrapolation from charm__1down',     'FT_EFF_extrapolation from charm__1up',
+#    'FT_EFF_extrapolation from charm__1down',     'FT_EFF_extrapolation from charm__1up',
     'JvtEfficiencyDown', 'JvtEfficiencyUp',     
     'JvtEfficiencyDown', 'JvtEfficiencyUp',
 ]
@@ -99,21 +99,33 @@ systematics_photon_w = [
     'PH_EFF_ID_Uncertainty__1down', 'PH_EFF_ID_Uncertainty__1up',
     ]
 
-all_systematics = [
-    'EG_RESOLUTION_ALL__1down', 'EG_RESOLUTION_ALL__1up',
-    'EG_SCALE_ALL__1down', 'EG_SCALE_ALL__1up',
-    'MUONS_SCALE__1down', 'MUONS_SCALE__1up',
-    'MUONS_MS__1down',     'MUONS_MS__1up',
-    'MUONS_ID__1down',     'MUONS_ID__1up',
-    'JET_GroupedNP_1__1down', 'JET_GroupedNP_1__1up',
-    'JET_GroupedNP_2__1down',     'JET_GroupedNP_2__1up',
-    'JET_GroupedNP_3__1down',     'JET_GroupedNP_3__1up',
-    'JET_JER_SINGLE_NP__1up',
-    'MET_SoftTrk_ResoPara',
-    'MET_SoftTrk_ResoPerp',
-    'MET_SoftTrk_ScaleDown', 'MET_SoftTrk_ScaleUp',
+# systematics_efake_w = [
+#     'efakeLow', 'efakeHigh'
+#     ]
+
+syst_kin = systematics_egamma_kin + systematics_jet_kin + systematics_muon_kin + systematics_met
+syst_weights = systematics_electron_w + systematics_jet_w + systematics_muon_w + systematics_photon_w
+
+systematics_oneside = [
+        'MET_SoftTrk_ResoPara',
+        'MET_SoftTrk_ResoPerp',
+        'JET_JER_SINGLE_NP__1up',
 ]
 
+def get_one_side_systematics():
+    return systematics_oneside
+
+def get_high_low_systematics():
+
+    systematics = syst_kin + syst_weights
+
+    for sys in systematics_oneside:
+        systematics.remove(sys)
+        
+    systematics = [ i.replace('__1down', '').replace('__1up', '') for i in systematics ]
+    systematics = [ i.replace('Down', '').replace('Up', '') for i in systematics ]
+
+    return list(set(systematics))
 
 
 
@@ -124,7 +136,6 @@ variables_el  = ['el_n', ]
 variables_mu  = ['mu_n', ]
 variables_met = ['met_et', 'met_phi']
 variables_kin = ['ht', 'meff', 'rt2', 'rt4', 'dphi_gammet', 'dphijetmet', 'dphi_gamjet']
-
 
 def get_affected_variables(syst):
 
@@ -141,5 +152,9 @@ def get_affected_variables(syst):
         return variables_met + variables_kin
 
 
+def affects_weight(syst):
+    return syst in syst_weights
 
+def affects_kinematics(syst):
+    return syst in syst_kin
 
