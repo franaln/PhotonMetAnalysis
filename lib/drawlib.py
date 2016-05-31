@@ -15,8 +15,9 @@ mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]
 labels_dict = dict()
 labels_dict['data']   = 'Data 2015'
 labels_dict['photonjet'] = '#gamma + jets'
+labels_dict['gamjet']    = '#gamma + jets'
 labels_dict['photonjet_25ns'] = '#gamma + jets'
-labels_dict['tgamma'] = 't#bar{t} / t#bar{t} #gamma' # /single-t #gamma'
+labels_dict['tgamma'] = 't#bar{t} #gamma' # /single-t #gamma'
 labels_dict['vgamma'] = 'W/Z #gamma'
 labels_dict['znngam'] = 'Z(#nu#nu) #gamma'
 labels_dict['efake']  = 'e#rightarrow#gamma fake'
@@ -40,6 +41,7 @@ labels_dict['GGM_M3_mu_1700_1375'] = '(1700, 1375)' #m_{#tilde{g}} = 1522, ' + m
 # colours for the dict
 colors_dict = dict()
 colors_dict['photonjet'] = '#E24A33'
+colors_dict['gamjet'] = '#E24A33'
 colors_dict['tgamma']    = '#32b45d'
 colors_dict['vgamma']    = '#f7fab3'
 colors_dict['znngam']    = '#7A68A6'
@@ -138,7 +140,7 @@ def calc_poisson_cl_upper(q, obs):
 
 def make_poisson_cl_errors(hist):
 
-    x_val = array('f')
+    x_val  = array('f')
     y_val = array('f')
     x_errU = array('f')
     x_errL = array('f')
@@ -282,10 +284,10 @@ def do_plot(plotname,
         sm_stat_color = ROOT.kGray+1
         sm_syst_color = ROOT.kGray+3
 
-        for h in bkg.itervalues():
-            if sm_total is None:
-                sm_total = histogram_equal_to(h)
-            sm_total += h
+        # for h in bkg.itervalues():
+        #     if sm_total is None:
+        #         sm_total = histogram_equal_to(h)
+        #     sm_total += h
 
         sm_total = None
         for h in bkg.itervalues():
