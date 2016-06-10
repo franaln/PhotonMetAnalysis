@@ -18,7 +18,7 @@ import miniutils
 import regions as regions_
 from mass_dict import mass_dict
 from signalxs import gg_xs, gg_xs_unc
-from systematics import all_systematics
+import systematics
 
 fzero = 0.0001
 
@@ -34,6 +34,7 @@ def main():
     parser.add_argument('-s', dest='samples', help='samples (comma separated)')
     parser.add_argument('-n', help='"L" or "H"', required=True)
 
+    parser.add_argument('--add', action='store_true')
     parser.add_argument('--dosyst', action='store_true')
 
     args = parser.parse_args()
@@ -43,7 +44,7 @@ def main():
     region_number = args.n
     
     if args.regions is None:
-        args.regions = 'SR,CRQ,CRW,CRT'
+        args.regions = 'SR,CRQ,CRW,CRT,VRM1,VRM2,VRM3,VRD1,VRD2,VRD3,VRH,VRL1,VRL2,VRL3,VRL4'
         
     regions = [ '%s_%s' % (r, region_number) for r in args.regions.split(',') ]
    
@@ -90,26 +91,17 @@ def main():
     do_syst = args.dosyst
 
     ## high-low systematics
-    systematics_expHL = [
-        'EG_RESOLUTION_ALL',
-        'EG_SCALE_ALL',
-        'MUONS_SCALE',
-        'MUONS_MS',
-        'MUONS_ID',
-        'JET_GroupedNP_1',
-        'JET_GroupedNP_2',
-        'JET_GroupedNP_3',
-        'MET_SoftTrk_Scale',
-        ]
+    systematics_expHL = systematics.get_high_low_systematics()
 
     ## one-sided systematics
-    systematics_expOS = [
-        'MET_SoftTrk_ResoPara',
-        'MET_SoftTrk_ResoPerp',
-        'JET_JER_SINGLE_NP__1up',
-    ]
+    systematics_expOS = systematics.get_one_side_systematics()
+    
 
-    # signal xs: signal cross section uncertainty depends only on gluion mass (~M3) -->dict key
+    existing_histograms = []
+    if args.add:
+        f = ROOT.TFile.Open(args.output)
+        existing_histograms = [ key.GetName() for key in f.GetListOfKeys() ]
+        f.Close()
     
 
     # create histograms
@@ -148,40 +140,30 @@ def main():
                 if 'data' in sample and region_name == 'SR':
                     hist.SetBinContent(1, 0.0)
 
-
-                #name = hist.GetName() 
-                #hist.SetName(name.replace('met_et', 'met'))
-               
                 histograms.append(hist)
 
-                if do_syst:
 
+                if do_syst:
+                    
                     if sample in data:
                         continue
 
-                    # one side systematics
-                    for syst in systematics_expOS:
+                    if sample not in data+dd:
 
-                        if sample in dd:
-                            h_low  = hist.Clone(hist.GetName().replace('Nom', syst+'Low'))
-                            h_high = hist.Clone(hist.GetName().replace('Nom', syst+'High'))
+                        # one side systematics
+                        for syst in systematics_expOS:
 
-                        else:
-                            h_low = hist.Clone(hist.GetName().replace('Nom', syst+'Low'))
+                            h_low = hist.Clone(hist.GetName().replace('Nom', syst.replace('__1up', '')+'Low'))
 
                             h_high = get_histogram(syst=syst)
                             h_high.SetName(h_high.GetName().replace(syst, syst+'High'))
 
-                        histograms.append(h_low)
-                        histograms.append(h_high)
+                            histograms.append(h_low)
+                            histograms.append(h_high)
 
-                    # High-Low detector systematics
-                    for syst in systematics_expHL:
+                        # High-Low detector systematics
+                        for syst in systematics_expHL:
 
-                        if sample in dd:
-                            h_low  = hist.Clone(hist.GetName().replace('Nom', syst+'Low'))
-                            h_high = hist.Clone(hist.GetName().replace('Nom', syst+'High'))
-                        else:
                             if syst in ['MET_SoftTrk_Scale', ]:
                                 h_low  = get_histogram(syst=syst+'Down')
                                 h_high = get_histogram(syst=syst+'Up')
@@ -189,48 +171,29 @@ def main():
                                 h_low  = get_histogram(syst=syst+'__1down')
                                 h_high = get_histogram(syst=syst+'__1up')
 
+                            histograms.append(h_low)
+                            histograms.append(h_high)
+                    
+                        # # btag: only in the regions with bjet tag/veto
+                        # if 'CRL' in region_name:
+                        #     for syst in ['BJET', 'CJET', 'BMISTAG']:
+                            
+                        #         h_low  = get_histogram(sample, variable, region_name, selection, syst+'DOWN')
+                        #         h_high = get_histogram(sample, variable, region_name, selection, syst+'UP')
+
+                        #         histograms.append(h_low)
+                        #         histograms.append(h_high)
+
+
+                    # data driven
+                    ## efakes 
+                    if sample == 'efake':
+                        
+                        h_low = get_histogram(syst='FegLow')
+                        h_high = get_histogram(syst='FegHigh')
+
                         histograms.append(h_low)
                         histograms.append(h_high)
-                    
-                    # # btag: only in the regions with bjet tag/veto
-                    # if 'CRL' in region_name:
-                    #     for syst in ['BJET', 'CJET', 'BMISTAG']:
-
-                    #         h_low  = get_histogram(sample, variable, region_name, selection, syst+'DOWN')
-                    #         h_high = get_histogram(sample, variable, region_name, selection, syst+'UP')
-
-                    #         histograms.append(h_low)
-                    #         histograms.append(h_high)
-
-                    # # jes systematics
-                    # if not sample in dd:
-                    #     for syst in systematics_jes:
-
-                    #         h_low  = get_histogram(sample, variable, region_name, selection, syst+'Down')
-                    #         h_high = get_histogram(sample, variable, region_name, selection, syst+'Up')
-
-                    #         histograms.append(h_low)
-                    #         histograms.append(h_high)
-                           
-
-
-                    # # data driven
-                    # ## efakes 
-                    # if sample == 'efake':
-                        
-                    #     syst = 'eFakeRate'
-                    #     efakeUpperUnc = 0.03 #upper limit in case of zero-events
-
-                    #     h_high = get_histogram(sample, variable, region_name, selection, 'EFAKE')
-                    #     h_high.SetName(h_high.GetName().replace('EFAKE', syst+'High'))
-
-                    #     if h_high.GetEntries() == 0:
-                    #         h_high.Fill(1, efakeUpperUnc)
-                        
-                    #     h_low = hist.Clone(hist.GetName().replace('Nom', syst+'Low'))
-
-                    #     histograms.append(h_low)
-                    #     histograms.append(h_high)
 
                     # ## jet fakes 
                     # if sample == 'jfake':
@@ -250,7 +213,7 @@ def main():
                     sigma, sigma_up, sigma_dn = None, None, None
                         
                     ## photonjet
-                    if sample == 'photonjet_sherpa':
+                    if sample == 'photonjet':
 
                         # ### generator (vs Pythia)
                         # syst = 'theoSysGJgen'
@@ -263,9 +226,8 @@ def main():
                         # histograms.append(h_low)
                         # histograms.append(h_high)
                         
-                        ### difference between sherpa and pythia at truth level
                         syst = 'theoSysGJ'
-                        sigma = 1.
+                        sigma = 0.45 # FIX: ~ from Run 1
 
                     # ## ttbar
                     # if sample == 'ttbar':
@@ -275,7 +237,7 @@ def main():
                     ## ttbargamma
                     if 'ttbarg' in sample:
                         syst = 'theoSysTopG'
-                        sigma = 1
+                        sigma = 0.2 # FIX: ~ from Run 1
 
                     # ## single top gamma
                     # if 'topgamma' in sample:
@@ -285,7 +247,7 @@ def main():
                     ## wgamma
                     if 'wgamma' in sample:
                         syst = 'theoSysWG'
-                        sigma = 1
+                        sigma = 0.2 # FIX ~ from Run 1
                     
                     ## zgamma
                     if ('zllgamma' in sample) or ('znunugamma' in sample):

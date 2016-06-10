@@ -23,19 +23,46 @@ backgrounds = [
     ]
 
 regions = [
-    'CRQ_L',
-    'CRW_L',
-    'CRT_L',
+    # 'CRQ_L',
+    # 'CRW_L',
+    # 'CRT_L',
 
-    'CRQ_H',
-    'CRW_H',
-    'CRT_H',
+    # 'CRQ_H',
+    # 'CRW_H',
+    # 'CRT_H',
     
-    'VR1_L',
-    'VR2_L',
-    'VR3_L',
-    'VR4_L',
-]
+    # 'VRM1_L',
+    # 'VRM2_L',
+    # 'VRM3_L',
+
+    # 'VRD1_L',
+    # 'VRD2_L',
+    # 'VRD3_L',
+
+    # 'VRD4_L',
+    # 'VRD5_L',
+
+    # 'VRM1_H',
+    # 'VRM2_H',
+    'VRM3_H',
+
+    'VRD1_H',
+    'VRD2_H',
+    'VRD3_H',
+
+    # 'VRL1_L',
+    # 'VRL2_L',
+    # 'VRL3_L',
+    # 'VRL4_L',
+
+    # 'VRL1_H',
+    # 'VRL2_H',
+    # 'VRL3_H',
+    # 'VRL4_H',
+
+    # 'VRH_L',
+    # 'VRH_H',
+ ]
 
 
 for region in regions:
