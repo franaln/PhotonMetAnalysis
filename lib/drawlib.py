@@ -937,12 +937,11 @@ def do_plot(plotname,
 
 
 def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
-               zmin=None, zmax=None, options='colz'):
+               zmin=None, zmax=None, options='colz', text=None):
 
     if 'text' in options:
         for bx in xrange(hist.GetNbinsX()):
             for by in xrange(hist.GetNbinsY()):
-                
                 content = hist.GetBinContent(bx+1, by+1)
                 hist.SetBinContent(bx+1, by+1, round(content, 2))
 
@@ -975,7 +974,7 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     hist.SetStats(0)
     hist.SetTitle('')
     hist.GetXaxis().SetTitleOffset(1.2)
-    hist.GetYaxis().SetTitleOffset(1.4)
+    hist.GetYaxis().SetTitleOffset(1.5)
     hist.GetZaxis().SetTitleOffset(1.2)
 
 
@@ -1001,6 +1000,16 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     else:
         hist.Draw(options)
 
+    if text is not None:
+        
+        tx, ty, ttext = text
+
+        l = ROOT.TLatex()
+        l.SetNDC()
+        l.SetTextSize(0.035)
+        l.SetTextColor(ROOT.kBlack)
+        l.DrawLatex(tx, ty, ttext)
+
     outname = plotname.replace(':', '_').replace('[','').replace(']', '')
     
     can.SaveAs(outname+'.pdf')
@@ -1010,6 +1019,7 @@ def do_plot_cmp(plotname,
                 variable, 
                 histograms,
                 do_ratio=True, 
+                ratio_type='ratio',
                 normalize=False,
                 logy=True):
     
@@ -1092,7 +1102,6 @@ def do_plot_cmp(plotname,
         up_size = calc_size(can)
         dn_size = calc_size(can) 
 
-
     # configure histograms
     # for (name, hist) in histograms:
     #     try:
@@ -1101,11 +1110,9 @@ def do_plot_cmp(plotname,
     #     except:
     #         pass
 
-
-
     # add entries to legend
     if do_ratio:
-        legymin = 0.65
+        legymin = 0.60
         legymax = 0.88
 
         if legpos == 'left':
@@ -1125,7 +1132,10 @@ def do_plot_cmp(plotname,
             legxmin = 0.65
             legxmax = 0.92
 
-    legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
+    if len(histograms) > 5:
+        legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
+    else:
+        legend1 = legend(legxmin, legymin, legxmax, legymax)
 
     for (name, hist) in histograms:
         legend1.AddEntry(hist, labels_dict.get(name, name))
@@ -1149,7 +1159,7 @@ def do_plot_cmp(plotname,
     else:
         can.RedrawAxis()
 
-    chist.SetMinimum(0.1)
+    chist.SetMinimum(0.05)
 
     if logy:
         if 'dphi' in variable:
@@ -1182,7 +1192,6 @@ def do_plot_cmp(plotname,
     for (name, hist) in histograms[1:]:
         hist.Draw('hist same')
 
-
     if do_ratio:
         cup.RedrawAxis()
     else:
@@ -1199,17 +1208,26 @@ def do_plot_cmp(plotname,
     if do_ratio and len(histograms) > 1:
 
         ratios = []
-        for (name, hist) in histograms[1:]:
+        if ratio_type == 'diff':
 
-            ratio = hist.Clone()
-            ratio.Divide(histograms[0][1])
+            reference = histograms[0][1]
 
-            ratios.append(ratio)
+            ratios = []
+            for (name, hist) in histograms[1:]:
 
-        # remove the point from the plot if zero
-        # for b in xrange(ratio.GetNbinsX()):
-        #     if ratio.GetBinContent(b+1) < 0.00001:
-        #         ratio.SetBinContent(b+1, -1)
+                ratio = hist.Clone()
+                ratio.Add(reference, -1)
+                ratio.Divide(reference)
+
+                ratios.append(ratio)
+
+        else:
+
+            for (name, hist) in histograms[1:]:
+                ratio = hist.Clone()
+                ratio.Divide(histograms[0][1])
+
+                ratios.append(ratio)
 
         cdown.cd()
         ratios[0].SetTitle('')
@@ -1231,7 +1249,10 @@ def do_plot_cmp(plotname,
             ratios[0].GetXaxis().SetNdivisions(508)
 
         # y axis
-        ratios[0].GetYaxis().SetTitle('Ratio')
+        if ratio_type == 'diff':
+            ratios[0].GetYaxis().SetTitle('Rel. diff.')
+        else:
+            ratios[0].GetYaxis().SetTitle('Ratio')
         ratios[0].GetYaxis().CenterTitle()
         ratios[0].GetYaxis().SetLabelSize(ratio_ylabel_size)
         ratios[0].GetYaxis().SetTitleSize(ratio_ytitle_size)

@@ -9,16 +9,19 @@ from binning import get_binning
 from signalxs import get_gg_xs, get_ewk_xs, get_ewk_sumw
 from xs_dict import xs_dict
 import samples
-from systematics import get_affected_variables
+import systematics
 
 
-MiniDir  = '/ar/pcunlp001/raid/falonso/mini2/'
-TruthDir =  '/afs/cern.ch/work/f/falonso/Susy/Run2/PhotonMetNtuple/output_truth_final/'
+MiniDir   = '/ar/pcunlp001/raid/falonso/mini2/'
+MiniDir2  = '/ar/pcunlp002/disk/falonso/mini2/'
+TruthDir = '/afs/cern.ch/work/f/falonso/Susy/Run2/PhotonMetNtuple/output_truth_final/'
 
-#lumi_data = 3316.68 # 3.32 fb-1
-lumi_data = 3209.80 # 3.2 fb-1
+lumi_data_201 = 3209.05 # 3.2 fb-1
+lumi_data_207 = 3324.5
 
-versions = ['21', '20', '19', '18f', '16f',]
+lumi_data = lumi_data_201
+
+versions = ['24', '22', '21', '20', '19', '18f', '16f',]
 
 #------------
 # Cuts utils
@@ -44,34 +47,6 @@ def invert_cut(s):
         newop = op
 
     return '%s %s %s' % (var, newop, value)
-
-
-def blind_selection(variable, region_name, selection):
-    
-    import regions
-
-    #if region_name[-1] == 'L':
-    sr = regions.SR_L
-    # elif region_name[-1] == 'H':
-    #     sr = regions.SR_H
-
-    sel_cuts = selection.split('&&')
-    sr_cuts  = sr.split('&&')
-
-    new_selection = []
-    for cut in sel_cuts:
-        if split_cut(cut)[0] == variable:
-            
-            for srcut in sr_cuts:
-                if split_cut(srcut)[0] == variable:
-                    new_selection.append(invert_cut(srcut))
-                    break
-            else:
-                new_selection.append(cut)
-        else:
-            new_selection.append(cut)
-
-    return '&&'.join(new_selection)
 
 
 def check_cut(value, op, cut):
@@ -193,13 +168,19 @@ def get_datasets(name, version=None):
         except:
             return [] 
 
-
     flist = []
     for s in slist:
 
         if version is not None:
-            
-            path = MiniDir + '/v' + version + '/' + '%s.mini_v%s_output.root' % ('.'.join(s.split('.')[0:3]), version)
+
+            mini_dir = MiniDir
+            try:
+                if int(version) > 22:
+                    mini_dir = MiniDir2
+            except:
+                pass
+
+            path = mini_dir + '/v' + version + '/' + '%s.mini_v%s_output.root' % ('.'.join(s.split('.')[0:3]), version)
 
             if os.path.isfile(path):
                 flist.append(path)
@@ -207,12 +188,16 @@ def get_datasets(name, version=None):
                 print path + ' doesn\'t exist'
             
         else:
-            # if 'GGM_mu' in s:
-            #     versions.insert(0, '19')
-
             for version in versions:
                 
-                path = MiniDir + '/v' + version + '/' + '%s.mini_v%s_output.root' % ('.'.join(s.split('.')[0:3]), version)
+                mini_dir = MiniDir
+                try:
+                    if int(version) > 22:
+                        mini_dir = MiniDir2
+                except:
+                    pass
+
+                path = mini_dir + '/v' + version + '/' + '%s.mini_v%s_output.root' % ('.'.join(s.split('.')[0:3]), version)
 
                 if os.path.isfile(path):
                     flist.append(path)
@@ -254,7 +239,6 @@ def _get_histogram(sample, path, **kwargs):
     scale      = kwargs.get('scale', True)
     remove_var = kwargs.get('remove_var', False)
     invert_var = kwargs.get('invert_var', False)
-    blind      = kwargs.get('blind', False)
     truth      = kwargs.get('truth', False)
     lumi       = kwargs.get('lumi', None)
     binning    = kwargs.get('binning', None)
@@ -308,24 +292,6 @@ def _get_histogram(sample, path, **kwargs):
     #-----------
     # Selection
     #-----------
-    # # blind selection
-    # if blind:
-    #     selection = blind_selection(variable, region, selection)
-
-    # # invert variable cut for blinded plots
-    # elif invert_var and variable in selection and not variable == 'cuts':
-
-    #     cuts = selection.split('&&')
-    #     new_selection = []
-    #     for cut in cuts:
-    #         if split_cut(cut)[0] == variable:
-    #             new_selection.append(invert_cut(cut))
-    #         else:
-    #             new_selection.append(cut)
-
-    #     selection = '&&'.join(new_selection)
-
-
     # remove variable from selection if n-1
     if remove_var and variable in selection and not variable == 'cuts':
         
@@ -350,17 +316,15 @@ def _get_histogram(sample, path, **kwargs):
             selection = 'fs==%s' % fs
 
     # change selection and variable for systematics
-    if syst != 'Nom':
-        print syst
-        for var in get_affected_variables(syst):
+    if syst != 'Nom' and systematics.affects_kinematics(syst):
+        for var in systematics.get_affected_variables(syst):
             if var in selection:
                 selection = selection.replace(var, var + '_' + syst)
             
-        if variable in get_affected_variables(syst):
+        if variable in systematics.get_affected_variables(syst):
             variable = variable.replace(var, var + '_' + syst)
         
         
-
     #---------
     # Weights
     #---------
@@ -383,15 +347,23 @@ def _get_histogram(sample, path, **kwargs):
 
         # scale factors
         if use_sfw:
-            w_str += '*weight_sf' 
+            if syst != 'Nom' and systematics.affects_weight(syst):
+                w_str += '*weight_sf_%s' % syst 
+            else:
+                w_str += '*weight_sf' 
 
         # pile-up
         if use_puw:
             w_str += '*weight_pu'
-
         
     if 'efake' in sample:
-        w_str += 'weight_feg'
+        if syst == 'Nom':
+            w_str += 'weight_feg'
+        elif syst == 'FegLow':
+            w_str += 'weight_feg_dn'
+        elif syst == 'FegHigh':
+            w_str += 'weight_feg_up'
+
     elif 'jfake' in sample:
         w_str += 'weight_fjg'
 
@@ -478,7 +450,6 @@ def get_histogram(sample, **kwargs):
 
         spath = os.path.join(MiniDir, ds[0])
 
-
         relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
         for fs in relevant_fs:
             
@@ -512,7 +483,13 @@ def get_histogram(sample, **kwargs):
     if sample == 'data':
         hname = 'h%s_%s_obs_%s' % (sample, region, variable.replace(':', '_'))
     else:
+
+        if syst != 'Nom':
+            syst = syst.replace('Up', 'High').replace('Down', 'Low')
+            syst = syst.replace('__1up', 'High').replace('__1down', 'Low')
+
         hname = 'h%s%s_%s_obs_%s' % (sample, syst, region, variable.replace(':', '_'))
+
     hist.SetName(hname)
     hist.SetTitle(hname)
             

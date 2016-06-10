@@ -7,7 +7,7 @@ bins['cuts'] = (1, 0.5, 1.5)
 
 ## photon
 bins['ph_n']  = (5, 0, 5)
-bins['ph_pt']  = (50, 0., 2500.)
+bins['ph_pt']  = (20, 0., 2000.)
 bins['ph_iso'] = (30, -10., 20.)
 bins['ph_eta'] = (15, -3., 3.)
 bins['ph_phi'] = (17, -3.4, 3.4)
@@ -20,9 +20,9 @@ bins['jet_eta'] = (15, -3., 3.)
 bins['jet_phi'] = (34, -3.4, 3.4)
 
 ## met
-#bins['met_et']    = (20, 0., 600.)
+#bins['met_et']    = (12, 0., 600.)
+bins['met_et']    = (8, 0., 400.)
 #bins['met_et']    = (20, 0., 1000.)
-bins['met_et']    = (20, 0., 1000.)
 bins['met_sumet'] = (250, 0., 5000.)
 bins['met_et_refgam']   = (75, 0., 1500.)
 bins['met_et_refjet']   = (75, 0., 1500.)

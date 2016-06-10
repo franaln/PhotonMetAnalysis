@@ -194,10 +194,10 @@ def draw_grid_frame():
     frame.SetLabelOffset(0.012, "Y") # label offset on x axis
     frame.SetXTitle('m_{#tilde{g}} [GeV]')
     frame.SetYTitle('%s [GeV]' % mn1_text)
-    frame.GetXaxis().SetTitleSize(0.035)
-    frame.GetYaxis().SetTitleSize(0.035)
-    frame.GetXaxis().SetLabelSize(0.035)
-    frame.GetYaxis().SetLabelSize(0.035)
+    frame.GetXaxis().SetTitleSize(0.033)
+    frame.GetYaxis().SetTitleSize(0.033)
+    frame.GetXaxis().SetLabelSize(0.033)
+    frame.GetYaxis().SetLabelSize(0.033)
     frame.GetXaxis().SetTitleOffset(1.3)
     frame.GetYaxis().SetTitleOffset(1.9)
 
