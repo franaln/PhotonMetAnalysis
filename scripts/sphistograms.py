@@ -36,6 +36,7 @@ def main():
 
     parser.add_argument('--add', action='store_true')
     parser.add_argument('--dosyst', action='store_true')
+    parser.add_argument('--unblind', action='store_true')
 
     args = parser.parse_args()
     
@@ -44,7 +45,7 @@ def main():
     region_number = args.n
     
     if args.regions is None:
-        args.regions = 'SR,CRQ,CRW,CRT,VRM1,VRM2,VRM3,VRD1,VRD2,VRD3,VRH,VRL1,VRL2,VRL3,VRL4'
+        args.regions = 'SR,CRQ,CRW,CRT,VRM1,VRM2,VRM3,VRD1,VRD2,VRD3,VRL1,VRL2,VRL3,VRL4'
         
     regions = [ '%s_%s' % (r, region_number) for r in args.regions.split(',') ]
    
@@ -52,9 +53,9 @@ def main():
         'wgamma',
         'zllgamma',
         'znunugamma',
-        #'ttbar',
         'ttbarg',
         'photonjet',
+        #'ttbar',
         #'multijet',
         #'wjets',
         #'zjets',
@@ -132,12 +133,24 @@ def main():
                 if not variable:
                     continue
 
+                # unitary sample for discovery fit
+                if sample == 'Unitary':
+                    name = 'hUnitaryNom_%s_obs_cuts' % region_name
+                    hist = ROOT.TH1F(name, name, 1, 0.5, 1.5)
+                    hist.Sumw2()
+                    hist.Fill(1.)
+                    
+                    histograms.append(hist)
+                    
+                    continue
+
+                # nominal histogram
                 get_histogram = partial(miniutils.get_histogram, sample, variable=variable, region=region_name, selection=selection, lumi='data')
 
                 hist = get_histogram(syst='Nom')
 
                 # blind SR for now
-                if 'data' in sample and region_name == 'SR':
+                if 'data' in sample and region_name == 'SR' and not args.unblind:
                     hist.SetBinContent(1, 0.0)
 
                 histograms.append(hist)
@@ -195,6 +208,8 @@ def main():
                         histograms.append(h_low)
                         histograms.append(h_high)
 
+
+
                     # ## jet fakes 
                     # if sample == 'jfake':
                     
@@ -215,17 +230,6 @@ def main():
                     ## photonjet
                     if sample == 'photonjet':
 
-                        # ### generator (vs Pythia)
-                        # syst = 'theoSysGJgen'
-
-                        # h_low = get_histogram('photonjet_pythia', variable, region_name, selection)
-                        # h_low.SetName(hist.GetName().replace('Nom', syst+'High'))
-
-                        # h_high = hist.Clone(hist.GetName().replace('Nom', syst+'Low'))
-
-                        # histograms.append(h_low)
-                        # histograms.append(h_high)
-                        
                         syst = 'theoSysGJ'
                         sigma = 0.45 # FIX: ~ from Run 1
 
@@ -247,7 +251,7 @@ def main():
                     ## wgamma
                     if 'wgamma' in sample:
                         syst = 'theoSysWG'
-                        sigma = 0.2 # FIX ~ from Run 1
+                        sigma = 1. # FIX ~ from Run 1
                     
                     ## zgamma
                     if ('zllgamma' in sample) or ('znunugamma' in sample):

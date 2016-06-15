@@ -51,7 +51,7 @@ def scale_gamjet(sel):
 
 def main():
 
-    parser = argparse.ArgumentParser(description='get cutflow')
+    parser = argparse.ArgumentParser(description='get yields')
     
     parser.add_argument('-r', dest='regions', default='', help='Regions separated with ,')
     parser.add_argument('-s', dest='samples', help='Samples separated with ,')
@@ -64,6 +64,10 @@ def main():
     parser.add_argument('--data', action='store_true', help='Include data')
     parser.add_argument('--signal', action='store_true', help='Include signal')
     parser.add_argument('--mc', action='store_true', help='Use MC backgrounds')
+
+    parser.add_argument('--after', action='store_true', help='Use fit normalization factors')
+
+    parser.add_argument('--unblind', action='store_true', help='Unblind data')
 
     parser.add_argument('--m3', default='1400', help='M3')
 
@@ -116,7 +120,7 @@ def main():
         get_events = partial(miniutils.get_events, lumi=args.lumi, version=args.version)
 
 
-        
+
     if args.regions:
         regions = args.regions.split(',')
 
@@ -166,7 +170,7 @@ def main():
             
             # Data
             if args.data:
-                if 'SR' in region:
+                if 'SR' in region and not args.unblind:
                     cols['data'] = '-1'
                 else:
                     cols['data'] = get_events('data', region=region, selection=selection)
@@ -177,6 +181,22 @@ def main():
         
                 evts = get_events(sample, region=region, selection=selection)
 
+                if args.after: 
+                    if regions[-1] == 'L':
+                        if sample == 'photonjet':
+                            evts *= 0.99
+                        elif sample == 'wgamma':
+                            evts *= 1.12
+                        elif sample == 'ttbarg':
+                            evts *= 0.87
+                    elif regions[-1] == 'H':
+                        if sample == 'photonjet':
+                            evts *= 1.16
+                        elif sample == 'wgamma':
+                            evts *= 1.12
+                        elif sample == 'ttbarg':
+                            evts *= 0.88
+
                 cols[sample] = evts
 
                 total_bkg += evts
@@ -184,7 +204,7 @@ def main():
             cols['Total bkg'] = total_bkg
 
             if region.startswith('CR') and args.data:
-                if 'CRQ' in region:
+                if 'CRQ' in region or 'CRM' in region:
                     mu = (cols['data']-(total_bkg-cols['photonjet']))/cols['photonjet']
                     purity = cols['photonjet'] / total_bkg
                     cols['photonjet'] = '%s (%.2f, mu=%.2f)' % (cols['photonjet'], purity.mean, mu.mean)
