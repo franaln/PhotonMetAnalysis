@@ -34,19 +34,20 @@ VRD1_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>200 && jet_n>2 && dp
 VRD2_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>200 && jet_n>2 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1500'
 VRD3_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>200 && jet_n>2 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>2000'
 
-VRD4_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>150 && jet_n>4 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1000 && rt4<0.9'
-VRD5_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>150 && jet_n>4 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1500 && rt4<0.9'
+VRD1_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>400 && jet_n>2 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1000'
+VRD2_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>400 && jet_n>2 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1500'
+VRD3_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>400 && jet_n>2 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>2000'
 
-VRD1_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && met_et>400 && jet_n>2 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1000'
-VRD2_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && met_et>400 && jet_n>2 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1500'
-VRD3_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && met_et>400 && jet_n>2 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>2000'
+
+# VRD4_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>150 && jet_n>4 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1000 && rt4<0.9'
+# VRD5_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>150 && jet_n>4 && dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1500 && rt4<0.9'
 
 # VRD4_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && met_et>350 && jet_n>2 && (dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1000'
 # VRD5_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && met_et>350 && jet_n>2 && (dphi_jetmet<0.4 && dphi_gammet>0.4 && meff>1500'
 
 ## Intermediate MEFF
-VRH_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4 && met_et>200 && meff>1500 && meff<2000'
-VRH_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4 && met_et>400 && meff>1500 && meff<2000'
+# VRH_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4 && met_et>200 && meff>1500 && meff<2000'
+# VRH_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4 && met_et>400 && meff>1500 && meff<2000'
 
 ## Wgamma/ttbarg
 # VRL1_L = 'ph_n>0 && el_n+mu_n>0 && ph_pt[0]>145 && jet_n>1 && met_et<200 && dphi_jetmet>0.4 && meff>1000'

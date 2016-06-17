@@ -75,11 +75,14 @@ class LatexTable(object):
             else:
                 row_tmp = []
                 for col in row:  
-                    if '+-' in col:
-                        val, err = col.split('+-')
-                        col = '$%s \pm %s$' % (val, err)
-                    else:
-                        col = str(col)
+                    try:
+                        col = '$%s \pm %s$' % (col.mean, col.error)
+                    except:
+                        if '+-' in col:
+                            val, err = col.split('+-')
+                            col = '$%s \pm %s$' % (val, err)
+                        else:
+                            col = str(col)
                     row_tmp.append(col)
 
                 lines.append(' & '.join(row_tmp) + r' \\')

@@ -40,21 +40,21 @@ parser.add_argument("--val", action='store_true')
 parser.add_argument("--mc", action='store_true')
 parser.add_argument("--syst", action='store_true')
 parser.add_argument("--rm", action='store_true')
+parser.add_argument("--asimov", action='store_true')
+parser.add_argument("--ntoys", type=int, default=5000)
+parser.add_argument("--npoints", type=int, default=20)
 
 userArg = [ i.replace('"', '') for i in configMgr.userArg.split()]
 args = parser.parse_args(userArg)
 print "Parsed user args %s" % str(args)
 
+hist_file  = args.hist_file 
+signal_region = args.signal_region
+do_validation = args.val 
+use_mc_bkgs   = args.mc 
+do_syst       = args.syst 
 
-
-# user_arg_list  = configMgr.userArg.split(',')
-hist_file  = args.hist_file #user_arg_list[0]
-signal_region  = args.signal_region #user_arg_list[1]
-do_validation = args.val #('validation' in user_arg_list)
-use_mc_bkgs   = args.mc #('mc' in user_arg_list)
-do_syst       = args.syst #('syst' in user_arg_list)
-
-nom_name      = 'Nom'
+nom_name  = 'Nom'
 model_hypo_test = 'GGM'
 do_signal_theory_unc = True
 variable = 'cuts'
@@ -62,23 +62,22 @@ binning  = get_binning(variable)
 
 region_str = "%s_%s" % (base_analysis, signal_region)
 
-
-configMgr.writeXML = True  #for debugging
-
+configMgr.writeXML = False  #for debugging
 
 #--- Flags to control which fit is executed
 useStat = True
-
 configMgr.blindSR = False #True
 configMgr.blindCR = False
 configMgr.blindVR = False
 configMgr.useSignalInBlindedData = False
 
 #--- Parameters for hypothesis test
-configMgr.calculatorType = 2 # 0: toys, 2: asimov?
+configMgr.doExclusion = False
+
+configMgr.calculatorType = 2 if args.asimov else 0 # 0: toys, 2: asimov?
 configMgr.testStatType = 3
-configMgr.nPoints = 20
-configMgr.nTOYs = 5000
+configMgr.nPoints = args.npoints
+configMgr.nTOYs = args.ntoys
 
 muSigInitValue = [0.05, 0., 5.]
 
@@ -94,8 +93,14 @@ elif myFitType == FitType.Exclusion:
 elif myFitType == FitType.Discovery:
     fittag = 'disc'
 
+opttag = ''
 if use_mc_bkgs:
-    configMgr.analysisName = "%sAnalysis_%s_mc_%s" % (base_analysis, fittag, signal_region)
+    opttag += '_mc'
+if not do_syst:
+    opttag += '_nosys'
+
+if opttag:
+    configMgr.analysisName = "%sAnalysis_%s%s_%s" % (base_analysis, fittag, opttag, signal_region)
 else:
     configMgr.analysisName = "%sAnalysis_%s_%s" % (base_analysis, fittag, signal_region)
 
@@ -128,12 +133,6 @@ regions = [
 
 for r in regions:
     configMgr.cutsDict[r] = '' # not used anyway
-
-
-## Parameters of the Measurement
-measName = "BasicMeasurement"
-measLumi = 1.0
-measLumiError = 0.021
 
 
 #-----------------
@@ -392,22 +391,10 @@ elif myFitType == FitType.Discovery:
     unitary_sample = Sample('Unitary', ROOT.kViolet+5)
     unitary_sample.setNormFactor('mu_SIG', 1, 0, 10)
     unitary_sample.buildHisto([1,], 'SR', '0.5')
+
     fitconfig.addSamples(unitary_sample)
+    fitconfig.setSignalSample(unitary_sample)
     
-    # unitary_sample2 = Sample('Unitary', ROOT.kViolet+5)
-    # unitary_sample2.setNormFactor('mu_SIG', 1, 0, 10)
-    # unitary_sample2.buildHisto([0,], 'CRQ', '0.5')
-    # fitconfig.addSamples(unitary_sample2)
-    
-    # unitary_sample3 = Sample('Unitary', ROOT.kViolet+5)
-    # unitary_sample3.setNormFactor('mu_SIG', 1, 0, 10)
-    # unitary_sample3.buildHisto([0,], 'CRW', '0.5')
-    # fitconfig.addSamples(unitary_sample3)
-    
-    # unitary_sample4 = Sample('Unitary', ROOT.kViolet+5)
-    # unitary_sample4.setNormFactor('mu_SIG', 1, 0, 10)
-    # unitary_sample4.buildHisto([0,], 'CRT', '0.5')
-    # fitconfig.addSamples(unitary_sample4)
     
 # Exclusion fit
 elif myFitType == FitType.Exclusion:
@@ -415,6 +402,11 @@ elif myFitType == FitType.Exclusion:
 
 
 fitconfig.addSamples(bkg_samples + data_samples)
+
+# Measurement
+measName = "BasicMeasurement"
+measLumi = 1.0
+measLumiError = 0.021
 
 meas = fitconfig.addMeasurement(measName, measLumi, measLumiError)
 
@@ -487,6 +479,9 @@ if do_validation:
 sr_name = signal_region[:-1] # could be SR or SRincl
 
 SR = fitconfig.addChannel(variable, [sr_name], *binning)
+# if myFitType == FitType.Discovery:
+#     SR.addDiscoverySamples([sr_name,], [1.,], [0.,], [100.,], [ROOT.kMagenta,])
+
 signal_channels.append(SR)
 
 
@@ -497,8 +492,13 @@ fitconfig.setBkgConstrainChannels(constraint_channels)
 
 if myFitType == FitType.Background: 
     validation_channels.append(SR) #--- Define SR as validation region.
+else:
+    #for sr in signal_channels:
+        #print sr
+        #print sr.name
+        #sr.addDiscoverySamples([sr.name],[1.],[0.],[100.],[ROOT.kMagenta])
+        #meas.addPOI("mu_%s" % sr.name)
 
-elif myFitType == FitType.Discovery:
     fitconfig.setSignalChannels(signal_channels) #--- Define SR as signal region.
 
 if do_validation:
@@ -506,9 +506,6 @@ if do_validation:
 
 
 if myFitType == FitType.Exclusion:
-    #print 'SR defined as signal region and GGM_X_Y as signal sample'
-    #fitconfig.setSignalSample(sigSample)
-    #fitconfig.setSignalChannels(signalChannels) #--- Define SR as signal region.             
 
     points = []
     
@@ -517,9 +514,6 @@ if myFitType == FitType.Exclusion:
     except NameError:
         sigSamples = None
 
-    #if sigSamples is None:
-    #points = dict(pointdict) ##.copy()
-    # else:
     for sid in sigSamples:
         m3, mu = sid.split('_')
         points.append((int(m3), int(mu)))
@@ -541,3 +535,7 @@ if myFitType == FitType.Exclusion:
         exclfit.setSignalSample(sigSample)
         exclfit.setSignalChannels(signal_channels)
 
+
+# if configMgr.executeHistFactory:
+#     if os.path.isfile("data/%s.root" % configMgr.analysisName):
+#         os.remove("data/%s.root" % configMgr.analysisName) 

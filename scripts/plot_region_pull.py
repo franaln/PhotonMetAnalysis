@@ -22,14 +22,13 @@ parser = argparse.ArgumentParser(description='plot regions pull')
     
 parser.add_argument('--ws', dest='workspace', required=True, help='Input workspace')
 parser.add_argument('-n', dest='region', help='L or H')
+parser.add_argument('--unblind', action='store_true', help='Unblind! (use with caution)')
 
 args = parser.parse_args()
 
 workspace = args.workspace
-region_name = args.region
-region_type = region_name[-1]
-
-do_blind = True
+region_name = 'SR_' + args.region
+region_type = args.region
 
 # regions
 regions = [
@@ -39,19 +38,25 @@ regions = [
     
     'VRM1',
     'VRM2',
-    # 'VRM3',
-    
+    'VRM3',
+
     'VRD1',
     'VRD2',
-    # 'VRD3',
+    'VRD3',
     
     'VRL1',
     'VRL2',
-    # 'VRL3',
-    # 'VRL4',
+    'VRL3',
+    'VRL4',
     
     'SR',
     ]
+
+if region_type == 'H':
+    regions.remove('VRD1')
+    regions.remove('VRD2')
+    regions.remove('VRD3')
+
 
 set_atlas_style()
 
@@ -160,9 +165,8 @@ def GetBoxes(allp, regions_pull, frame, horizontal=False):
         name = region.replace(" ","")
         name = region.replace("_cuts","")
         
-        if name == 'SR':
+        if not args.unblind and name == 'SR':
             continue
-
 
         if horizontal:
             for b in xrange(1,frame.GetNbinsX()+2):
@@ -256,7 +260,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
         if 0 < pull < 0.02:  
             pull = 0.02 ###ATT: ugly
 
-        if region.find("SR")>=0 and do_blind:
+        if region.find("SR")>=0 and not args.unblind:
             n_obs = -100
             pull = 0
 
