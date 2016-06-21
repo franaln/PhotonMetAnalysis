@@ -11,9 +11,9 @@ from configManager import configMgr
 from configWriter import fitConfig, Measurement, Channel, Sample
 from systematic import Systematic
 
-from drawlib import colors_dict
+from style import colors_dict
 from rootutils import get_color
-from binning import get_binning
+from miniutils import get_binning
 
 def color(sample):
     return get_color(colors_dict[sample])
@@ -322,7 +322,7 @@ syst_weight = [
     Sys('PH_EFF_ID_Uncertainty'),
 ]
 
-syst_to_all = syst_met  + syst_egamma + syst_jets + syst_muon + syst_weight
+syst_to_all = syst_met  + syst_egamma + syst_muon + syst_weight + syst_jets
 
 
 ## Theory Uncertainties
@@ -339,8 +339,6 @@ sigXsec      = Sys('SigXSec')
 # theoSysWZ  = getSys('theoSysWZ')
 # theoSysVV  = getSys('theoSysVV')
 
-
-
 # Add Sample Specific Systematics (apparently it's needed to add these systs to the samples *BEFORE* adding them to the FitConfig
 if do_syst: 
 
@@ -355,7 +353,7 @@ if do_syst:
     photonjet_sample.addSystematic(theoSysGJ)
 
     efake_sample.addSystematic(syst_feg)
-    # jfake_sample.addSystematic(syst_jFakeRate)
+    #jfake_sample.addSystematic(syst_jFakeRate)
 
     #-- global systematics
     for gsyst in syst_to_all:

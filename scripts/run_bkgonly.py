@@ -161,11 +161,11 @@ def main():
         if args.dosyst:
             cmd1 = 'SysTable.py -w ' + ws + ' -c SR -o %s -%%' % (output_dir+'/tables/table_syst_sr.tex')
             cmd2 = 'SysTable.py -w ' + ws + ' -c CRQ,CRW,CRT -o %s -%%' % (output_dir+'/tables/table_syst_cr.tex')
+            cmd3 = 'SysTable.py -w ' + ws + ' -c SR -o %s -%% -s photonjet,ttbarg,wgamma' % (output_dir+'/tables/table_syst_sr_bkgs.tex')
 
             os.system(cmd1)
             os.system(cmd2)
-
-
+            os.system(cmd3)
 
 
     # Plots

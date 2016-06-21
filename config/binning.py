@@ -2,7 +2,7 @@
 
 bins = dict()
 
-## count
+## counts
 bins['cuts'] = (1, 0.5, 1.5)
 
 ## photon
@@ -20,9 +20,8 @@ bins['jet_eta'] = (15, -3., 3.)
 bins['jet_phi'] = (34, -3.4, 3.4)
 
 ## met
-#bins['met_et']    = (12, 0., 600.)
-bins['met_et']    = (8, 0., 400.)
-#bins['met_et']    = (20, 0., 1000.)
+bins['met_et']    = (12, 0., 600.)
+#bins['met_et']    = (8, 0., 400.)
 bins['met_sumet'] = (250, 0., 5000.)
 bins['met_et_refgam']   = (75, 0., 1500.)
 bins['met_et_refjet']   = (75, 0., 1500.)
@@ -57,7 +56,6 @@ bins['phi'] = (34, -3.4,3.4)
 bins['mgj'] = (100, 0, 7000.)
 bins['mgjj'] = (100, 0, 7000.)
 bins['mgjjj'] = (107, 0, 7490.)
-#bins['mgjjj'] = (50, 0, 7500.)
 
 ##
 bins['ht+met_et'] = (50, 0, 5000.)
@@ -68,49 +66,3 @@ bins['(jet_pt[0]+jet_pt[1])/(ht-ph_pt[0])'] = (22, 0., 1.1)
 bins['avg_mu'] = (50, 0, 50)
 
 
-def get_binning_single_variable(variable):
-
-    if '[' in variable and ']' in variable:
-        binning = bins.get(variable[:variable.index('[')], None)
-    else:
-        binning = bins.get(variable, None)
-
-    if binning is None:
-        try:
-            binning = bins.get(variable.split('_')[1], None)
-        except:
-            binning = None
-
-    if binning is None:
-        try:
-            binning = bins.get(variable.split('_')[0], None)
-        except:
-            binning = None
-
-    if binning is None and 'ht+' in variable:
-        binning = (100, 0., 10000.) #bins.get('meff', None)
-
-    
-    return binning
-
-
-def get_binning(variable):
-
-    if ':' in variable:
-        
-        varx, vary = variable.split(':')
-
-        binning_x = get_binning_single_variable(varx)
-        binning_y = get_binning_single_variable(vary)
-
-        binning = binning_x + binning_y
-    
-    else:
-        binning = get_binning_single_variable(variable)
-
-
-    if binning is None:
-        raise Exception('Not bins configured for this variable %s' % variable)
-
-
-    return binning

@@ -6,7 +6,7 @@ localSetupROOT 6.04.02-x86_64-slc6-gcc48-opt
 export SUSY_ANALYSIS=$PWD
 
 export PATH=$SUSY_ANALYSIS/scripts:$PATH
-export PYTHONPATH=$SUSY_ANALYSIS/lib:$PYTHONPATH
+export PYTHONPATH=$SUSY_ANALYSIS/lib:$SUSY_ANALYSIS/config:$PYTHONPATH
  
 # setup HistFitter
 if [ -d $SUSY_ANALYSIS/HistFitter ] ; do

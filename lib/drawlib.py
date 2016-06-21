@@ -8,109 +8,8 @@ from collections import OrderedDict
 from rootutils import *
 from statutils import *
 
-
-# labels for dict
-mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}}'
-
-labels_dict = dict()
-labels_dict['data']   = 'Data 2015'
-labels_dict['photonjet'] = '#gamma + jets'
-labels_dict['gamjet']    = '#gamma + jets'
-labels_dict['photonjet_25ns'] = '#gamma + jets'
-labels_dict['tgamma'] = 't#bar{t} #gamma' # /single-t #gamma'
-labels_dict['vgamma'] = 'W/Z #gamma'
-labels_dict['znngam'] = 'Z(#nu#nu) #gamma'
-labels_dict['efake']  = 'e#rightarrow#gamma fake'
-labels_dict['jfake']  = 'jet#rightarrow#gamma fake'
-labels_dict['multijet']  = 'Multijet'
-labels_dict['wjets']  = 'W + jets'
-labels_dict['zjets']  = 'Z + jets'
-labels_dict['vjets']  = 'W/Z + jets'
-labels_dict['ttbar']  = 't#bar{t}'
-
-labels_dict['GGM_M3_mu_1400_250']  = '(1400, 250)' ##m_{#tilde{g}} = 1522, ' + mn1_text + ' = 191 GeV'
-labels_dict['GGM_M3_mu_1400_650']  = '(1400, 650)' ##)m_{#tilde{g}} = 1522, ' + mn1_text + ' = 442 GeV'
-labels_dict['GGM_M3_mu_1400_1050'] = '(1400, 1050)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1072 GeV'
-labels_dict['GGM_M3_mu_1400_1375'] = '(1400, 1375)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1283 GeV'
-
-labels_dict['GGM_M3_mu_1700_250']  = '(1700, 250)' ##m_{#tilde{g}} = 1522, ' + mn1_text + ' = 191 GeV'
-labels_dict['GGM_M3_mu_1700_650']  = '(1700, 650)' ##)m_{#tilde{g}} = 1522, ' + mn1_text + ' = 442 GeV'
-labels_dict['GGM_M3_mu_1700_1050'] = '(1700, 1050)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1072 GeV'
-labels_dict['GGM_M3_mu_1700_1375'] = '(1700, 1375)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1283 GeV'
-
-# colours for the dict
-colors_dict = dict()
-colors_dict['photonjet'] = '#E24A33'
-colors_dict['gamjet'] = '#E24A33'
-colors_dict['tgamma']    = '#32b45d'
-colors_dict['vgamma']    = '#f7fab3'
-colors_dict['znngam']    = '#7A68A6'
-colors_dict['efake']     = '#a4cee6'
-colors_dict['jfake']     = '#348ABD'
-colors_dict['multijet']  = '#348ABD'
-colors_dict['wjets']     = '#BCBC93'
-colors_dict['zjets']     = '#36BDBD'
-colors_dict['vjets']     = '#a4cee6'
-colors_dict['ttbar']     = '#32b45d'
-
-colors_dict['wgamma']    = '#f7fab3'
-colors_dict['zllgamma']    = '#f7fab4'
-colors_dict['znunugamma']    = '#f7fab5'
-colors_dict['ttbar']    = '#32b422'
-colors_dict['ttbarg']    = '#32b45d'
-colors_dict['data']    = ROOT.kBlack
-
-colors_dict['GGM_M3_mu_1400_250']  = '#85ea7a' 
-colors_dict['GGM_M3_mu_1400_650']  = '#fa3a92'
-colors_dict['GGM_M3_mu_1400_1050'] = '#8453fb'
-colors_dict['GGM_M3_mu_1400_1375'] = '#53fb84'
-
-colors_dict['GGM_M3_mu_1700_250']  = '#85ea7a' 
-colors_dict['GGM_M3_mu_1700_650']  = '#fa3a92'
-colors_dict['GGM_M3_mu_1700_1050'] = '#8453fb'
-colors_dict['GGM_M3_mu_1700_1375'] = '#53fb84'
-
-# plots configuration
-class PlotConf(object):
-    def __init__(self, xtitle, ytitle, legpos, xmin=None, xmax=None):
-        self.xtitle = xtitle
-        self.ytitle = ytitle
-        self.legpos = legpos
-        self.xmin = xmin
-        self.xmax = xmax
-
-plots_conf = dict()
-plots_conf['cuts']         = PlotConf('', 'Events', 'right')
-plots_conf['ph_n']         = PlotConf('Number of photons', 'Events', 'right')
-plots_conf['el_n']         = PlotConf('Number of electrons', 'Events', 'right')
-plots_conf['jet_n']        = PlotConf('Number of jets', 'Events', 'right')
-plots_conf['ph_pt']        = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_eta']       = PlotConf('Photon #eta', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_phi']       = PlotConf('Photon #phi', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_iso']       = PlotConf('Isolation (Etcone20) [GeV]', 'Events (1/BIN GeV)', 'right')
-plots_conf['met_et']       = PlotConf('E_{T}^{miss} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['met_phi']      = PlotConf('#phi^{miss}', 'Events', 'right')
-plots_conf['ht']           = PlotConf('H_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt']       = PlotConf('Jet p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt[0]']    = PlotConf('Jet1 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt[1]']    = PlotConf('Jet2 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_eta']      = PlotConf('Jet #eta', 'Events', 'right')
-plots_conf['rt2']          = PlotConf('R_{T}^{2}', 'Events', 'left', 0.3, 1.1)
-plots_conf['rt4']          = PlotConf('R_{T}^{4}', 'Events / BIN', 'left', 0.3, 1.1)
-plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'right')
-plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'right')
-
-plots_conf['ht+met_et'] = PlotConf('M_{eff} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['meff']      = PlotConf('M_{eff} [GeV]', 'Events / (BIN GeV)', 'right')
-
-plots_conf['mgj']    = PlotConf('m_{#gammaj} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['mgjj']   = PlotConf('m_{#gammajj} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['mgjjj']  = PlotConf('m_{#gammajjj} [GeV]', 'Events / (BIN GeV)', 'right')
-
-plots_conf['default'] = PlotConf('','', 'right')
-
-
+# config
+import style as config_style
 
 def calc_poisson_cl_lower(q, obs):
     """
@@ -186,19 +85,18 @@ def do_plot(plotname,
         bkg = {}
 
     
-    
-    if variable not in plots_conf:
+    if variable not in config_style.plots_conf:
         vartmp = variable[:variable.find('[')]
-        conf = plots_conf.get(vartmp, plots_conf['default'])
+        conf = config_style.plots_conf.get(vartmp, config_style.plots_conf['default'])
     else:
-        conf = plots_conf.get(variable, plots_conf['default'])
+        conf = config_style.plots_conf.get(variable, config_style.plots_conf['default'])
 
-    xtitle = conf.xtitle
-    ytitle = conf.ytitle
-    xmin = conf.xmin
-    xmax = conf.xmax
-    legpos = conf.legpos
+    xtitle, ytitle, legpos = conf[0], conf[1], conf[2]
 
+    if len(conf) > 4:
+        xmin, xmax = conf[3], conf[4]
+    else:
+        xmin, xmax = None, None
 
     can = canvas(plotname, plotname, 800, 800)
     can.cd()
@@ -403,7 +301,10 @@ def do_plot(plotname,
     else:
         can.RedrawAxis()
 
-    chist.SetMinimum(0.01)
+    if chist.GetMaximum() < 10:
+        chist.SetMinimum(0.0001)
+    else:
+        chist.SetMinimum(0.01)
 
     if logy:
         if 'dphi' in variable:
@@ -949,18 +850,18 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
 
     if '[' in varx:
         vartmp = varx[:varx.find('[')]
-        confx = plots_conf.get(vartmp)
+        confx = config_style.plots_conf.get(vartmp)
     else:
-        confx = plots_conf.get(varx)
+        confx = config_style.plots_conf.get(varx)
 
     if '[' in vary:
         vartmp = vary[:vary.find('[')]
-        confy = plots_conf.get(vartmp)
+        confy = config_style.plots_conf.get(vartmp)
     else:
-        confy = plots_conf.get(vary)
+        confy = config_style.plots_conf.get(vary)
 
-    xtitle = confx.xtitle
-    ytitle = confy.xtitle
+    xtitle = confx[0]
+    ytitle = confy[0]
 
     hist.GetXaxis().SetTitle(xtitle)
     hist.GetYaxis().SetTitle(ytitle)
@@ -1040,17 +941,18 @@ def do_plot_cmp(plotname,
                 pass
 
 
-    if variable not in plots_conf:
+    if variable not in config_style.plots_conf:
         vartmp = variable[:variable.find('[')]
-        conf = plots_conf.get(vartmp, plots_conf['default'])
+        conf = config_style.plots_conf.get(vartmp, config_style.plots_conf['default'])
     else:
-        conf = plots_conf.get(variable, plots_conf['default'])
+        conf = config_style.plots_conf.get(variable, config_style.plots_conf['default'])
 
-    xtitle = conf.xtitle
-    ytitle = conf.ytitle
-    xmin = conf.xmin
-    xmax = conf.xmax
-    legpos = conf.legpos
+    xtitle, ytitle, legpos = conf[0], conf[1], conf[2]
+
+    if len(conf) > 4:
+        xmin, xmax = conf[3], conf[4]
+    else:
+        xmin, xmax = None, None
 
     can = canvas(plotname, plotname, 800, 800)
     can.cd()
@@ -1138,7 +1040,7 @@ def do_plot_cmp(plotname,
         legend1 = legend(legxmin, legymin, legxmax, legymax)
 
     for (name, hist) in histograms:
-        legend1.AddEntry(hist, labels_dict.get(name, name))
+        legend1.AddEntry(hist, config_style.labels_dict.get(name, name))
 
     if do_ratio:
         cup.cd()
@@ -1159,7 +1061,10 @@ def do_plot_cmp(plotname,
     else:
         can.RedrawAxis()
 
-    chist.SetMinimum(0.05)
+    if chist.GetMaximum() < 10:
+        chist.SetMinimum(0.0001)
+    else:
+        chist.SetMinimum(0.01)
 
     if logy:
         if 'dphi' in variable:

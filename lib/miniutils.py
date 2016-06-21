@@ -5,23 +5,65 @@ import os
 import re
 import ROOT
 from rootutils import RootFile, Value, histogram, histogram_equal_to
-from binning import get_binning
 from signalxs import get_gg_xs, get_ewk_xs, get_ewk_sumw
 from xs_dict import xs_dict
-import samples
 import systematics
 
+# config
+import analysis as config_analysis
+import samples as config_samples
+import binning as config_binning
 
-MiniDir   = '/ar/pcunlp001/raid/falonso/mini2/'
+
+MiniDir1  = '/ar/pcunlp001/raid/falonso/mini2/'
 MiniDir2  = '/ar/pcunlp002/disk/falonso/mini2/'
-TruthDir = '/afs/cern.ch/work/f/falonso/Susy/Run2/PhotonMetNtuple/output_truth_final/'
 
-lumi_data_201 = 3209.05 # 3.2 fb-1
-lumi_data_207 = 3324.5
 
-lumi_data = lumi_data_201
+# --------
+# Binning
+#---------
+def get_binning_single_variable(variable):
 
-versions = ['24', '22', '21', '20', '19', '18f', '16f',]
+    if '[' in variable and ']' in variable:
+        binning_ = config_binning.bins.get(variable[:variable.index('[')], None)
+    else:
+        binning_ = config_binning.bins.get(variable, None)
+
+    if binning_ is None:
+        try:
+            binning_ = config_binning.bins.get(variable.split('_')[1], None)
+        except:
+            binning_ = None
+
+    if binning_ is None:
+        try:
+            binning_ = config_binning.bins.get(variable.split('_')[0], None)
+        except:
+            binning_ = None
+
+    if binning_ is None and 'ht+' in variable:
+        binning_ = config_binning.bins.get('meff', None)
+
+    return binning_
+
+
+def get_binning(variable):
+
+    if ':' in variable:
+        varx, vary = variable.split(':')
+
+        binning_x = get_binning_single_variable(varx)
+        binning_y = get_binning_single_variable(vary)
+
+        binning_ = binning_x + binning_y
+    else:
+        binning_ = get_binning_single_variable(variable)
+
+    if binning_ is None:
+        raise Exception('Not bins configured for this variable %s' % variable)
+
+    return binning_
+
 
 #------------
 # Cuts utils
@@ -74,8 +116,9 @@ def num(s):
 #----------------------------
 # Cross section/lumi weights
 #----------------------------
-def get_xs(did):
-    xs = xs_dict.get(int(did), None)
+def get_xs(ds):
+
+    xs = xs_dict.get(int(ds['did']), None)
 
     if xs is None:
         print 'missing XS for this ID:', did
@@ -84,33 +127,36 @@ def get_xs(did):
     return xs
 
 
-def get_signal_xs(sample, fs=0):
+def get_signal_xs(ds, fs=0):
 
-    if 'GGM_M3' in sample:
-        #l = re.findall(ur'[\w.]*.GGM_M3_mu_(\d*)_(\d*).[\w.]*', sample)[0]
-        l = re.findall(ur'[\w.]*mc15_13TeV\.(\d*)\..*GGM_M3_mu_(\d*)_(\d*).[\w.]*', sample)[0]
+    if 'GGM_M3' in ds['short_name']:
 
-        did, m3, mu = int(l[0]), int(l[1]), int(l[2])
+        l = re.findall(ur'GGM_M3_mu_(\d*)_(\d*)', ds['short_name'])[0]
+
+        did = int(ds['did'])
+
+        m3, mu = int(l[0]), int(l[1])
 
         xs, unc = get_gg_xs(did, m3, mu)
 
         return xs
 
-    elif 'GGM_mu' in sample:
-        l = re.findall(ur'[\w.]*mc15_13TeV\.(\d*)\..*GGM_mu_(\d*).[\w.]*', sample)[0]
-        did, mu = int(l[0]), int(l[1])
+    elif 'GGM_mu' in ds['short_name']:
+
+        l = re.findall(ur'*GGM_mu_(\d*)', ds['short_name'])[0]
+
+        did = int(ds['did'])
+        mu = int(l[0])
      
         xs, unc = get_ewk_xs(did, mu, fs)
 
         return xs
 
 
-def get_sumw(sample):
-
-    path = sample
+def get_sumw(ds):
 
     sumw = 0
-    with RootFile(path) as f:
+    with RootFile(ds['path']) as f:
         try:
             tmp = f.Get('events')
             sumw = tmp.GetBinContent(3) # bin 3 is the initial sumw
@@ -120,117 +166,119 @@ def get_sumw(sample):
     return sumw
 
 
-def get_lumi_weight(sample, lumi, fs=None):
+def get_lumi_weight(ds, lumi, fs=None):
 
     lumi = float(lumi)
 
-    if 'mc15_13tev' in sample.lower():
+    if ds['project'] == 'mc15_13TeV':
 
-        if 'GGM_mu' in sample and fs is not None:
-            mu = int(re.findall(ur'[\w.]*.GGM_mu_(\d*).[\w.]*', sample)[0])
+        if 'GGM_mu' in ds['short_name'] and fs is not None:
+            mu = int(re.findall(ur'GGM_mu_(\d*)', ds['short_name'])[0])
             sumw = get_ewk_sumw(mu, fs)
         else:
-            sumw = get_sumw(sample)
+            sumw = get_sumw(ds)
     
-        did = sample.split('.')[1]
-        if 'GGM_M3_mu' in sample or 'GGM_mu' in sample:
-            xs = get_signal_xs(sample, fs)
+        if 'GGM_M3_mu' in ds['short_name'] or 'GGM_mu' in ds['short_name']:
+            xs = get_signal_xs(ds, fs)
         else:
-            xs = get_xs(did)
+            xs = get_xs(ds)
 
         try:
             weight = (lumi * xs) / sumw
         except:
             weight = 0.
 
-    elif 'ggm' in sample.lower():
+    elif 'GGM' in ds['short_name']:
 
-        weight = (get_signal_xs(sample) * lumi) / 1000.
+        weight = (get_signal_xs(ds) * lumi) / 1000.
 
     return weight
 
 
 #----------
-# Datasets
+# Samples
 #----------
-def get_datasets(name, version=None):
+def get_datasets_names(name): 
 
-    slist = []
-    if 'GGM_M3_mu' in name or 'GGM_mu' in name:
-        allsig = getattr(samples, 'signal')
-        for s in allsig:
-            if name in s:
-                slist = [s,]
-                break
-    else:
-        try:
-            slist = getattr(samples, name)
-        except:
-            return [] 
+    ds_tmp = config_samples.samples_dict.get(name)
 
-    flist = []
-    for s in slist:
+    ds = []
+    if isinstance(ds_tmp, str):
+        if '+' in ds_tmp:
+            dsnames = [ i.strip() for i in ds_tmp.split('+')  if i ]
+            for dsname in dsnames:
+                ds += get_datasets_names(dsname)
 
-        if version is not None:
-
-            mini_dir = MiniDir
-            try:
-                if int(version) > 22:
-                    mini_dir = MiniDir2
-            except:
-                pass
-
-            path = mini_dir + '/v' + version + '/' + '%s.mini_v%s_output.root' % ('.'.join(s.split('.')[0:3]), version)
-
-            if os.path.isfile(path):
-                flist.append(path)
-            else:
-                print path + ' doesn\'t exist'
-            
         else:
-            for version in versions:
-                
-                mini_dir = MiniDir
-                try:
-                    if int(version) > 22:
-                        mini_dir = MiniDir2
-                except:
-                    pass
+            ds.append(ds_tmp)
 
-                path = mini_dir + '/v' + version + '/' + '%s.mini_v%s_output.root' % ('.'.join(s.split('.')[0:3]), version)
+    else:
+        ds = ds_tmp
 
+    return ds
+ 
+
+r_ds = re.compile('(mc15_13TeV|data15_13TeV|data16_13TeV)\.([0-9]*)\.(.*)')
+
+def get_sample_datasets(name, version=None, ptag=None):
+
+    # get datasets corresponding to sample
+    dsnames = get_datasets_names(name)
+
+    if not dsnames:
+        raise Exception('sample %s not found in samples.py' % name)
+
+    datasets = []
+    for ds in dsnames:
+
+        m = r_ds.match(ds)
+        project, did, short_name = m.group(1), m.group(2), m.group(3)
+
+        versions = [version,] if version is not None else config_samples.default_versions
+        ptags = [ptag,] if ptag is not None else config_samples.default_ptags
+
+        path = ''
+        for version in versions:
+
+            version_i = int(version)
+
+            if version_i > 22:
+                mini_dir = MiniDir2
+            else:
+                mini_dir = MiniDir1
+
+
+            if version_i > 31:
+                for ptag in ptags:
+                    path = '%s/v%s/%s.%s.%s.mini.p%s.v%s_output.root' % (mini_dir, version, project, did, short_name, ptag, version)
+                    if os.path.isfile(path):
+                        break
+            else:
+                path = '%s/v%s/%s.%s.%s.mini_v%s_output.root' % (mini_dir, version, project, did, short_name, version)
                 if os.path.isfile(path):
-                    flist.append(path)
                     break
 
-            else:
-                print 'using 50ns sample: %s' % s
-                flist.append(MiniDir + '/50ns/%s.mini_v3c_output.root' % '.'.join(s.split('.')[0:3]))
-            
-    return flist
+        if not path:
+            raise Exception('File not found for ds %s, ptag %s, version %s' % (short_name, ptag, version))
+
+        dataset = {
+            'name': name,
+            'project': project,
+            'did': did,
+            'short_name': short_name,
+            'path': path,
+            }
+
+        datasets.append(dataset)
+                
+
+    return datasets
     
-
-def show_datasets():
-
-    samples_ = [
-        'photonjet',
-        'multijet',
-        'vgamma',
-        'ttbar',
-        'ttbarg',
-        'wjets',
-        'zjets',
-        'data',
-        ]
-
-    for s in samples_:
-        for ds in get_datasets(s):
-            print ds
 
 #---------------
 # get_histogram
 #---------------
-def _get_histogram(sample, path, **kwargs):
+def _get_histogram(ds, **kwargs):
 
     variable   = kwargs.get('variable', 'cuts')
     region     = kwargs.get('region', 'SR')
@@ -246,7 +294,6 @@ def _get_histogram(sample, path, **kwargs):
     version    = kwargs.get('version', None)
     fs         = kwargs.get('fs', None)
 
-    # weights
     use_sfw     = kwargs.get('use_sfw', True)
     use_mcw     = kwargs.get('use_mcw', True)
     use_puw     = kwargs.get('use_puw', False)
@@ -256,30 +303,30 @@ def _get_histogram(sample, path, **kwargs):
     #-----------
     # File/Chain
     #-----------
-    if ':' in variable:
-        varx, vary = variable.split(':')
-
     tree = ROOT.TChain('mini')
-    tree.Add(path)
-
+    tree.Add(ds['path'])
 
     #-----------
     # Histogram
     #-----------
     systname = syst
 
+    if ':' in variable:
+        varx, vary = variable.split(':')
+
     if binning is None:
         binning = get_binning(variable)
 
-    try:
-        name = sample.split('.')[1]
-    except:
-        name = sample
+    # try: FIX
+    #     name = sample.name.split('.')[1]
+    # except:
+    #     name = sample.name
 
     if fs is not None:
         hname = 'h%s_%s%s_%s_obs_%s' % (name, fs, systname, region, variable.replace(':', '_'))
     else:
-        hname = 'h%s%s_%s_obs_%s' % (name, systname, region, variable.replace(':', '_'))
+        # to avoid the ROOT warning, not using this name anyway
+        hname = 'h%s%s_%s_obs_%s' % (ds['did'], systname, region, variable.replace(':', '_')) 
 
     if ':' in variable:
         htemp = ROOT.TH2D(hname, hname, *binning)
@@ -306,7 +353,7 @@ def _get_histogram(sample, path, **kwargs):
         if vary in selection:
             selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == vary ])
 
-    if 'v3c' in sample and 'meff' in selection:
+    if 'v3c' in ds['name'] and 'meff' in selection:
         selection = selection.replace('meff', 'ht+ph_pt[0]')
 
     if fs is not None:
@@ -332,13 +379,13 @@ def _get_histogram(sample, path, **kwargs):
         lumi = float(lumi) * 1000
 
     if lumi is None or lumi == 'data':
-        lumi = lumi_data
+        lumi = config_analysis.lumi_data
 
     w_str = ''
-    if 'mc15' in sample:
+    if ds['project'] == 'mc15_13TeV':
 
         # lumi weight
-        lumi_weight = get_lumi_weight(sample, lumi, fs)        
+        lumi_weight = get_lumi_weight(ds, lumi, fs)        
         w_str += '%s' % lumi_weight
 
         # mc weight
@@ -356,7 +403,7 @@ def _get_histogram(sample, path, **kwargs):
         if use_puw:
             w_str += '*weight_pu'
         
-    if 'efake' in sample:
+    if ds['name'] == 'efake':
         if syst == 'Nom':
             w_str += 'weight_feg'
         elif syst == 'FegLow':
@@ -364,7 +411,7 @@ def _get_histogram(sample, path, **kwargs):
         elif syst == 'FegHigh':
             w_str += 'weight_feg_up'
 
-    elif 'jfake' in sample:
+    elif ds['name'] == 'jfake':
         w_str += 'weight_fjg'
 
     if not scale:
@@ -400,99 +447,86 @@ def _get_histogram(sample, path, **kwargs):
     return hist
 
 
-def get_histogram(sample, **kwargs):
+def get_histogram(name, **kwargs):
 
     variable   = kwargs.get('variable', 'cuts')
     region     = kwargs.get('region', 'SR')
     syst       = kwargs.get('syst', 'Nom')
     rootfile   = kwargs.get('rootfile', None)
+
+    ptag       = kwargs.get('ptag', None)
     version    = kwargs.get('version', None)
 
-    if '.root' in sample:
+    if '.root' in name:
 
-        path = sample
-        sample = os.path.basename(sample).split('.')[0]
+        # try to identify file
+        # name = os.path.basename(sample_name).split('.')[0]
 
-        return _get_histogram(sample, path, **kwargs)
+        # return _get_histogram(Sample(name), sample_name, **kwargs)
+        return None # FIX
 
-    # sum strong+ewk contributions
-    if 'GGM_M3_mu_total' in sample:
-        strong_sample = sample.replace('_total', '')
+    sample = None
+    if name in ['efake', 'jfake']:
 
-        mu = sample.split('_')[5]
-        ewk_sample = 'GGM_mu_%s' % mu
+        ds_tmp = get_sample_datasets(name, version, ptag)
 
-        h_strong = get_histogram(strong_sample, strong_sample, **kwargs)
-        h_ewk    = get_histogram(ewk_sample, ewk_sample, **kwargs)
-        
-        h_sum = h_strong + h_ewk
+        datasets = dict(ds_tmp)
+        paths = []
+        for s in datasets:
+            s['path'] = s['path'].replace('data15_13TeV', sample_name)
 
-        return h_sum
+    else:
+        datasets = get_sample_datasets(name, version, ptag)
 
-
-    ds = get_datasets(sample, version)
-
-    if sample in ['efake', 'jfake']:
-        ds_tmp = get_datasets('data')
-
-        ds = []
-        for s in ds_tmp:
-            ds.append(s.replace('data15_13TeV', sample))
-
-    if not ds:
-        return _get_histogram(sample, sample, **kwargs)
+    if datasets is None:
+        return _get_histogram(ds, **kwargs)
 
 
     hist = None
-
+                                 
     # ewk grid: sum over all sub-processes
-    if 'GGM_mu' in sample and len(ds) == 1:
-
-        spath = os.path.join(MiniDir, ds[0])
-
-        relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
-        for fs in relevant_fs:
+    if 'GGM_mu' in name and len(datasets) == 1:
+        pass
+    #     relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
+    #     for fs in relevant_fs:
             
-            h = _get_histogram(sample, spath, fs=fs, **kwargs)
+    #         h = _get_histogram(sample.name, sample.paths[0], fs=fs, **kwargs)
 
-            if hist is None:
-                hist = h.Clone()
-            else:
-                hist.Add(h, 1)
+    #         if hist is None:
+    #             hist = h.Clone()
+    #         else:
+    #             hist.Add(h, 1)
 
     
     else:
         
-        for s in ds:
+        for ds in datasets:
 
-            spath = os.path.join(MiniDir, s)
+            #if not os.path.exists(path):
+            #             print 'file doesn\'t exist:', path
+            #             continue
 
-            if not os.path.exists(spath):
-                print 'file doesn\'t exist:', s
-                continue
-
-            h = _get_histogram(s, spath, **kwargs)
+            h = _get_histogram(ds, **kwargs)
 
             if hist is None:
                 hist = h.Clone()
             else:
                 hist.Add(h, 1)
 
-
     # fix histogram name
-    if sample == 'data':
-        hname = 'h%s_%s_obs_%s' % (sample, region, variable.replace(':', '_'))
+    if name == 'data':
+        hname = 'h%s_%s_obs_%s' % (name, region, variable.replace(':', '_'))
     else:
 
         if syst != 'Nom':
             syst = syst.replace('Up', 'High').replace('Down', 'Low')
             syst = syst.replace('__1up', 'High').replace('__1down', 'Low')
 
-        hname = 'h%s%s_%s_obs_%s' % (sample, syst, region, variable.replace(':', '_'))
+        hname = 'h%s%s_%s_obs_%s' % (name, syst, region, variable.replace(':', '_'))
 
     hist.SetName(hname)
     hist.SetTitle(hname)
-            
+    
     return hist
 
 
@@ -606,29 +640,3 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False)
 
 
     return cutflow
-
-
-
-# def get_cutflow(sample='', selection='', scale=True, lumi=None, preselection=False):
-
-#     ds = get_datasets(sample)
-
-#     if not ds:
-#         return _get_cutflow(sample, selection, scale, lumi, preselection)
-
-#     hist = None
-#     for s in ds:
-
-#         if not os.path.exists(os.path.join(MiniDir, s)):
-#             print 'file doesn\'t exist:', s
-#             continue
-
-#         h = _get_cutflow(s, selection, scale, lumi, preselection)
-
-#         if hist is None:
-#             hist = h.Clone()
-#         else:
-#             hist.Add(h, 1)
-
-#     return hist
-

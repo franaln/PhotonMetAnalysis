@@ -3,9 +3,10 @@ PhotonMetAnalysis
 
 ## Code
 
-* lib/: python libraries used by scripts. Most of the "magic" is in "miniutils.py"
-* scripts/: get_yields.py, get_cutflow.py, draw.py, sphistograms.py and HistFitter scripts
-* macros/: some c++ macros (to run over mini ntuples faster...)
+* lib:  python libraries used by scripts. Most of the "magic" is in "miniutils.py"
+* scripts: get_yields.py, get_cutflow.py, draw.py, sphistograms.py and HistFitter scripts
+* macros: some c++ macros (to run over mini ntuples faster...)
+* config: configuration of samples, binning, style, ...
 
 
 ## Install HistFitter
@@ -25,4 +26,7 @@ PhotonMetAnalysis
 * Use "PhotonMet_HistFitter_config.py" configfile
 * There are some scripts to help you:
 
+    ```
     run_bkgonly.py -i [histograms_file] -o [output_dir] ...
+    ```
+
