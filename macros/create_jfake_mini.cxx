@@ -12,45 +12,45 @@
 
 //#define EXTRA_VARS
 
-double get_dphi(Double_t phi1, Double_t phi2)
+float get_dphi(float phi1, float phi2)
 {
-  double  phi = fabs(phi1 - phi2);
+  float  phi = fabs(phi1 - phi2);
   if(phi <= TMath::Pi())  return phi;
   else                    return (2 * TMath::Pi() - phi);
 }
 
-double get_factor(double pt, double eta) 
+float fjg_factor[2*3] = {
+  0.147, 0.133, 0.124, // eta < 1.37:  145<pt<175, 175<pt<225, pt>225
+  0.100, 0.096, 0.104  // eta > 1.52:  145<pt<175, 175<pt<225, pt>225
+};
+
+unsigned int get_eta_bin(float eta)
 {
-  double abseta = fabs(eta);
+  float abseta = fabs(eta);
 
-  if (abseta <= 1.37) {
-    if (pt > 145 && pt <= 175) 
-      return 0.228;
-    else if (pt > 175 && pt <= 225)
-      return 0.193;
-    else
-      return 0.192;
-  }
-  else if (abseta > 1.52 && abseta <= 2.37) {
-    if (pt > 145 && pt <= 175)
-      return 0.188;
-    else if (pt > 175 && pt <= 225)
-      return 0.108;
-    else
-      return 0.108;
-  }
+  if (abseta < 1.37)
+    return 0;
+  else if (abseta > 1.52 && abseta <= 2.37)
+    return 1;
 
-  return 1.;
+  return 99;
+}
+
+unsigned int get_pt_bin(float pt)
+{
+  if (pt > 145. && pt <= 175.)
+    return 0;
+  else if (pt > 175. && pt <= 225.)
+    return 1;
+  else if (pt > 225.)
+    return 2;
+
+  return 99;
 }
 
   
 void loop(TString input_path, TString output_path)
 {
-
-  // bool m_ismc = true;
-  // if (input_path.Contains("data"))
-  //   m_ismc = false;
-
   // open the file
   TFile *f = TFile::Open(input_path);
   if (f == 0) {
@@ -70,8 +70,8 @@ void loop(TString input_path, TString output_path)
 
   std::cout << "create_jfake_mini: " << input_path << " -> " << output_path << std::endl;
 
-  TTreeReaderValue<int> event_number(reader, "event_number");
-  TTreeReaderValue<int> avg_mu(reader, "avg_mu");
+  TTreeReaderValue<int> event(reader, "event");
+  TTreeReaderValue<float> avgmu(reader, "avgmu");
 
   TTreeReaderValue<float> weight_mc(reader, "weight_mc");
   TTreeReaderValue<float> weight_pu(reader, "weight_pu");
@@ -113,7 +113,7 @@ void loop(TString input_path, TString output_path)
   TTreeReaderValue< std::vector<float> > el_phi(reader, "el_phi");
   TTreeReaderValue< std::vector<int> >   el_ch(reader, "el_ch");
   TTreeReaderValue< std::vector<float> > el_w(reader, "el_w");
-  
+
   TTreeReaderValue<float> met_phi(reader, "met_phi");
   TTreeReaderValue<float> met_et(reader, "met_et");
   TTreeReaderValue<float> ht(reader, "ht");
@@ -146,8 +146,8 @@ void loop(TString input_path, TString output_path)
   TFile *output_file = new TFile(output_path, "recreate");
   TTree *output_tree = new TTree("mini", "mini");
 
-  int new_event_number;
-  int new_avg_mu;
+  int new_event;
+  float new_avgmu;
 
   float new_weight_mc;
   float new_weight_pu;
@@ -212,8 +212,8 @@ void loop(TString input_path, TString output_path)
   std::vector<int>   *new_mu_ch = new std::vector<int>();
   std::vector<float> *new_mu_w = new std::vector<float>();
 
-  output_tree->Branch("event_number", &new_event_number, "event_number/I");
-  output_tree->Branch("avg_mu", &new_avg_mu, "avg_mu/I");
+  output_tree->Branch("event", &new_event, "event/I");
+  output_tree->Branch("avgmu", &new_avgmu, "avgmu/F");
 
   output_tree->Branch("weight_mc", &new_weight_mc);
   output_tree->Branch("weight_pu", &new_weight_pu);
@@ -283,6 +283,7 @@ void loop(TString input_path, TString output_path)
   // Loop over all entries of the TTree or TChain.
   long ientry = 0;
   int msg_interval = int(total_events/10);
+
   while(reader.Next()) {
 
     ientry++;
@@ -325,10 +326,10 @@ void loop(TString input_path, TString output_path)
     new_met_et = 0;
     new_met_phi = 0;
 
-    new_ht			   = 0;
-    new_meff			   = 0;
-    new_rt2			   = 0;
-    new_rt4			   = 0;
+    new_ht = 0;
+    new_meff = 0;
+    new_rt2	= 0;
+    new_rt4	= 0;
 
     new_dphi_gamjet = 0;
     new_dphi_jetmet = 0;
@@ -338,37 +339,41 @@ void loop(TString input_path, TString output_path)
     new_ht0		= 0;
     new_meff0	= 0;
 
-      new_dphi_gamjet1 = 0;
-      new_dphi_gamjet2 = 0;
-      new_dphi_gamjet3 = 0;
-      new_dphi_gamjet4 = 0;
-      new_dphi_gamjetA = 0;
-      
-      new_dphi_jetmet1 = 0;
-      new_dphi_jetmet2 = 0;
-      new_dphi_jetmet3 = 0;
-      new_dphi_jetmet4 = 0;
-      new_dphi_jetmetA = 0;
+    new_dphi_gamjet1 = 0;
+    new_dphi_gamjet2 = 0;
+    new_dphi_gamjet3 = 0;
+    new_dphi_gamjet4 = 0;
+    new_dphi_gamjetA = 0;
+    
+    new_dphi_jetmet1 = 0;
+    new_dphi_jetmet2 = 0;
+    new_dphi_jetmet3 = 0;
+    new_dphi_jetmet4 = 0;
+    new_dphi_jetmetA = 0;
 #endif
     
-
 
     // fill
     if (*ph_n == 1 and (*ph_pt)[0] > 145)
       continue;
     
-    new_ph_n = *ph_noniso_n;
     new_el_n = *el_n;
     new_mu_n = *mu_n;
     new_jet_n = *jet_n;
     new_bjet_n = *bjet_n;
-    
+
+    new_ph_n = 0;
     for (int i=0; i<*ph_noniso_n; i++) {
+
+      if ((*ph_noniso_pt)[i] < 145. || fabs((*ph_noniso_eta)[i]) > 2.37)
+        continue;
+      
+      new_ph_n++;
       new_ph_pt->push_back((*ph_noniso_pt)[i]);
       new_ph_eta->push_back((*ph_noniso_eta)[i]);
       new_ph_phi->push_back((*ph_noniso_phi)[i]);
       new_ph_iso->push_back(0);
-      new_ph_w->push_back((*ph_noniso_w)[i]);
+      new_ph_w->push_back(1.);
     }
     
     for (int i=0; i<*mu_n; i++) {
@@ -398,8 +403,8 @@ void loop(TString input_path, TString output_path)
     }
 
     // event
-    new_event_number = *event_number;
-    new_avg_mu = *avg_mu;
+    new_event = *event;
+    new_avgmu = *avgmu;
     
     new_weight_mc = *weight_mc;
     new_weight_pu = *weight_pu;
@@ -440,6 +445,7 @@ void loop(TString input_path, TString output_path)
     }
 
     new_dphi_gamjet = dphi1;
+
 #ifdef EXTRA_VARS
     new_dphi_gamjet1 = dphi1;
     new_dphi_gamjet2 = TMath::Min(new_dphi_gamjet1, dphi2);
@@ -450,20 +456,23 @@ void loop(TString input_path, TString output_path)
     new_ht = *ht;
     if (*ph_n > 0)
       new_ht -= (*ph_pt)[0];
-    if (*ph_noniso_n > 0)
+    if (new_ph_n > 0)
       new_ht += (*ph_noniso_pt)[0];
 
     new_meff = new_ht + new_met_et;
 
-    if (*ph_noniso_n > 0)
-      new_weight_fjg = get_factor((*ph_noniso_pt)[0], (*ph_noniso_eta)[0]);
+    if (new_ph_n > 0) {
+      unsigned int pt_bin  = get_pt_bin((*ph_noniso_pt)[0]);
+      unsigned int eta_bin = get_eta_bin((*ph_noniso_eta)[0]);
 
+      new_weight_fjg = fjg_factor[eta_bin*3+pt_bin];
 
-    //if (new_ph_n == 1) 
-    output_tree->Fill();
+      output_tree->Fill();
+    }
+
   }
 
-
+  // just for consistency. They are wrong
   TH1D *events = (TH1D*)f->Get("events");
   TH1D *cutflow = (TH1D*)f->Get("cutflow");
     
@@ -472,7 +481,6 @@ void loop(TString input_path, TString output_path)
 
   output_tree->Write();
   output_file->Close();
-
 }
 
 int main(int argc, char *argv[]) 
