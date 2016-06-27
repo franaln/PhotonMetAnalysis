@@ -24,6 +24,17 @@ float fjg_factor[2*3] = {
   0.100, 0.096, 0.104  // eta > 1.52:  145<pt<175, 175<pt<225, pt>225
 };
 
+float fjg_syst_dn[2*3] = {
+  0.035, 0.033, 0.032, // eta < 1.37:  145<pt<175, 175<pt<225, pt>225
+  0.033, 0.032, 0.032  // eta > 1.52:  145<pt<175, 175<pt<225, pt>225
+};
+
+float fjg_syst_up[2*3] = {
+  0.037, 0.036, 0.036, // eta < 1.37:  145<pt<175, 175<pt<225, pt>225
+  0.032, 0.031, 0.031  // eta > 1.52:  145<pt<175, 175<pt<225, pt>225
+};
+
+
 unsigned int get_eta_bin(float eta)
 {
   float abseta = fabs(eta);
@@ -152,7 +163,10 @@ void loop(TString input_path, TString output_path)
   float new_weight_mc;
   float new_weight_pu;
   float new_weight_sf;
+
   float new_weight_fjg;
+  float new_weight_fjg_dn;
+  float new_weight_fjg_up;
 
   int new_ph_n;
   int new_mu_n;
@@ -218,7 +232,10 @@ void loop(TString input_path, TString output_path)
   output_tree->Branch("weight_mc", &new_weight_mc);
   output_tree->Branch("weight_pu", &new_weight_pu);
   output_tree->Branch("weight_sf", &new_weight_sf);
+
   output_tree->Branch("weight_fjg", &new_weight_fjg);
+  output_tree->Branch("weight_fjg_dn", &new_weight_fjg_dn);
+  output_tree->Branch("weight_fjg_up", &new_weight_fjg_up);
 
   output_tree->Branch("ph_n", &new_ph_n, "ph_n/I");
   output_tree->Branch("ph_pt",  new_ph_pt);
@@ -365,7 +382,7 @@ void loop(TString input_path, TString output_path)
     new_ph_n = 0;
     for (int i=0; i<*ph_noniso_n; i++) {
 
-      if ((*ph_noniso_pt)[i] < 145. || fabs((*ph_noniso_eta)[i]) > 2.37)
+      if ((*ph_noniso_pt)[i] < 145. || fabs((*ph_noniso_eta)[i]) > 2.37 || (*ph_noniso_iso)[i] > 29.45)
         continue;
       
       new_ph_n++;
@@ -427,21 +444,24 @@ void loop(TString input_path, TString output_path)
     new_dphi_jetmet3 = *dphi_jetmet3;
     new_dphi_jetmet4 = *dphi_jetmet4;
     new_dphi_jetmetA = *dphi_jetmetA;
-#endif
 
-    Float_t dphi1 = 4.;
     Float_t dphi2 = 4.;
     Float_t dphi3 = 4.;
     Float_t dphi4 = 4.;
+#endif
+
+    Float_t dphi1 = 4.;
     if (*ph_noniso_n > 0) {
       new_dphi_gammet = get_dphi((*ph_noniso_phi)[0], *met_phi);
 
       if (*jet_n > 0) new_dphi_gamjet = get_dphi((*ph_noniso_phi)[0], (*jet_phi)[0]);
 
       if (*jet_n > 0) dphi1 = get_dphi((*ph_noniso_phi)[0], (*jet_phi)[0]);
+#ifdef EXTRA_VARS
       if (*jet_n > 1) dphi2 = get_dphi((*ph_noniso_phi)[0], (*jet_phi)[1]);
       if (*jet_n > 2) dphi3 = get_dphi((*ph_noniso_phi)[0], (*jet_phi)[2]);
       if (*jet_n > 3) dphi4 = get_dphi((*ph_noniso_phi)[0], (*jet_phi)[3]);
+#endif
     }
 
     new_dphi_gamjet = dphi1;
@@ -465,7 +485,9 @@ void loop(TString input_path, TString output_path)
       unsigned int pt_bin  = get_pt_bin((*ph_noniso_pt)[0]);
       unsigned int eta_bin = get_eta_bin((*ph_noniso_eta)[0]);
 
-      new_weight_fjg = fjg_factor[eta_bin*3+pt_bin];
+      new_weight_fjg    = fjg_factor[eta_bin*3+pt_bin];
+      new_weight_fjg_dn = fjg_factor[eta_bin*3+pt_bin] - fjg_syst_dn[eta_bin*3+pt_bin];
+      new_weight_fjg_up = fjg_factor[eta_bin*3+pt_bin] + fjg_syst_up[eta_bin*3+pt_bin];
 
       output_tree->Fill();
     }

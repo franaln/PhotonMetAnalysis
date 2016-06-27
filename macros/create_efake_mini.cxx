@@ -447,21 +447,24 @@ void loop(TString input_path, TString output_path)
     new_dphi_jetmet3 = *dphi_jetmet3;
     new_dphi_jetmet4 = *dphi_jetmet4;
     new_dphi_jetmetA = *dphi_jetmetA;
-#endif
 
-    Float_t dphi1 = 4.;
     Float_t dphi2 = 4.;
     Float_t dphi3 = 4.;
     Float_t dphi4 = 4.;
+#endif
+
+    Float_t dphi1 = 4.;
     if (el_medium_n > 0) {
       new_dphi_gammet = get_dphi((*el_medium_phi)[0], *met_phi);
 
       if (*jet_n > 0) new_dphi_gamjet = get_dphi((*el_medium_phi)[0], (*jet_phi)[0]);
 
       if (*jet_n > 0) dphi1 = get_dphi((*el_medium_phi)[0], (*jet_phi)[0]);
+#ifdef EXTRA_VARS
       if (*jet_n > 1) dphi2 = get_dphi((*el_medium_phi)[0], (*jet_phi)[1]);
       if (*jet_n > 2) dphi3 = get_dphi((*el_medium_phi)[0], (*jet_phi)[2]);
       if (*jet_n > 3) dphi4 = get_dphi((*el_medium_phi)[0], (*jet_phi)[3]);
+#endif
     }
     new_dphi_gamjet  = dphi1;
 
@@ -486,8 +489,8 @@ void loop(TString input_path, TString output_path)
       unsigned int bin = get_eta_bin((*el_medium_eta)[0]);
       if (bin < 4) {
         new_weight_feg    = feg_factor[bin];
-        new_weight_feg_up = feg_factor_up[bin];
         new_weight_feg_dn = feg_factor_dn[bin];
+        new_weight_feg_up = feg_factor_up[bin];
       }
       // else
       //   std::cout << "** " << bin << " " << (*el_medium_eta)[0] << " " << new_weight_feg << std::endl;
