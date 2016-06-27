@@ -218,7 +218,30 @@ def get_datasets_names(name):
     return ds
  
 
-r_ds = re.compile('(mc15_13TeV|data15_13TeV|data16_13TeV)\.([0-9]*)\.(.*)')
+r_ds = re.compile('(mc15_13TeV|data15_13TeV|data16_13TeV|efake15|efake16|jfake15|jfake16)\.([0-9]*)\.(.*)')
+
+def find_path(project, did, short_name, versions, ptags):
+
+    for version in versions:
+
+        version_i = int(version)
+
+        if version_i > 22:
+            mini_dir = MiniDir2
+        else:
+            mini_dir = MiniDir1
+
+        if version_i > 31:
+            for ptag in ptags:
+                path = '%s/v%s/%s.%s.%s.mini.p%s.v%s_output.root' % (mini_dir, version, project, did, short_name, ptag, version)
+                if os.path.isfile(path):
+                    return path
+        else:
+            path = '%s/v%s/%s.%s.%s.mini_v%s_output.root' % (mini_dir, version, project, did, short_name, version)
+            if os.path.isfile(path):
+                return path
+
+    return ''
 
 def get_sample_datasets(name, version=None, ptag=None):
 
@@ -231,35 +254,19 @@ def get_sample_datasets(name, version=None, ptag=None):
     datasets = []
     for ds in dsnames:
 
-        m = r_ds.match(ds)
-        project, did, short_name = m.group(1), m.group(2), m.group(3)
+        try:
+            m = r_ds.match(ds)
+            project, did, short_name = m.group(1), m.group(2), m.group(3)
+        except:
+            raise Exception(ds)
 
         versions = [version,] if version is not None else config_samples.default_versions
         ptags = [ptag,] if ptag is not None else config_samples.default_ptags
 
-        path = ''
-        for version in versions:
-
-            version_i = int(version)
-
-            if version_i > 22:
-                mini_dir = MiniDir2
-            else:
-                mini_dir = MiniDir1
-
-
-            if version_i > 31:
-                for ptag in ptags:
-                    path = '%s/v%s/%s.%s.%s.mini.p%s.v%s_output.root' % (mini_dir, version, project, did, short_name, ptag, version)
-                    if os.path.isfile(path):
-                        break
-            else:
-                path = '%s/v%s/%s.%s.%s.mini_v%s_output.root' % (mini_dir, version, project, did, short_name, version)
-                if os.path.isfile(path):
-                    break
+        path = find_path(project, did, short_name, versions, ptags)
 
         if not path:
-            raise Exception('File not found for ds %s, ptag %s, version %s' % (short_name, ptag, version))
+            raise Exception('File not found for ds %s' % (ds))
 
         dataset = {
             'name': name,
@@ -371,16 +378,23 @@ def _get_histogram(ds, **kwargs):
         if variable in systematics.get_affected_variables(syst):
             variable = variable.replace(var, var + '_' + syst)
         
-        
+
     #---------
     # Weights
     #---------
-    if lumi is not None and lumi != 'data' and float(lumi) < 100:
+    if lumi is not None and not 'data' in lumi and float(lumi) < 100:
         lumi = float(lumi) * 1000
 
-    if lumi is None or lumi == 'data':
-        lumi = config_analysis.lumi_data
-
+    if lumi == 'data15':
+        lumi = config_analysis.lumi_data15
+    elif lumi == 'data16':
+        lumi = config_analysis.lumi_data16
+    elif lumi == 'data':
+        lumi = config_analysis.lumi_data15 + config_analysis.lumi_data16
+        
+    if lumi is None:
+        lumi = 1000.
+    
     w_str = ''
     if ds['project'] == 'mc15_13TeV':
 
@@ -403,7 +417,7 @@ def _get_histogram(ds, **kwargs):
         if use_puw:
             w_str += '*weight_pu'
         
-    if ds['name'] == 'efake':
+    if 'efake' in ds['name']:
         if syst == 'Nom':
             w_str += 'weight_feg'
         elif syst == 'FegLow':
@@ -411,8 +425,13 @@ def _get_histogram(ds, **kwargs):
         elif syst == 'FegHigh':
             w_str += 'weight_feg_up'
 
-    elif ds['name'] == 'jfake':
-        w_str += 'weight_fjg'
+    elif 'jfake' in ds['name']:
+        if syst == 'Nom':
+            w_str += 'weight_fjg'
+        elif syst == 'FjgLow':
+            w_str += 'weight_fjg_dn'
+        elif syst == 'FjgHigh':
+            w_str += 'weight_fjg_up'
 
     if not scale:
         w_str = ''
@@ -465,18 +484,17 @@ def get_histogram(name, **kwargs):
         # return _get_histogram(Sample(name), sample_name, **kwargs)
         return None # FIX
 
-    sample = None
-    if name in ['efake', 'jfake']:
+    # if name in ['efake', 'jfake']:
 
-        ds_tmp = get_sample_datasets(name, version, ptag)
+    #     ds_tmp = get_sample_datasets(name, version, ptag)
 
-        datasets = dict(ds_tmp)
-        paths = []
-        for s in datasets:
-            s['path'] = s['path'].replace('data15_13TeV', sample_name)
+    #     datasets = dict(ds_tmp)
+    #     paths = []
+    #     for s in datasets:
+    #         s['path'] = s['path'].replace('data15_13TeV', sample_name)
 
-    else:
-        datasets = get_sample_datasets(name, version, ptag)
+    # else:
+    datasets = get_sample_datasets(name, version, ptag)
 
     if datasets is None:
         return _get_histogram(ds, **kwargs)
@@ -514,10 +532,9 @@ def get_histogram(name, **kwargs):
                 hist.Add(h, 1)
 
     # fix histogram name
-    if name == 'data':
+    if name.startswith('data'):
         hname = 'h%s_%s_obs_%s' % (name, region, variable.replace(':', '_'))
     else:
-
         if syst != 'Nom':
             syst = syst.replace('Up', 'High').replace('Down', 'Low')
             syst = syst.replace('__1up', 'High').replace('__1down', 'Low')
