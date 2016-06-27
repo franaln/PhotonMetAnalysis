@@ -20,6 +20,8 @@ from mass_dict import mass_dict
 from signalxs import gg_xs, gg_xs_unc
 import systematics
 
+import analysis as config_analysis
+
 fzero = 0.0001
 
 def main():
@@ -32,20 +34,73 @@ def main():
     parser.add_argument('-v', dest='variables', default='cuts', help='variables (comma separated)')
     parser.add_argument('-r', dest='regions', help='regions (comma separated)')
     parser.add_argument('-s', dest='samples', help='samples (comma separated)')
-    parser.add_argument('-n', help='"L" or "H"', required=True)
+    parser.add_argument('-n', help='"L" or "H"')
 
     parser.add_argument('--add', action='store_true')
     parser.add_argument('--dosyst', action='store_true')
     parser.add_argument('--unblind', action='store_true')
 
+    # scale to lumi?
+    parser.add_argument('-i', '--input')
+    parser.add_argument('--lumi')
+
     args = parser.parse_args()
     
+    
+    # Scale
+    if args.input is not None and args.lumi is not None:
+        
+        if args.lumi == 'data15':
+            lumi = config_analysis.lumi_data15
+        elif args.lumi == 'data16':
+            lumi = config_analysis.lumi_data16
+        elif args.lumi == 'data':
+            lumi = config_analysis.lumi_data15 + config_analysis.lumi_data16
+
+        lumi = lumi / 1000.
+
+        print 'Scaling histogram from %s to %s (%s fb-1)' % (args.input, args.lumi, lumi)
+
+        infile = ROOT.TFile.Open(args.input)
+
+        keys = [ key.GetName() for key in infile.GetListOfKeys() ]
+
+        histograms = []
+        for key in keys:
+
+            if 'data' in key or 'efake' in key or 'jfake' in key:
+                continue
+
+            hist = infile.Get(key)
+
+            new_hist = hist.Clone()
+            new_hist.SetDirectory(0)
+
+            new_hist.Scale(lumi)
+
+            histograms.append(new_hist)
+
+        infile.Close()
+
+        with RootFile(args.output, 'update') as f:
+            for hist in histograms:
+                f.write(hist)
+
+        return 0
+
+
+
+
     variables = args.variables.split(',')
 
     region_number = args.n
+
+    if region_number is None:
+        parser.print_usage()
+        return 1
     
     if args.regions is None:
-        args.regions = 'SR,CRQ,CRW,CRT,VRM1,VRM2,VRM3,VRD1,VRD2,VRD3,VRL1,VRL2,VRL3,VRL4'
+        args.regions = 'SR,SRincl,CRQ,CRW,CRT,VRM1,VRM2,VRM3,VRD1,VRD2,VRD3,VRL1,VRL2,VRL3,VRL4'
         
     regions = [ '%s_%s' % (r, region_number) for r in args.regions.split(',') ]
    
@@ -61,7 +116,7 @@ def main():
         #'zjets',
         ]
 
-    dd = ['efake', 'jfake']
+    dd = ['efake15', 'jfake15', 'efake16', 'jfake16', 'efake', 'jfake']
 
     signals = [ 'GGM_M3_mu_%i_%i' % (m3, mu) for (m3, mu) in mass_dict.keys() ]
 
@@ -79,8 +134,6 @@ def main():
             samples.extend(mc)
         elif 'dd' in args.samples:
             samples.extend(dd)
-        elif 'data' in args.samples:
-            samples.extend(data)
         else:
             samples = args.samples.split(',')
     else:
@@ -96,8 +149,8 @@ def main():
 
     ## one-sided systematics
     systematics_expOS = systematics.get_one_side_systematics()
-    
 
+    # existing histograms
     existing_histograms = []
     if args.add:
         f = ROOT.TFile.Open(args.output)
@@ -118,7 +171,7 @@ def main():
             region_name = region.split('_')[0]
             
             if 'GGM' in sample:
-                if region_name in ['SR', 'CRQ', 'CRW', 'CRT']:
+                if region_name in ['SR', 'SRincl', 'CRQ', 'CRW', 'CRT']:
                     pass
                 else:
                     continue
@@ -145,12 +198,12 @@ def main():
                     continue
 
                 # nominal histogram
-                get_histogram = partial(miniutils.get_histogram, sample, variable=variable, region=region_name, selection=selection, lumi='data')
+                get_histogram = partial(miniutils.get_histogram, sample, variable=variable, region=region_name, selection=selection, lumi=args.lumi)
 
                 hist = get_histogram(syst='Nom')
 
                 # blind SR for now
-                if 'data' in sample and region_name == 'SR' and not args.unblind:
+                if 'data' in sample and region_name.startswith('SR') and not args.unblind:
                     hist.SetBinContent(1, 0.0)
 
                 histograms.append(hist)
@@ -158,10 +211,10 @@ def main():
 
                 if do_syst:
                     
-                    if sample in data:
+                    if 'data' in sample:
                         continue
 
-                    if sample not in data+dd:
+                    if sample not in dd:
 
                         # one side systematics
                         for syst in systematics_expOS:
@@ -200,7 +253,7 @@ def main():
 
                     # data driven
                     ## efakes 
-                    if sample == 'efake':
+                    if sample.startswith('efake'):
                         
                         h_low = get_histogram(syst='FegLow')
                         h_high = get_histogram(syst='FegHigh')
@@ -251,7 +304,7 @@ def main():
                     ## wgamma
                     if 'wgamma' in sample:
                         syst = 'theoSysWG'
-                        sigma = 1. # FIX ~ from Run 1
+                        sigma = 0.2 # FIX ~ from Run 1
                     
                     ## zgamma
                     if ('zllgamma' in sample) or ('znunugamma' in sample):
@@ -267,14 +320,14 @@ def main():
                     if 'GGM_M3' in sample:
                         syst = 'SigXSec'
 
-                        m3 = sample.split('_')[3] #extract M3 value from sample name
+                        m3 = int(sample.split('_')[3]) #extract M3 value from sample name
                         sigma = gg_xs_unc.get(m3, 0.) #get relative uncertainty
                         
                     
                     if 'GGM_mu' in sample:
                         syst = 'SigXSec'
                         
-                        mu = sample.split('_')[2] # extract mu value
+                        mu = int(sample.split('_')[2]) # extract mu value
                         sigma = theoSysSigXsecNumberEWK.get(mu, 0.)
 
 
