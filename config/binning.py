@@ -20,7 +20,7 @@ bins['jet_eta'] = (15, -3., 3.)
 bins['jet_phi'] = (34, -3.4, 3.4)
 
 ## met
-bins['met_et']    = (12, 0., 600.)
+bins['met_et']    = (20, 0., 1000.)
 #bins['met_et']    = (8, 0., 400.)
 bins['met_sumet'] = (250, 0., 5000.)
 bins['met_et_refgam']   = (75, 0., 1500.)

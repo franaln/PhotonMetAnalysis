@@ -4,7 +4,7 @@ import ROOT
 
 # Legend labels
 labels_dict = dict()
-labels_dict['data']   = 'Data 2015'
+labels_dict['data']   = 'Data'
 labels_dict['photonjet'] = '#gamma + jets'
 labels_dict['gamjet']    = '#gamma + jets'
 labels_dict['photonjet_25ns'] = '#gamma + jets'

@@ -153,12 +153,12 @@ def do_plot(plotname,
 
     if bkg:
         for name, hist in bkg.iteritems():
-            set_style(hist, color=colors_dict[name], fill=True)
+            set_style(hist, color=config_style.colors_dict[name], fill=True)
             hist.SetLineColor(ROOT.kBlack)
 
     if signal:
         for sig, hist in signal.iteritems():
-            set_style(hist, msize=1.2, lwidth=2, lstyle=2, color=colors_dict[sig])
+            set_style(hist, msize=1.2, lwidth=2, lstyle=2, color=config_style.colors_dict[sig])
 
     if bkg:
 
@@ -170,7 +170,10 @@ def do_plot(plotname,
             bmax = b.GetMaximum()
             return cmp(int(amax), int(bmax))
 
-        for hist in sorted(bkg.itervalues(), _compare):
+        # for hist in sorted(bkg.itervalues(), _compare):
+        #     sm_stack.Add(hist)
+
+        for hist in bkg.itervalues():
             sm_stack.Add(hist)
 
         # Total background
@@ -257,14 +260,14 @@ def do_plot(plotname,
 
     if bkg:
         for name, hist in bkg.iteritems():
-            legend1.AddEntry(hist, labels_dict[name], 'f')
+            legend1.AddEntry(hist, config_style.labels_dict[name], 'f')
 
         if do_bkg_total and sm_total is not None:
             legend1.AddEntry(sm_total_stat, "SM Total", 'f')
         #legend1.AddEntry(sm_total_all, "stat #oplus syst", 'f')
     
     if data:
-        legend1.AddEntry(data, labels_dict['data'], 'pl')
+        legend1.AddEntry(data, config_style.labels_dict['data'], 'pl')
 
     # we don't want to plot signals in Control Regions
     if 'CR' in region_name:
@@ -272,7 +275,7 @@ def do_plot(plotname,
 
     if signal:
         for name, hist in signal.iteritems():
-            legend2.AddEntry(hist, labels_dict[name], 'f')
+            legend2.AddEntry(hist, config_style.labels_dict[name], 'f')
 
     if do_ratio:
         cup.cd()
@@ -737,8 +740,8 @@ def do_plot(plotname,
                 ratio_e[i].SetBinContent(bin_, eff)
 
         for i, name in enumerate(names):
-            set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=colors_dict[name])
-            set_style(ratio_e[i], msize=1.2, lwidth=2, lstyle=3, color=colors_dict[name])
+            set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=config_style.colors_dict[name])
+            set_style(ratio_e[i], msize=1.2, lwidth=2, lstyle=3, color=config_style.colors_dict[name])
 
 
         cdown.cd()

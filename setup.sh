@@ -9,7 +9,7 @@ export PATH=$SUSY_ANALYSIS/scripts:$PATH
 export PYTHONPATH=$SUSY_ANALYSIS/lib:$SUSY_ANALYSIS/config:$PYTHONPATH
  
 # setup HistFitter
-if [ -d $SUSY_ANALYSIS/HistFitter ] ; do
+if [ -d "$SUSY_ANALYSIS/HistFitter" ] ; then
     cd $SUSY_ANALYSIS/HistFitter
     . setup_afs.sh
     cd -

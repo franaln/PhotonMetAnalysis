@@ -161,9 +161,9 @@ def draw_m3mu_frame(m3min, m3max, mumin, mumax):
     return canvas
 
 
-def draw_grid_frame():
+def draw_grid_frame(xsize=800, ysize=600):
 
-    canvas = ROOT.TCanvas('', '', 600,600)
+    canvas = ROOT.TCanvas('', '', xsize, ysize)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
 

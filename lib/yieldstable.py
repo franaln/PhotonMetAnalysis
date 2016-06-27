@@ -20,10 +20,14 @@ labels_dict = {
     'vqqgamma': 'V($\\to$ qq)$+\\gamma$',
     'group_zllgamma_znunugamma': 'Z + $\gamma$',
 
+    'efake15': '$e\\rightarrow\\gamma$ fakes',
+    'jfake15': '$j\\rightarrow\\gamma$ fakes',
+
+    'efake16': '$e\\rightarrow\\gamma$ fakes',
+    'jfake16': '$j\\rightarrow\\gamma$ fakes',
+
     'efake': '$e\\rightarrow\\gamma$ fakes',
     'jfake': '$j\\rightarrow\\gamma$ fakes',
-    # 'Fitted efake': '$e\\rightarrow\\gamma$ fakes',
-    # 'Fitted jfake': '$j\\rightarrow\\gamma$ fakes',
     }
 
 

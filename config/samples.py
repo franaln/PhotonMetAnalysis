@@ -1,7 +1,8 @@
 # samples
 
 default_ptags = ['2666', '2667', '2662', '2614']
-default_versions = ['24',]
+
+default_versions = ['32', '30', '24']
 
 samples_dict = {
 
@@ -27,13 +28,13 @@ samples_dict = {
         'data15_13TeV.00279515.physics_Main',
         'data15_13TeV.00279598.physics_Main',
         'data15_13TeV.00279685.physics_Main',
-        'data15_13TeV.00279764.physics_Main',
         'data15_13TeV.00279813.physics_Main',
         'data15_13TeV.00279867.physics_Main',
         'data15_13TeV.00279928.physics_Main',
         'data15_13TeV.00279932.physics_Main',
         'data15_13TeV.00279984.physics_Main',
         'data15_13TeV.00280231.physics_Main',
+        'data15_13TeV.00280273.physics_Main',
         'data15_13TeV.00280319.physics_Main',
         'data15_13TeV.00280368.physics_Main',
         'data15_13TeV.00280423.physics_Main',
@@ -73,7 +74,40 @@ samples_dict = {
         'data15_13TeV.00284484.physics_Main',
         ],
 
-    'data': 'data15',
+    'data16': [
+        'data16_13TeV.00297730.physics_Main',
+        'data16_13TeV.00298595.physics_Main',
+        'data16_13TeV.00298609.physics_Main',
+        'data16_13TeV.00298633.physics_Main',
+        'data16_13TeV.00298687.physics_Main',
+        'data16_13TeV.00298690.physics_Main',
+        'data16_13TeV.00298771.physics_Main',
+        'data16_13TeV.00298773.physics_Main',
+        'data16_13TeV.00298862.physics_Main',
+        'data16_13TeV.00298967.physics_Main',
+        'data16_13TeV.00299055.physics_Main',
+        'data16_13TeV.00299144.physics_Main',
+        'data16_13TeV.00299147.physics_Main',
+        'data16_13TeV.00299184.physics_Main',
+        'data16_13TeV.00299243.physics_Main',
+        'data16_13TeV.00299584.physics_Main',
+        'data16_13TeV.00300279.physics_Main',
+        'data16_13TeV.00300345.physics_Main',
+        'data16_13TeV.00300415.physics_Main',
+        'data16_13TeV.00300418.physics_Main',
+        'data16_13TeV.00300487.physics_Main',
+        'data16_13TeV.00300540.physics_Main',
+        'data16_13TeV.00300571.physics_Main',
+        'data16_13TeV.00300600.physics_Main',
+        'data16_13TeV.00300655.physics_Main',
+        'data16_13TeV.00300687.physics_Main',
+        'data16_13TeV.00300784.physics_Main',
+        'data16_13TeV.00300800.physics_Main',
+        'data16_13TeV.00300863.physics_Main',
+        'data16_13TeV.00300908.physics_Main',
+        ],
+    
+    'data': 'data15 + data16',
 
     'photonjet': [
         'mc15_13TeV.361039.Sherpa_CT10_SinglePhotonPt35_70_CVetoBVeto',
@@ -314,7 +348,7 @@ samples_dict = {
         'mc15_13TeV.361367.Sherpa_CT10_Wtaunu_Pt1000_2000_CFilterBVeto',
         'mc15_13TeV.361368.Sherpa_CT10_Wtaunu_Pt1000_2000_BFilter',
         'mc15_13TeV.361369.Sherpa_CT10_Wtaunu_Pt2000_E_CMS_CVetoBVeto',
-        #'mc15_13TeV.361370.Sherpa_CT10_Wtaunu_Pt2000_E_CMS_CFilterBVeto',
+        'mc15_13TeV.361370.Sherpa_CT10_Wtaunu_Pt2000_E_CMS_CFilterBVeto',
         'mc15_13TeV.361371.Sherpa_CT10_Wtaunu_Pt2000_E_CMS_BFilter',
         ],
     
@@ -414,4 +448,11 @@ samples_dict = {
 
 
 
+samples_dict['efake15'] = [ i.replace('data15_13TeV', 'efake15') for i in samples_dict['data15'] ]
+samples_dict['jfake15'] = [ i.replace('data15_13TeV', 'jfake15') for i in samples_dict['data15'] ]
 
+samples_dict['efake16'] = [ i.replace('data16_13TeV', 'efake16') for i in samples_dict['data16'] ]
+samples_dict['jfake16'] = [ i.replace('data16_13TeV', 'jfake16') for i in samples_dict['data16'] ]
+
+# samples_dict['efake'] = [ i.replace('data15_13TeV', 'efake15') for i in samples_dict['data15'] ] #'efake15' #+ efake16'
+# samples_dict['jfake'] = [ i.replace('data15_13TeV', 'jfake15') for i in samples_dict['data15'] ] # samples_dict['jfake15'] #'jfake15' #+ 'jfake16'
