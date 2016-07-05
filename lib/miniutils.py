@@ -4,6 +4,7 @@
 import os
 import re
 import ROOT
+
 from rootutils import RootFile, Value, histogram, histogram_equal_to
 from signalxs import get_gg_xs, get_ewk_xs, get_ewk_sumw
 from xs_dict import xs_dict
@@ -14,10 +15,8 @@ import analysis as config_analysis
 import samples as config_samples
 import binning as config_binning
 
-
-MiniDir1  = '/ar/pcunlp001/raid/falonso/mini2/'
-MiniDir2  = '/ar/pcunlp002/disk/falonso/mini2/'
-
+MiniDir1  = '/ar/pcunlp001/raid/falonso/mini2'
+MiniDir2  = '/ar/pcunlp002/disk/falonso/mini2'
 
 # --------
 # Binning
@@ -224,6 +223,11 @@ def find_path(project, did, short_name, versions, ptags):
 
     for version in versions:
 
+        vtag = ''
+        if '_' in version:
+            vtag    = '_' + version.split('_')[1]
+            version = version.split('_')[0]
+
         version_i = int(version)
 
         if version_i > 22:
@@ -233,7 +237,7 @@ def find_path(project, did, short_name, versions, ptags):
 
         if version_i > 31:
             for ptag in ptags:
-                path = '%s/v%s/%s.%s.%s.mini.p%s.v%s_output.root' % (mini_dir, version, project, did, short_name, ptag, version)
+                path = '%s/v%s/%s.%s.%s.mini.p%s.v%s%s_output.root' % (mini_dir, version, project, did, short_name, ptag, version, vtag)
                 if os.path.isfile(path):
                     return path
         else:

@@ -15,7 +15,7 @@ from functools import partial
 import regions as regions_
 import miniutils
 from rootutils import Value
-from stattools import get_significance
+from statutils import get_significance
 from mass_dict import mass_dict
 
 

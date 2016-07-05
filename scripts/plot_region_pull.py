@@ -15,13 +15,15 @@ import string, pickle, copy
 from rootutils import *
 from collections import OrderedDict
 
-from drawlib import colors_dict, labels_dict, calc_poisson_cl_upper, calc_poisson_cl_lower
+from style import colors_dict, labels_dict
+from drawlib import calc_poisson_cl_upper, calc_poisson_cl_lower
 import subprocess
 
 parser = argparse.ArgumentParser(description='plot regions pull')
     
 parser.add_argument('--ws', dest='workspace', required=True, help='Input workspace')
 parser.add_argument('-n', dest='region', help='L or H')
+parser.add_argument('--data', default='data', help='data15|data16|data')
 parser.add_argument('--unblind', action='store_true', help='Unblind! (use with caution)')
 
 args = parser.parse_args()
@@ -67,9 +69,15 @@ backgrounds = [
     'zllgamma', 
     'znunugamma',
     'ttbarg',
-    'jfake',
-    'efake',
     ]
+
+if args.data == 'data15':
+    backgrounds.extend(['jfake15', 'efake15'])
+elif args.data == 'data16':
+    backgrounds.extend(['jfake16', 'efake16'])
+else:
+    backgrounds.extend(['jfake', 'efake'])
+
 
 def get_region_color(region):
 
@@ -382,8 +390,17 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     merged_bkgs['gamjet'] = to_merge['photonjet']
     merged_bkgs['tgamma'] = to_merge['ttbarg'] #+ to_merge['ttbarghad'] to_merge['topgamma'] + 
-    merged_bkgs['efake'] = to_merge['efake']
-    merged_bkgs['jfake'] = to_merge['jfake']
+
+    if args.data == 'data15':
+        merged_bkgs['efake'] = to_merge['efake15']
+        merged_bkgs['jfake'] = to_merge['jfake15']
+    elif args.data == 'data16':
+        merged_bkgs['efake'] = to_merge['efake16']
+        merged_bkgs['jfake'] = to_merge['jfake16']
+    else:
+        merged_bkgs['efake'] = to_merge['efake']
+        merged_bkgs['jfake'] = to_merge['jfake']
+
     merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] #+ to_merge['vqqgamma']
 
     for sam, h in merged_bkgs.iteritems():
@@ -418,10 +435,10 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     hbkg_total.SetMarkerSize(0)
 
     # add entries to legend
-    legymin = 0.55
+    legymin = 0.53
     legymax = 0.85
 
-    legxmin = 0.55
+    legxmin = 0.53
     legxmax = 0.91
 
     legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
@@ -431,7 +448,13 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
         legend1.AddEntry(hist, labels_dict[name], 'f')
 
     legend1.AddEntry(hbkg_total, "stat #oplus syst", 'f')
-    legend1.AddEntry(graph_data, labels_dict['data'], 'pl')
+
+    if args.data == 'data15':
+        legend1.AddEntry(graph_data, 'Data 2015', 'pl')
+    elif args.data == 'data16':
+        legend1.AddEntry(graph_data, 'Data 2016', 'pl')
+    else:
+        legend1.AddEntry(graph_data, 'Data (2015+2016)', 'pl')
 
     # graph_bkg.SetLineWidth(2)
     # graph_bkg.SetMarkerSize(0)
@@ -457,13 +480,20 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     graph_data.Draw("P0Z")
 
 
-    text = '#sqrt{s} = 13 TeV, ~3.2 fb^{-1}'
+    if args.data == 'data15':
+        text = '#sqrt{s} = 13 TeV, ~3.2 fb^{-1}'
+    elif args.data == 'data16':
+        text = '#sqrt{s} = 13 TeV, ~2.6 fb^{-1}'
+    else:
+        text = '#sqrt{s} = 13 TeV, ~5.8 fb^{-1}'
+
     t = ROOT.TLatex(0, 0, text)
     t.SetNDC()
     t.SetTextFont(42)
     t.SetTextSize(0.05)
     t.SetTextColor(ROOT.kBlack)
     t.DrawLatex(0.15, 0.73, text)
+    t.DrawLatex(0.15, 0.64, region_name.replace('L', '{L}').replace('H', '{H}'))
 
 
     legend1.Draw()
@@ -482,7 +512,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     allp = []
     GetBoxes(allp, regions_pull, frame, True)
     
-    c.Print("pull_regions_"+prefix+".pdf")
+    c.Print("pull_regions_"+prefix+"_" + args.data + ".pdf")
 
     return
 
@@ -525,7 +555,7 @@ for region in mydict["names"]:
     n_exp_components = []
     for sam in samples.split(","):
         n_exp_components.append((sam, mydict["Fitted_events_"+sam][index]))
-
+        
     results.append((region, n_obs, n_exp, exp_syst, n_exp_components))
 
 

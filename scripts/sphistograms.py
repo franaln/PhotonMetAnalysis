@@ -36,9 +36,11 @@ def main():
     parser.add_argument('-s', dest='samples', help='samples (comma separated)')
     parser.add_argument('-n', help='"L" or "H"')
 
+    # other options
     parser.add_argument('--add', action='store_true')
     parser.add_argument('--dosyst', action='store_true')
     parser.add_argument('--unblind', action='store_true')
+    parser.add_argument('--version', help='Use this version')
 
     # scale to lumi?
     parser.add_argument('-i', '--input')
@@ -57,7 +59,7 @@ def main():
         elif args.lumi == 'data':
             lumi = config_analysis.lumi_data15 + config_analysis.lumi_data16
 
-        lumi = lumi / 1000.
+        lumi = lumi / 1000. # input should be normalized to 1 fb-1
 
         print 'Scaling histogram from %s to %s (%s fb-1)' % (args.input, args.lumi, lumi)
 
@@ -68,15 +70,15 @@ def main():
         histograms = []
         for key in keys:
 
-            if 'data' in key or 'efake' in key or 'jfake' in key:
-                continue
-
             hist = infile.Get(key)
 
             new_hist = hist.Clone()
             new_hist.SetDirectory(0)
 
-            new_hist.Scale(lumi)
+            if 'data' in key or 'efake' in key or 'jfake' in key:
+                pass
+            else:
+                new_hist.Scale(lumi)
 
             histograms.append(new_hist)
 
@@ -90,7 +92,7 @@ def main():
 
 
 
-
+    
     variables = args.variables.split(',')
 
     region_number = args.n
@@ -128,8 +130,8 @@ def main():
     if args.samples is not None:
         if 'signal' in args.samples:
             samples.extend(signals)
-            histograms_gg = dict()
-            histograms_ewk = dict()
+            #histograms_gg = dict()
+            #histograms_ewk = dict()
         elif 'mc' in args.samples:
             samples.extend(mc)
         elif 'dd' in args.samples:
@@ -138,8 +140,8 @@ def main():
             samples = args.samples.split(',')
     else:
         samples = mc + data + signals +dd
-        histograms_gg = dict()
-        histograms_ewk = dict()
+        #histograms_gg = dict()
+        #histograms_ewk = dict()
 
     # Systematics
     do_syst = args.dosyst
@@ -151,11 +153,11 @@ def main():
     systematics_expOS = systematics.get_one_side_systematics()
 
     # existing histograms
-    existing_histograms = []
-    if args.add:
-        f = ROOT.TFile.Open(args.output)
-        existing_histograms = [ key.GetName() for key in f.GetListOfKeys() ]
-        f.Close()
+    # existing_histograms = []
+    # if args.add:
+    #     f = ROOT.TFile.Open(args.output)
+    #     existing_histograms = [ key.GetName() for key in f.GetListOfKeys() ]
+    #     f.Close()
     
 
     # create histograms
@@ -167,7 +169,7 @@ def main():
 
         for region in regions:
 
-            region_number = region.split('_')[-1]
+            region_type = region.split('_')[-1]
             region_name = region.split('_')[0]
             
             if 'GGM' in sample:
@@ -198,13 +200,23 @@ def main():
                     continue
 
                 # nominal histogram
-                get_histogram = partial(miniutils.get_histogram, sample, variable=variable, region=region_name, selection=selection, lumi=args.lumi)
+                get_histogram = partial(miniutils.get_histogram, sample, variable=variable, 
+                                        region=region_name, selection=selection, 
+                                        lumi=args.lumi, version=args.version)
 
                 hist = get_histogram(syst='Nom')
 
                 # blind SR for now
                 if 'data' in sample and region_name.startswith('SR') and not args.unblind:
                     hist.SetBinContent(1, 0.0)
+
+                # jet fakes in SR (from extrapolation)
+                if sample.startswith('jfake') and region_name.startswith('SR') and variable == 'cuts':
+                    if region_type == 'L':
+                        hist.SetBinContent(1, 0.06)
+                    elif region_type == 'H':
+                        hist.SetBinContent(1, 0.00002)
+                   
 
                 histograms.append(hist)
 
@@ -218,7 +230,7 @@ def main():
 
                         # one side systematics
                         for syst in systematics_expOS:
-
+                            
                             h_low = hist.Clone(hist.GetName().replace('Nom', syst.replace('__1up', '')+'Low'))
 
                             h_high = get_histogram(syst=syst)
@@ -258,22 +270,29 @@ def main():
                         h_low = get_histogram(syst='FegLow')
                         h_high = get_histogram(syst='FegHigh')
 
+                        if h_high.GetBinContent(1) < fzero:
+                            h_high.Fill(1, 0.045)
+                            
                         histograms.append(h_low)
                         histograms.append(h_high)
 
-
-
-                    # ## jet fakes 
-                    # if sample == 'jfake':
+                    ## jet fakes 
+                    if sample.startswith('jfake'):
                     
-                    #     syst = 'jFakeRate'
-                    #     sigma = 0.1   ##guesstimate
+                        h_high = get_histogram(syst='FjgLow')
+                        h_low  = get_histogram(syst='FjgHigh')
 
-                    #     h_high = get_histogram(sample, variable, region_name, selection, 'JFAKEUP')
-                    #     h_low  = get_histogram(sample, variable, region_name, selection, 'JFAKEDOWN')
+                        # in SR (from extrapolation)
+                        if sample.startswith('jfake') and region_name.startswith('SR') and variable == 'cuts':
+                            if region_type == 'L':
+                                h_low.SetBinContent(1, 0.04)
+                                h_high.SetBinContent(1, 0.07)
+                            elif region_type == 'H':
+                                h_low.SetBinContent(1, 0.00001)
+                                h_high.SetBinContent(1, 0.00003)
 
-                    #     histograms.append(h_low)
-                    #     histograms.append(h_high)
+                        histograms.append(h_low)
+                        histograms.append(h_high)
 
 
                     # theoretical 
@@ -328,7 +347,7 @@ def main():
                         syst = 'SigXSec'
                         
                         mu = int(sample.split('_')[2]) # extract mu value
-                        sigma = theoSysSigXsecNumberEWK.get(mu, 0.)
+                        # sigma = theoSysSigXsecNumberEWK.get(mu, 0.)
 
 
                     if syst is not None:
