@@ -1,6 +1,7 @@
 
 import os
 import ROOT
+import pickle
 
 import YieldsTable
 from prettytable import PrettyTable
@@ -36,18 +37,8 @@ def yieldstable(workspace, samples, channels, output_name, table_name, normaliza
 
     regions_list = channels.split(",")
     samples_list = samples.split(",")
-    
-    # from cmdLineUtils import cmdStringToListOfLists
-    # sample_list_tmp = cmdStringToListOfLists(samples)
 
-    # samples_list = []
-    # for isam, sample in enumerate(sample_list_tmp):
-    #     sampleName = YieldsTable.getName(sample)
-    #     samples_list.append(sampleName)
-
-
-       # call the function to calculate the numbers, or take numbers from pickle file  
-    import pickle
+    # call the function to calculate the numbers, or take numbers from pickle file  
     if workspace.endswith(".pickle"):
         print "READING PICKLE FILE"
         f = open(workspace, 'r')
@@ -91,16 +82,6 @@ def yieldstable(workspace, samples, channels, output_name, table_name, normaliza
     table.add_row(row)
     table.add_line()
 
-    if all([r.startswith('CR') for r in regions_names]) and normalization_factors is not None:
-
-        row = ['Normalization factors',]
-        for region in regions_names:
-            row.append('$%.2f \pm %.2f$' % normalization_factors[region])
-
-        table.add_row(row)
-        table.add_line()
-
-
     map_listofkeys = m.keys()
 
     # print fitted number of events per sample
@@ -139,8 +120,15 @@ def yieldstable(workspace, samples, channels, output_name, table_name, normaliza
     # print the total expected (before fit) number of events
     # if the N_fit - N_error extends below 0, make the error physical , meaning extend to 0
     row = ['MC exp. SM events',]
+
+    total_before = []
+    purity_before = []
             
     for index, n in enumerate(m['TOTAL_MC_EXP_BKG_events']):
+
+        if regions_names[index].startswith('CR'):
+            total_before.append(n)
+
         row.append('$%.2f$' % n)
 
     table.add_row(row)
@@ -163,6 +151,7 @@ def yieldstable(workspace, samples, channels, output_name, table_name, normaliza
 
                 sample_name = labels_dict.get(sample_name, sample_name)
                 sample_name = sample_name.replace("_","\_")
+
               
                 if sample not in ['efake', 'jfake']:
                     row.append('MC exp. %s events' % sample_name)
@@ -170,12 +159,53 @@ def yieldstable(workspace, samples, channels, output_name, table_name, normaliza
                     row.append('%s events' % sample_name)
 
                 for index, n in enumerate(m[name]):
+                    
+                    print regions_names[index], sample
+                    if regions_names[index] == 'CRQ' and sample == 'photonjet':
+                        purity_before.append(n)
+                    if regions_names[index] == 'CRW' and sample == 'wgamma':
+                        purity_before.append(n)
+                    if regions_names[index] == 'CRT' and sample == 'ttbarg':
+                        purity_before.append(n)
+
                     row.append('$%.2f$' % n)
 
                 table.add_row(row)
 
 
+
     table.add_line()
+
+    if all([r.startswith('CR') for r in regions_names]) and normalization_factors is not None:
+
+        print purity_before
+        print total_before
+
+        table.add_row(['', '', '', ''])
+        table.add_line()
+
+        # purity
+        row = ['Purity',]
+        for index, region in enumerate(regions_names):
+
+
+            purity = int(purity_before[index]/total_before[index] * 100.)
+
+            row.append('$%i\%%$' % purity)
+            
+        table.add_row(row)
+        table.add_line()
+
+        # normalization
+        row = ['Normalization factor ($\mu$)',]
+        for region in regions_names:
+            row.append('$%.2f \pm %.2f$' % normalization_factors[region])
+
+        table.add_row(row)
+        table.add_line()
+        
+
+
 
     table.save_tex(output_name)
 

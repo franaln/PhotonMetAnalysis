@@ -12,11 +12,9 @@ from configWriter import fitConfig, Measurement, Channel, Sample
 from systematic import Systematic
 
 from style import colors_dict
-from rootutils import get_color
-from miniutils import get_binning
 
 def color(sample):
-    return get_color(colors_dict[sample])
+    return ROOT.TColor.GetColor(colors_dict[sample])
 
 def rmdir(dir_):
     try:
@@ -35,6 +33,7 @@ parser = argparse.ArgumentParser('PhotonMet_HistFitter_config')
 
 parser.add_argument("-i", dest='hist_file')
 parser.add_argument("--sr", dest='signal_region')
+parser.add_argument("--data", default='data')
 
 parser.add_argument("--val", action='store_true')
 parser.add_argument("--mc", action='store_true')
@@ -42,7 +41,7 @@ parser.add_argument("--syst", action='store_true')
 parser.add_argument("--rm", action='store_true')
 parser.add_argument("--asimov", action='store_true')
 parser.add_argument("--ntoys", type=int, default=5000)
-parser.add_argument("--npoints", type=int, default=20)
+parser.add_argument("--npoints", type=int, default=1)
 
 userArg = [ i.replace('"', '') for i in configMgr.userArg.split()]
 args = parser.parse_args(userArg)
@@ -54,11 +53,13 @@ do_validation = args.val
 use_mc_bkgs   = args.mc 
 do_syst       = args.syst 
 
+data_name = args.data
+
 nom_name  = 'Nom'
 model_hypo_test = 'GGM'
-do_signal_theory_unc = True
+do_signal_theory_unc = False
 variable = 'cuts'
-binning  = get_binning(variable)
+binning  = (1, 0.5, 1.5) ##get_binning(variable)
 
 region_str = "%s_%s" % (base_analysis, signal_region)
 
@@ -129,6 +130,7 @@ regions = [
     'VRM1', 'VRM2', 'VRM3', 
     'VRD1', 'VRD2', 'VRD3',
     'VRL1', 'VRL2', 'VRL3', 'VRL4',
+    'VRM2incl', 'VRL2incl', 'VRL3incl',
   ]
 
 for r in regions:
@@ -154,31 +156,49 @@ ttbarg_sample = Sample('ttbarg', color("ttbarg"))
 #topSample.setTreeName("ttbar")  ##change tree name for ttbar
 #topgSample       = Sample("topgamma", colors_dict["topgamma"])
 
-ttbarg_sample.setNormByTheory()
-ttbarg_sample.setNormFactor("mu_t", 1., 0., 5.)   
+ttbar_sample.setNormByTheory()
+ttbarg_sample.setNormFactor("mu_t", 1., 0., 2.)   
 
 # W/Z gamma
 wgamma_sample     = Sample('wgamma', color("wgamma"))
 zllgamma_sample   = Sample('zllgamma', color("zllgamma"))
 znunugamma_sample = Sample('znunugamma', color("znunugamma"))
+#zllgamma_sample   = Sample('zgamma', color("zgamma"))
 #VqqgammaSample   = Sample("vqqgamma", colors_dict["vqqgamma"])
 
 zllgamma_sample.setNormByTheory()
 znunugamma_sample.setNormByTheory()
-wgamma_sample.setNormByTheory()
-wgamma_sample.setNormFactor("mu_w", 1., 0., 5.)
+wgamma_sample.setNormFactor("mu_w", 1., 0., 2.)
 
 # QCD
 photonjet_sample = Sample('photonjet', color("photonjet"))
 multijet_sample = Sample('multijet', color("multijet"))
 
 multijet_sample.setNormByTheory()
-photonjet_sample.setNormByTheory()
-photonjet_sample.setNormFactor("mu_q", 1., 0., 5.)
+photonjet_sample.setNormFactor("mu_q", 1., 0., 2.)
+
+# Diphoton backgrounds
+diphoton_sample    = Sample('diphoton', color("diphoton"))
+vgammagamma_sample = Sample('vgammagamma', color("vgammagamma"))
+
+diphoton_sample.setNormByTheory()
+vgammagamma_sample.setNormByTheory()
 
 # Fakes
-efake_sample  = Sample("efake", color("efake"))
-jfake_sample = Sample("jfake", color("jfake"))
+if data_name == 'data15':
+    efake_sample = Sample("efake15", color("efake"))
+    jfake_sample = Sample("jfake15", color("jfake"))
+elif data_name == 'data16':
+    efake_sample = Sample("efake16", color("efake"))
+    jfake_sample = Sample("jfake16", color("jfake"))
+else: # should be 'data'
+    efake_sample = Sample("efake", color("efake"))
+    jfake_sample = Sample("jfake", color("jfake"))
+
+# Data
+data_sample = Sample(data_name, ROOT.kBlack)
+data_sample.setData()
+
 
 # stat uncertainty
 wjets_sample.setStatConfig(useStat)
@@ -190,10 +210,8 @@ ttbar_sample.setStatConfig(useStat)
 ttbarg_sample.setStatConfig(useStat)
 photonjet_sample.setStatConfig(useStat)
 multijet_sample.setStatConfig(useStat)
-
-# Data
-data_sample = Sample('data', ROOT.kBlack)
-data_sample.setData()
+diphoton_sample.setStatConfig(useStat)
+vgammagamma_sample.setStatConfig(useStat)
 
 if use_mc_bkgs:
     bkg_samples = [
@@ -216,6 +234,8 @@ else:
         photonjet_sample,
         efake_sample,
         jfake_sample,
+        diphoton_sample,
+        vgammagamma_sample,
         ]
 
 data_samples = [data_sample,]
@@ -232,18 +252,19 @@ def Sys(name='', kind='overallSys'):
 
 ## Detector uncertainties
 syst_jets = [
-    Sys("JET_GroupedNP_1"),
-    Sys("JET_GroupedNP_2"),
-    Sys("JET_GroupedNP_3"),
-    Sys("JET_JER_SINGLE_NP"),
+    Systematic('JET_EtaIntercalibration_NonClosure', nom_name, '_JET_EtaIntercalibration_NonClosureUp', '_JET_EtaIntercalibration_NonClosureDown', 'tree', 'overallSys'),
+    Systematic('JET_GroupedNP_1', nom_name, '_JET_GroupedNP_1Up', '_JET_GroupedNP_1Down', 'tree', 'overallSys'),
+    Systematic('JET_GroupedNP_2', nom_name, '_JET_GroupedNP_2Up', '_JET_GroupedNP_2Down', 'tree', 'overallSys'),
+    Systematic('JET_GroupedNP_3', nom_name, '_JET_GroupedNP_3Up', '_JET_GroupedNP_3Down', 'tree', 'overallSys'),
+    Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NPUp', '', 'tree', 'histoSysOneSide'),
 ]
 
 syst_btagging = []
 
 syst_met = [
-    Sys("MET_SoftTrk_ResoPara"),
-    Sys("MET_SoftTrk_ResoPerp"),
-    Sys("MET_SoftTrk_Scale"),
+    Systematic('MET_SoftTrk_ResoPara', nom_name, '_MET_SoftTrk_ResoParaUp', '', 'tree', 'histoSysOneSide'),
+    Systematic('MET_SoftTrk_ResoPerp', nom_name, '_MET_SoftTrk_ResoPerpUp', '', 'tree', 'histoSysOneSide'),
+    Systematic('MET_SoftTrk_Scale', nom_name, '_MET_SoftTrk_ScaleUp', '_MET_SoftTrk_ScaleDown', 'tree', 'overallSys'),
 ]
 
 syst_egamma = [
@@ -257,79 +278,45 @@ syst_muon = [
     Sys("MUONS_ID"),
 ]
 
-# #Efake background
-syst_feg = Sys('Feg')
-
-#Jet fake background
-#syst_jFakeRate = getSys('jfake', 'histoSys') 
+# Fake photon backgrounds
+syst_feg = Systematic('Feg', nom_name, '_FegUp', '_FegDown', 'tree', 'histoSys')
+syst_fjg = Systematic('Fjg', nom_name, '_FjgUp', '_FjgDown', 'tree', 'histoSys')
 
 syst_weight = [
-    # Sys('EL_EFF_ID_CorrUncertaintyNP0'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP1'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP2'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP3'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP4'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP5'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP6'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP7'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP8'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP9'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP10'),
-    # Sys('EL_EFF_ID_CorrUncertaintyNP11'),
-    # Sys('EL_EFF_ID_TOTAL_UncorrUncertainty'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP0'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP1'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP2'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP3'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP4'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP5'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP6'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP7'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP8'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP9'),
-    # Sys('EL_EFF_Iso_CorrUncertaintyNP10'),
-    # Sys('EL_EFF_Iso_TOTAL_UncorrUncertainty'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP0'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP1'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP2'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP3'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP4'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP5'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP6'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP7'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP8'),
-    # Sys('EL_EFF_Reco_CorrUncertaintyNP9'),
-    # Sys('EL_EFF_Reco_TOTAL_UncorrUncertainty'),
-    # Sys('EL_EFF_Trigger_CorrUncertaintyNP0'),
-    # Sys('EL_EFF_Trigger_CorrUncertaintyNP1'),
-    # Sys('EL_EFF_Trigger_CorrUncertaintyNP2'),
-    # Sys('EL_EFF_Trigger_CorrUncertaintyNP3'),
-    # Sys('EL_EFF_Trigger_CorrUncertaintyNP4'),
+    Sys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
+    Sys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
+    Sys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
+    Sys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
+
+
     # Sys('EL_EFF_Trigger_TOTAL_UncorrUncertainty'),
     Sys('FT_EFF_B_systematics'),
     Sys('FT_EFF_C_systematics'),
     Sys('FT_EFF_Light_systematics'),
-    Sys('FT_EFF_extrapolation'),
+    # Sys('FT_EFF_extrapolation'),
     Sys('JvtEfficiency'),
-    # Sys('MUON_EFF_STAT'),
-    # Sys('MUON_EFF_STAT_LOWPT'),
-    # Sys('MUON_EFF_SYS'),
-    # Sys('MUON_EFF_SYS_LOWPT'),
-    # Sys('MUON_EFF_TrigStatUncertainty'),
-    # Sys('MUON_EFF_TrigSystUncertainty'),
-    # Sys('MUON_ISO_STAT'),
-    # Sys('MUON_ISO_SYS'),
+    Sys('MUON_EFF_STAT'),
+    Sys('MUON_EFF_STAT_LOWPT'),
+    Sys('MUON_EFF_SYS'),
+    Sys('MUON_EFF_SYS_LOWPT'),
+    Sys('MUON_EFF_TrigStatUncertainty'),
+    Sys('MUON_EFF_TrigSystUncertainty'),
+    Sys('MUON_ISO_STAT'),
+    Sys('MUON_ISO_SYS'),
+
     Sys('PH_EFF_ID_Uncertainty'),
+
+    Sys('PRW_DATASF'),
 ]
 
-syst_to_all = syst_met  + syst_egamma + syst_muon + syst_weight + syst_jets
+syst_to_all = syst_jets +syst_met + syst_egamma + syst_muon + syst_weight
 
 
 ## Theory Uncertainties
-theoSysGJ    = Sys('theoSysGJ') #, 'histoSys')
+theoSysGJ    = Sys('theoSysGJ') 
 theoSysTopG  = Sys('theoSysTopG')
 theoSysWG    = Sys('theoSysWG')
-theoSysZG    = Sys('theoSysZG') #, 'histoSys')
+theoSysZG    = Sys('theoSysZG') 
 sigXsec      = Sys('SigXSec')
 
 # theoSysGJgen = getSys('theoSysGJgen', 'histoSys')
@@ -343,9 +330,6 @@ sigXsec      = Sys('SigXSec')
 if do_syst: 
 
     #-- sample specific systematics
-    # ttbarghadSample.addSystematic(theoSysTopG)
-    # topgSample.addSystematic(theoSysSingleTopG)
-
     ttbarg_sample.addSystematic(theoSysTopG)
     wgamma_sample.addSystematic(theoSysWG)
     zllgamma_sample.addSystematic(theoSysZG)
@@ -353,17 +337,17 @@ if do_syst:
     photonjet_sample.addSystematic(theoSysGJ)
 
     efake_sample.addSystematic(syst_feg)
-    #jfake_sample.addSystematic(syst_jFakeRate)
-
+    jfake_sample.addSystematic(syst_fjg)
+    
     #-- global systematics
     for gsyst in syst_to_all:
         # fitconfig.addSystematic(gsyst)
 
         for sample in bkg_samples:
-            if sample.name in ['efake', 'jfake']:
+            if sample.name.startswith('efake') or sample.name.startswith('jfake'):
                 continue
 
-            print "*** Adding %s in %s" % (gsyst.name, sample.name) 
+            #print "*** Adding %s in %s" % (gsyst.name, sample.name) 
             sample.addSystematic(gsyst)
 
 
@@ -393,7 +377,6 @@ elif myFitType == FitType.Discovery:
     fitconfig.addSamples(unitary_sample)
     fitconfig.setSignalSample(unitary_sample)
     
-    
 # Exclusion fit
 elif myFitType == FitType.Exclusion:
     fitconfig = configMgr.addFitConfig('ExclusionFit')
@@ -408,10 +391,6 @@ measLumiError = 0.021
 
 meas = fitconfig.addMeasurement(measName, measLumi, measLumiError)
 
-# if not use_mc_bkgs:
-#     meas.addParamSetting("mu_efake", True, 1) # fix efake BKG
-#     meas.addParamSetting("mu_jfake", True, 1) # fix jfake BKG
-    
 if useStat:
     fitconfig.statErrThreshold = 0.05 #low stat error now (as in 2L-paper13)
 else:
@@ -471,6 +450,16 @@ if do_validation:
     validation_channels.append(VRL3)
     validation_channels.append(VRL4)
 
+    # inclusive VR
+    # VRM2incl = fitconfig.addChannel(variable, ["VRM2incl"], *binning)
+    # VRL2incl = fitconfig.addChannel(variable, ["VRL2incl"], *binning)
+    # VRL3incl = fitconfig.addChannel(variable, ["VRL3incl"], *binning)
+
+    # validation_channels.append(VRM2incl)
+    # validation_channels.append(VRL2incl)
+    # validation_channels.append(VRL3incl)
+
+   
 # ---------------
 # Signal region 
 # ---------------
@@ -485,11 +474,16 @@ signal_channels.append(SR)
 
 
 # Add CR/VR/SR 
-#if myFitType == FitType.Background or myFitType == FitType.Exclusion:
 fitconfig.setBkgConstrainChannels(constraint_channels)
 
 if myFitType == FitType.Background: 
     validation_channels.append(SR) #--- Define SR as validation region.
+
+    # For now as a validation region. FIX!
+    if sr_name == 'SR': 
+        SRincl  = fitconfig.addChannel(variable, ["SRincl"], *binning)
+        validation_channels.append(SRincl)
+
 else:
     #for sr in signal_channels:
         #print sr
@@ -533,7 +527,3 @@ if myFitType == FitType.Exclusion:
         exclfit.setSignalSample(sigSample)
         exclfit.setSignalChannels(signal_channels)
 
-
-# if configMgr.executeHistFactory:
-#     if os.path.isfile("data/%s.root" % configMgr.analysisName):
-#         os.remove("data/%s.root" % configMgr.analysisName) 
