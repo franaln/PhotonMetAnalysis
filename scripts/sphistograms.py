@@ -24,7 +24,35 @@ import analysis as config_analysis
 
 fzero = 0.0001
 
-def main():
+
+class HistManager:
+
+    def __init__(self, path):
+        self.path = path
+        self.histograms = []
+
+    def __del__(self):
+        self.close()
+
+    def add(self, h):
+        if len(self.histograms) > 50:
+            self.save()
+            del self.histograms[:]
+
+        self.histograms.append(h)
+
+    def save(self):
+        with RootFile(self.path, 'update') as f:
+            for hist in self.histograms:
+                f.write(hist)
+
+    def close(self):
+        if self.histograms:
+            self.save()
+
+
+
+def sphistograms():
 
     parser = argparse.ArgumentParser(description='')
 
@@ -46,10 +74,12 @@ def main():
     parser.add_argument('-i', '--input')
     parser.add_argument('--lumi')
 
+    # sum 2015 and 2016
+    parser.add_argument('--sum', help='Sum this two files')
+
     args = parser.parse_args()
-    
-    
-    # Scale
+
+    # Scale to lumi
     if args.input is not None and args.lumi is not None:
         
         if args.lumi == 'data15':
@@ -67,7 +97,8 @@ def main():
 
         keys = [ key.GetName() for key in infile.GetListOfKeys() ]
 
-        histograms = []
+        histograms = HistManager(args.output)
+
         for key in keys:
 
             hist = infile.Get(key)
@@ -80,68 +111,71 @@ def main():
             else:
                 new_hist.Scale(lumi)
 
-            histograms.append(new_hist)
-
+            histograms.add(new_hist)
+                
         infile.Close()
+        histograms.close()
 
-        with RootFile(args.output, 'update') as f:
-            for hist in histograms:
-                f.write(hist)
+        return 0
+
+    # Sum 2015 + 2016
+    if args.sum is not None:
+
+        files = args.sum.split(',')
+
+        print 'Summing %s and %s to %s' % (files[0], files[1], args.output)
+
+        infile1 = ROOT.TFile.Open(files[0])
+        infile2 = ROOT.TFile.Open(files[1])
+
+        keys = [ key.GetName() for key in infile1.GetListOfKeys() ]
+
+        histograms = HistManager(args.output)
+
+        for key in keys:
+
+            if 'Unitary' in key:
+                continue
+
+            hist1 = infile1.Get(key)
+            hist2 = infile2.Get(key.replace('data15', 'data16').replace('efake15', 'efake16').replace('jfake15', 'jfake16'))
+            
+            new_hist = hist1.Clone(hist1.GetName().replace('data15', 'data').replace('efake15', 'efake').replace('jfake15', 'jfake'))
+            new_hist.SetDirectory(0)
+
+            new_hist.Add(hist2, 1.0)
+
+            histograms.add(new_hist)
+
+        infile1.Close()
+        infile2.Close()
+
+        histograms.close()
 
         return 0
 
 
-
-    
+    # Create histograms
     variables = args.variables.split(',')
 
-    region_number = args.n
+    region_type = args.n
 
-    if region_number is None:
-        parser.print_usage()
+    if region_type is None:
+        print 'error: indicate the region type: L or H'
         return 1
     
-    if args.regions is None:
-        args.regions = 'SR,SRincl,CRQ,CRW,CRT,VRM1,VRM2,VRM3,VRD1,VRD2,VRD3,VRL1,VRL2,VRL3,VRL4'
-        
-    regions = [ '%s_%s' % (r, region_number) for r in args.regions.split(',') ]
+    regions = [ '%s_%s' % (r, region_type) for r in args.regions.split(',') ]
    
-    mc = [
-        'wgamma',
-        'zllgamma',
-        'znunugamma',
-        'ttbarg',
-        'photonjet',
-        #'ttbar',
-        #'multijet',
-        #'wjets',
-        #'zjets',
-        ]
-
-    dd = ['efake15', 'jfake15', 'efake16', 'jfake16', 'efake', 'jfake']
-
-    signals = [ 'GGM_M3_mu_%i_%i' % (m3, mu) for (m3, mu) in mass_dict.keys() ]
-
-    histograms_ewk, histograms_gg = None, None
-
-    data = ['data',]
+    data = ['data15', 'data16', 'data',]
 
     samples = []
     if args.samples is not None:
         if 'signal' in args.samples:
-            samples.extend(signals)
-            #histograms_gg = dict()
-            #histograms_ewk = dict()
-        elif 'mc' in args.samples:
+            samples.extend(config_analysis.signal)
+        elif 'bkg' in args.samples:
             samples.extend(mc)
-        elif 'dd' in args.samples:
-            samples.extend(dd)
         else:
             samples = args.samples.split(',')
-    else:
-        samples = mc + data + signals +dd
-        #histograms_gg = dict()
-        #histograms_ewk = dict()
 
     # Systematics
     do_syst = args.dosyst
@@ -165,13 +199,15 @@ def main():
 
         print 'Processing sample %s ...' % sample
 
-        histograms = []
+        #histograms = []
+        histograms = HistManager(args.output)
 
         for region in regions:
 
             region_type = region.split('_')[-1]
             region_name = region.split('_')[0]
             
+            # don't need signal in VR
             if 'GGM' in sample:
                 if region_name in ['SR', 'SRincl', 'CRQ', 'CRW', 'CRT']:
                     pass
@@ -195,7 +231,7 @@ def main():
                     hist.Sumw2()
                     hist.Fill(1.)
                     
-                    histograms.append(hist)
+                    histograms.add(hist)
                     
                     continue
 
@@ -216,9 +252,8 @@ def main():
                         hist.SetBinContent(1, 0.06)
                     elif region_type == 'H':
                         hist.SetBinContent(1, 0.00002)
-                   
 
-                histograms.append(hist)
+                histograms.add(hist)
 
 
                 if do_syst:
@@ -226,7 +261,7 @@ def main():
                     if 'data' in sample:
                         continue
 
-                    if sample not in dd:
+                    if not sample.startswith('efake') and not sample.startswith('jfake'):
 
                         # one side systematics
                         for syst in systematics_expOS:
@@ -236,8 +271,8 @@ def main():
                             h_high = get_histogram(syst=syst)
                             h_high.SetName(h_high.GetName().replace(syst, syst+'High'))
 
-                            histograms.append(h_low)
-                            histograms.append(h_high)
+                            histograms.add(h_low)
+                            histograms.add(h_high)
 
                         # High-Low detector systematics
                         for syst in systematics_expHL:
@@ -249,8 +284,8 @@ def main():
                                 h_low  = get_histogram(syst=syst+'__1down')
                                 h_high = get_histogram(syst=syst+'__1up')
 
-                            histograms.append(h_low)
-                            histograms.append(h_high)
+                            histograms.add(h_low)
+                            histograms.add(h_high)
                     
                         # # btag: only in the regions with bjet tag/veto
                         # if 'CRL' in region_name:
@@ -273,8 +308,8 @@ def main():
                         if h_high.GetBinContent(1) < fzero:
                             h_high.Fill(1, 0.045)
                             
-                        histograms.append(h_low)
-                        histograms.append(h_high)
+                        histograms.add(h_low)
+                        histograms.add(h_high)
 
                     ## jet fakes 
                     if sample.startswith('jfake'):
@@ -291,8 +326,8 @@ def main():
                                 h_low.SetBinContent(1, 0.00001)
                                 h_high.SetBinContent(1, 0.00003)
 
-                        histograms.append(h_low)
-                        histograms.append(h_high)
+                        histograms.add(h_low)
+                        histograms.add(h_high)
 
 
                     # theoretical 
@@ -326,7 +361,7 @@ def main():
                         sigma = 0.2 # FIX ~ from Run 1
                     
                     ## zgamma
-                    if ('zllgamma' in sample) or ('znunugamma' in sample):
+                    if 'zllgamma' in sample or 'znunugamma' in sample or 'zgamma' in sample:
                         syst = 'theoSysZG'
                         sigma = 1   ##guestimate
 
@@ -343,13 +378,6 @@ def main():
                         sigma = gg_xs_unc.get(m3, 0.) #get relative uncertainty
                         
                     
-                    if 'GGM_mu' in sample:
-                        syst = 'SigXSec'
-                        
-                        mu = int(sample.split('_')[2]) # extract mu value
-                        # sigma = theoSysSigXsecNumberEWK.get(mu, 0.)
-
-
                     if syst is not None:
                         
                         if sigma_up is None and sigma_dn is None:
@@ -362,53 +390,14 @@ def main():
                         h_low =  hist.Clone(hist.GetName().replace('Nom', syst+'Low'))
                         h_low.Scale(1 - sigma_dn)
 
-                        histograms.append(h_high)
-                        histograms.append(h_low)
+                        histograms.add(h_high)
+                        histograms.add(h_low)
                         
 
-        # save histograms
-        if histograms:
-            with RootFile(args.output, 'update') as f:
-                for hist in histograms:
-                    f.write(hist)
-
-        # if 'GGM_M3_mu' in sample:
-        #     histograms_gg.update({ hist.GetName(): hist for hist in list(histograms) })
-        # elif 'GGM_mu' in sample:
-        #     histograms_ewk.update({ hist.GetName(): hist for hist in list(histograms) })
-
-
-    # sum strong and ewk histograms
-    # if histograms_gg is not None and histograms_ewk is not None:
-        
-    #     histograms = []
-
-    #     for name, hist in histograms_gg.iteritems():
-            
-    #         mu = re.findall(r'\d+', name.split('_')[4])[0] #extract mu value from sample name
-
-    #         # get the correspondent ewk point
-    #         for ewkmu in ewkdict.itervalues():
-    #             if ewkmu == int(mu):
-    #                 break
-    #         else:
-    #             ewkmu = int(strong_ewk_fix[mu])
-                
-    #         ewk_name = 'hGGM_mu_' + '_'.join(name.replace(mu, str(ewkmu)).split('_')[4:])
-
-    #         h = hist.Clone(name.replace('GGM_M3_mu', 'GGM_M3_mu_all'))
-            
-    #         # sum ewk contribution only if > 0
-    #         if histograms_ewk[ewk_name].GetBinContent(1) > fzero:
-    #             h.Add(histograms_ewk[ewk_name], 1.0)
-
-    #         histograms.append(h)
-
-    #     with RootFile(args.output, 'update') as f:
-    #         for hist in histograms:
-    #             f.write(hist)
+        # close/save histograms
+        histograms.close()
 
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(sphistograms())
