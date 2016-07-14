@@ -230,10 +230,10 @@ def find_path(project, did, short_name, versions, ptags):
 
         version_i = int(version)
 
-        if version_i > 22:
-            mini_dir = MiniDir2
-        else:
+        if version_i > 33:
             mini_dir = MiniDir1
+        else:
+            mini_dir = MiniDir2
 
         if version_i > 31:
             for ptag in ptags:
@@ -355,8 +355,8 @@ def _get_histogram(ds, **kwargs):
         
         selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
 
-        if variable == 'jet_n':
-            selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == 'rt4' ])
+        # if variable == 'jet_n':
+        #     selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == 'rt4' ])
 
     if remove_var and (':' in variable):
         if varx in selection:

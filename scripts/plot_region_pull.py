@@ -22,6 +22,7 @@ import subprocess
 parser = argparse.ArgumentParser(description='plot regions pull')
     
 parser.add_argument('--ws', dest='workspace', required=True, help='Input workspace')
+parser.add_argument('-o', dest='output_dir', default='.', help='Output dir')
 parser.add_argument('-n', dest='region', help='L or H')
 parser.add_argument('--data', default='data', help='data15|data16|data')
 parser.add_argument('--unblind', action='store_true', help='Unblind! (use with caution)')
@@ -52,6 +53,7 @@ regions = [
     'VRL4',
     
     'SR',
+    'SRincl',
     ]
 
 if region_type == 'H':
@@ -69,6 +71,8 @@ backgrounds = [
     'zllgamma', 
     'znunugamma',
     'ttbarg',
+    # 'diphoton',
+    # 'vgammagamma',
     ]
 
 if args.data == 'data15':
@@ -81,12 +85,14 @@ else:
 
 def get_region_color(region):
 
-    if 'SR' in region:
-        return get_color('#00ef6a')
-    elif 'CR' in region:
-        return get_color('#ef000e')
-    else:
-        return get_color('#0086ef')
+    # if 'SR' in region:
+    #     return get_color('#00ef6a')
+    # elif 'CR' in region:
+    #     return get_color('#ef000e')
+    # else:
+    #     return get_color('#0086ef')
+
+    return get_color('#999994')
 
     return 1
 
@@ -102,10 +108,16 @@ def MakeBox(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
     graph = ROOT.TGraph(4)
 
     if horizontal:
-        graph.SetPoint(0,0.1+offset,0)
-        graph.SetPoint(1,0.1+offset,pull)
-        graph.SetPoint(2,0.9+offset,pull)
-        graph.SetPoint(3,0.9+offset,0)
+
+        if pull > 0:
+            miny = -0.02
+        else:
+            miny = 0.02
+
+        graph.SetPoint(0, 0.1+offset, miny)
+        graph.SetPoint(1, 0.1+offset, pull)
+        graph.SetPoint(2, 0.9+offset, pull)
+        graph.SetPoint(3, 0.9+offset, miny)
     else:
         graph.SetPoint(0,0,0.3+offset)
         graph.SetPoint(1,pull,0.3+offset)
@@ -173,7 +185,7 @@ def GetBoxes(allp, regions_pull, frame, horizontal=False):
         name = region.replace(" ","")
         name = region.replace("_cuts","")
         
-        if not args.unblind and name == 'SR':
+        if not args.unblind and name.startswith('SR'):
             continue
 
         if horizontal:
@@ -227,7 +239,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
             if info[0] == region:
                 break
 
-        name = region.replace(" ","")
+        name = region.replace(" ","").replace('SRincl', 'SR^{incl}')
 
         n_obs = info[1]
         n_exp = info[2]
@@ -241,21 +253,13 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
             exp_stat = ROOT.TMath.Sqrt(n_exp)
             exp_stat_up, exp_stat_dn = get_poisson_error(n_exp)
         
-
         exp_total = 0
         exp_total_up = 0
         exp_total_dn = 0
 
-        # if not CR
-        #if name.find("CR") < 0:
         exp_total    = ROOT.TMath.Sqrt(exp_stat*exp_stat + exp_syst*exp_syst)
         exp_total_up = ROOT.TMath.Sqrt(exp_stat_up*exp_stat_up + exp_syst*exp_syst)
         exp_total_dn = ROOT.TMath.Sqrt(exp_stat_dn*exp_stat_dn + exp_syst*exp_syst)
-      
-        # # if CR
-        # else:
-        #     exp_total = exp_syst
-
 
         pull = 0
         if (n_obs - n_exp) > 0 and exp_total_up != 0:
@@ -306,9 +310,6 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
         graph_bkg.SetPoint(counter, hbkg.GetBinCenter(counter+1), n_exp)
         graph_bkg.SetPointError(counter, 0.5, 0.5, exp_total_dn, exp_total_up)
 
-        # graph_bkg2.SetPoint(counter, hbkg.GetBinCenter(counter+1), n_exp)
-        # graph_bkg2.SetPointError(counter, 0.5, 0.5, exp_total_dn, exp_total_up)
-
         graph_data.SetPoint(counter, hbkg.GetBinCenter(counter+1), n_obs)
 
         binErrUp, binErrLow = 0,0
@@ -336,46 +337,44 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
         hbkg.SetBinContent(counter+1, n_exp)
         hbkg.SetBinError(counter+1, exp_total)
 
-
     hdata.SetMaximum(1000*ymax)
     hdata.SetMinimum(0.05)
 
-
-
     # Plot
     c = ROOT.TCanvas("c"+prefix,prefix,800,600);
+
+    c.SetFrameFillColor(ROOT.kWhite)
 
     cup   = ROOT.TPad("u", "u", 0., 0.305, 0.99, 1)
     cdown = ROOT.TPad("d", "d", 0., 0.01, 0.99, 0.295)
 
     cup.SetLogy()
 
-    cup.SetFillColor(0);
-    cup.SetBorderMode(0);
-    cup.SetBorderSize(2);
+    cup.SetFillColor(0)
+    cup.SetBorderMode(0)
+    cup.SetBorderSize(2)
     cup.SetTicks()
-    cup.SetTopMargin   ( 0.1 );
-    cup.SetRightMargin ( 0.05 );
-    cup.SetBottomMargin( 0.0025 );
-    cup.SetLeftMargin( 0.10 );
-    cup.SetFrameBorderMode(0);
-    cup.SetFrameBorderMode(0);
+    cup.SetTopMargin   ( 0.1 )
+    cup.SetRightMargin ( 0.05 )
+    cup.SetBottomMargin( 0.0025 )
+    cup.SetLeftMargin( 0.10 )
+    cup.SetFrameBorderMode(0)
+    cup.SetFrameBorderMode(0)
     cup.Draw()
 
-    cdown.SetGridx();
-    cdown.SetGridy();
-    cdown.SetFillColor(0);
-    cdown.SetBorderMode(0);
-    cdown.SetBorderSize(2);
-    cdown.SetTickx(1);
-    cdown.SetTicky(1);
-    cdown.SetTopMargin   ( 0.003 );
-    cdown.SetRightMargin ( 0.05 );
-    cdown.SetBottomMargin( 0.3 );
-    cdown.SetLeftMargin( 0.10 );
-    cdown.Draw()
+    cdown.SetGridx()
+    cdown.SetGridy()
 
-    c.SetFrameFillColor(ROOT.kWhite)
+    cdown.SetFillColor(0)
+    cdown.SetBorderMode(0)
+    cdown.SetBorderSize(2)
+    cdown.SetTickx(1)
+    cdown.SetTicky(1)
+    cdown.SetTopMargin   ( 0.003 )
+    cdown.SetRightMargin ( 0.05 )
+    cdown.SetBottomMargin( 0.3 )
+    cdown.SetLeftMargin( 0.10 )
+    cdown.Draw()
 
     cup.cd()
 
@@ -401,7 +400,9 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
         merged_bkgs['efake'] = to_merge['efake']
         merged_bkgs['jfake'] = to_merge['jfake']
 
-    merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] #+ to_merge['vqqgamma']
+    merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] 
+
+    #merged_bkgs['diphoton'] = to_merge['diphoton'] + to_merge['vgammagamma']
 
     for sam, h in merged_bkgs.iteritems():
         set_style(h, color=colors_dict[sam], fill=True)
@@ -454,13 +455,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     elif args.data == 'data16':
         legend1.AddEntry(graph_data, 'Data 2016', 'pl')
     else:
-        legend1.AddEntry(graph_data, 'Data (2015+2016)', 'pl')
-
-    # graph_bkg.SetLineWidth(2)
-    # graph_bkg.SetMarkerSize(0)
-    # graph_bkg.SetFillStyle(sm_total_style)
-    # graph_bkg.SetLineColor(sm_total_color)
-    # graph_bkg.SetFillColor(sm_total_color)
+        legend1.AddEntry(graph_data, 'Data 2015+2016', 'pl')
 
     set_style(graph_data, msize=1, lwidth=2, color=ROOT.kBlack)
     set_style(hdata, msize=1, lwidth=2, color=ROOT.kBlack)
@@ -479,7 +474,6 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     hbkg_total.Draw("E2same][")
     graph_data.Draw("P0Z")
 
-
     if args.data == 'data15':
         text = '#sqrt{s} = 13 TeV, ~3.2 fb^{-1}'
     elif args.data == 'data16':
@@ -492,8 +486,8 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     t.SetTextFont(42)
     t.SetTextSize(0.05)
     t.SetTextColor(ROOT.kBlack)
-    t.DrawLatex(0.15, 0.73, text)
-    t.DrawLatex(0.15, 0.64, region_name.replace('L', '{L}').replace('H', '{H}'))
+    t.DrawLatex(0.15, 0.75, text)
+    t.DrawLatex(0.15, 0.66, region_name.replace('L', '{L}').replace('H', '{H}'))
 
 
     legend1.Draw()
@@ -509,10 +503,11 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     frame.Draw()
 
+
     allp = []
     GetBoxes(allp, regions_pull, frame, True)
     
-    c.Print("pull_regions_"+prefix+"_" + args.data + ".pdf")
+    c.Print(args.output_dir+"/pull_regions_"+prefix+"_" + args.data + ".pdf")
 
     return
 

@@ -170,11 +170,11 @@ def do_plot(plotname,
             bmax = b.GetMaximum()
             return cmp(int(amax), int(bmax))
 
-        # for hist in sorted(bkg.itervalues(), _compare):
-        #     sm_stack.Add(hist)
-
-        for hist in bkg.itervalues():
+        for hist in sorted(bkg.itervalues(), _compare):
             sm_stack.Add(hist)
+
+        # for hist in bkg.itervalues():
+        #     sm_stack.Add(hist)
 
         # Total background
         sm_total = None
@@ -304,16 +304,16 @@ def do_plot(plotname,
     else:
         can.RedrawAxis()
 
-    if chist.GetMaximum() < 10:
-        chist.SetMinimum(0.0001)
-    else:
-        chist.SetMinimum(0.01)
+    # if chist.GetMaximum() < 10:
+    #     chist.SetMinimum(0.01)
+    # else:
+    chist.SetMinimum(0.01)
 
     if logy:
         if 'dphi' in variable:
             chist.SetMaximum(chist.GetMaximum()*100000)
         else:
-            chist.SetMaximum(chist.GetMaximum()*100)
+            chist.SetMaximum(chist.GetMaximum()*500)
 
 
     chist.GetXaxis().SetTitle(xtitle)
@@ -429,7 +429,7 @@ def do_plot(plotname,
     # luminosity
     if data:
         if is25ns:
-            text = '#sqrt{s} = 13 TeV, 3.2 fb^{-1}'
+            text = '#sqrt{s} = 13 TeV' ##, 3.2 fb^{-1}'
         else:
             text = '#sqrt{s} = 13 TeV, 84.97 pb^{-1}' 
         t = ROOT.TLatex(0, 0, text)
