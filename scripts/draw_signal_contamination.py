@@ -39,26 +39,23 @@ regions = [
     # 'VRD2_L',
     # 'VRD3_L',
 
-    # 'VRD4_L',
-    # 'VRD5_L',
-
     # 'VRM1_H',
     # 'VRM2_H',
-    'VRM3_H',
+    # 'VRM3_H',
 
-    'VRD1_H',
-    'VRD2_H',
-    'VRD3_H',
+    # 'VRD1_H',
+    # 'VRD2_H',
+    # 'VRD3_H',
 
-    # 'VRL1_L',
-    # 'VRL2_L',
-    # 'VRL3_L',
-    # 'VRL4_L',
+    'VRL1_L',
+    'VRL2_L',
+    'VRL3_L',
+    'VRL4_L',
 
-    # 'VRL1_H',
-    # 'VRL2_H',
-    # 'VRL3_H',
-    # 'VRL4_H',
+    'VRL1_H',
+    'VRL2_H',
+    'VRL3_H',
+    'VRL4_H',
 
     # 'VRH_L',
     # 'VRH_H',
@@ -71,7 +68,7 @@ for region in regions:
 
     total_bkg = 0
     for bkg in backgrounds:
-        total_bkg += get_events(bkg, selection=selection).mean
+        total_bkg += get_events(bkg, selection=selection, lumi='data').mean
 
     gl_min = 1146
     gl_max = 2050
@@ -93,7 +90,7 @@ for region in regions:
 
         name = 'GGM_M3_mu_%i_%i' % (m3, mu)
 
-        sig = get_events(name, selection=selection).mean
+        sig = get_events(name, selection=selection, lumi='data').mean
         contamination = round(sig/(sig+total_bkg) * 100, 2)
 
         if contamination > largest_cont:
