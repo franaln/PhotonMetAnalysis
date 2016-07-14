@@ -213,11 +213,11 @@ def draw_grid_frame(xsize=800, ysize=600):
     fl.SetLineColor(ROOT.kGray+2)
     fl.Draw()
 
-    flabel = ROOT.TLatex(glmax-300, n1max-250, '%s > m_{#tilde{g}}' % mn1_text)
+    flabel = ROOT.TLatex(glmax-250, n1max-200, '%s > m_{#tilde{g}}' % mn1_text)
     ROOT.SetOwnership(flabel, False)
     flabel.SetTextSize(0.02)
     flabel.SetTextColor(ROOT.kGray+2)
-    flabel.SetTextAngle(30)
+    flabel.SetTextAngle(20)
     flabel.Draw()
 
     # Redraw axis and update canvas

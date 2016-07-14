@@ -1,66 +1,67 @@
 # Style
 
 import ROOT
+from mass_dict import mass_dict
 
 # Legend labels
 labels_dict = dict()
-labels_dict['data']   = 'Data'
-labels_dict['photonjet'] = '#gamma + jets'
-labels_dict['gamjet']    = '#gamma + jets'
-labels_dict['photonjet_25ns'] = '#gamma + jets'
-labels_dict['tgamma'] = 't#bar{t} #gamma' # /single-t #gamma'
-labels_dict['vgamma'] = 'W/Z #gamma'
-labels_dict['znngam'] = 'Z(#nu#nu) #gamma'
-labels_dict['efake']  = 'e#rightarrow#gamma fake'
-labels_dict['jfake']  = 'jet#rightarrow#gamma fake'
-labels_dict['multijet']  = 'Multijet'
-labels_dict['wjets']  = 'W + jets'
-labels_dict['zjets']  = 'Z + jets'
-labels_dict['vjets']  = 'W/Z + jets'
-labels_dict['ttbar']  = 't#bar{t}'
+labels_dict['data']         = 'Data'
+labels_dict['photonjet']    = '#gamma + jets'
+labels_dict['gamjet']       = '#gamma + jets'
+labels_dict['tgamma']       = 't#bar{t} #gamma' # /single-t #gamma'
+labels_dict['vgamma']       = 'W/Z #gamma'
+labels_dict['znngam']       = 'Z(#nu#nu) #gamma'
+labels_dict['efake']        = 'e#rightarrow#gamma fake'
+labels_dict['jfake']        = 'jet#rightarrow#gamma fake'
+labels_dict['multijet']     = 'Multijet'
+labels_dict['wjets']        = 'W + jets'
+labels_dict['zjets']        = 'Z + jets'
+labels_dict['vjets']        = 'W/Z + jets'
+labels_dict['ttbar']        = 't#bar{t}'
+labels_dict['diphoton']     = '#gamma#gamma / W/Z#gamma#gamma'
 
 mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}}'
-labels_dict['GGM_M3_mu_1400_250']  = '(1400, 250)' ##m_{#tilde{g}} = 1522, ' + mn1_text + ' = 191 GeV'
-labels_dict['GGM_M3_mu_1400_650']  = '(1400, 650)' ##)m_{#tilde{g}} = 1522, ' + mn1_text + ' = 442 GeV'
-labels_dict['GGM_M3_mu_1400_1050'] = '(1400, 1050)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1072 GeV'
-labels_dict['GGM_M3_mu_1400_1375'] = '(1400, 1375)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1283 GeV'
 
-labels_dict['GGM_M3_mu_1700_250']  = '(1700, 250)' ##m_{#tilde{g}} = 1522, ' + mn1_text + ' = 191 GeV'
-labels_dict['GGM_M3_mu_1700_650']  = '(1700, 650)' ##)m_{#tilde{g}} = 1522, ' + mn1_text + ' = 442 GeV'
-labels_dict['GGM_M3_mu_1700_1050'] = '(1700, 1050)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1072 GeV'
-labels_dict['GGM_M3_mu_1700_1375'] = '(1700, 1375)' #m_{#tilde{g}} = 1522, ' + mn1_text + ' = 1283 GeV'
+for (m3, mu), (mgl, mn1) in mass_dict.iteritems():
+
+    name = 'GGM_M3_mu_%i_%i' % (m3, mu)
+    
+    label = 'm_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
+
+    labels_dict[name] = label
+
 
 # Colours
 colors_dict = dict()
-colors_dict['photonjet'] = '#E24A33'
-colors_dict['gamjet'] = '#E24A33'
-colors_dict['tgamma']    = '#32b45d'
-colors_dict['vgamma']    = '#f7fab3'
-colors_dict['znngam']    = '#7A68A6'
-colors_dict['efake']     = '#a4cee6'
-colors_dict['jfake']     = '#348ABD'
-colors_dict['multijet']  = '#348ABD'
-colors_dict['wjets']     = '#BCBC93'
-colors_dict['zjets']     = '#36BDBD'
-colors_dict['vjets']     = '#a4cee6'
-colors_dict['ttbar']     = '#32b45d'
-
-colors_dict['wgamma']    = '#f7fab3'
-colors_dict['zllgamma']    = '#f7fab4'
-colors_dict['znunugamma']    = '#f7fab5'
-colors_dict['ttbar']    = '#32b422'
-colors_dict['ttbarg']    = '#32b45d'
-colors_dict['data']    = ROOT.kBlack
+colors_dict['data']       = ROOT.kBlack
+colors_dict['photonjet']  = '#e55e49' #'#E24A33'
+colors_dict['gamjet']     = '#e55e49' #'#E24A33'
+colors_dict['wgamma']     = '#f7fab3'
+colors_dict['zllgamma']   = '#f7fab4'
+colors_dict['znunugamma'] = '#f7fab5'
+colors_dict['zgamma']     = '#f7fab5'
+colors_dict['tgamma']     = '#5fe872' #'#49e55e'
+colors_dict['ttbarg']     = '#5fe872' #'#49e55e'
+colors_dict['vgamma']     = '#f8f59b' #'#f7fab3' #'#f7fab3'
+colors_dict['efake']      = '#a4cee6'
+colors_dict['jfake']      = '#348ABD'
+colors_dict['multijet']   = '#348ABD'
+colors_dict['wjets']      = '#BCBC93'
+colors_dict['zjets']      = '#36BDBD'
+colors_dict['vjets']      = '#a4cee6'
+colors_dict['ttbar']      = '#32b422'
+colors_dict['diphoton']   = '#e5ac49'
+colors_dict['vgammagamma'] = '#e5ac49'
 
 colors_dict['GGM_M3_mu_1400_250']  = '#85ea7a' 
 colors_dict['GGM_M3_mu_1400_650']  = '#fa3a92'
 colors_dict['GGM_M3_mu_1400_1050'] = '#8453fb'
 colors_dict['GGM_M3_mu_1400_1375'] = '#53fb84'
 
-colors_dict['GGM_M3_mu_1700_250']  = '#85ea7a' 
-colors_dict['GGM_M3_mu_1700_650']  = '#fa3a92'
-colors_dict['GGM_M3_mu_1700_1050'] = '#8453fb'
-colors_dict['GGM_M3_mu_1700_1375'] = '#53fb84'
+colors_dict['GGM_M3_mu_1600_250']  = '#85ea7a' 
+colors_dict['GGM_M3_mu_1600_650']  = '#fa3a92'
+colors_dict['GGM_M3_mu_1600_1250'] = '#8453fb'
+colors_dict['GGM_M3_mu_1600_1450'] = '#53fb84'
 
 # Plot config
 plots_conf = dict()

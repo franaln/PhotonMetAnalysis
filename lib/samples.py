@@ -2,7 +2,7 @@
 
 default_ptags = ['2666', '2667', '2662', '2614']
 
-default_versions = ['32', '30', '24']
+default_versions = ['34', '32', '33', '30', '24']
 
 samples_dict = {
 
@@ -465,5 +465,5 @@ samples_dict['jfake15'] = [ i.replace('data15_13TeV', 'jfake15') for i in sample
 samples_dict['efake16'] = [ i.replace('data16_13TeV', 'efake16') for i in samples_dict['data16'] ]
 samples_dict['jfake16'] = [ i.replace('data16_13TeV', 'jfake16') for i in samples_dict['data16'] ]
 
-# samples_dict['efake'] = [ i.replace('data15_13TeV', 'efake15') for i in samples_dict['data15'] ] #'efake15' #+ efake16'
-# samples_dict['jfake'] = [ i.replace('data15_13TeV', 'jfake15') for i in samples_dict['data15'] ] # samples_dict['jfake15'] #'jfake15' #+ 'jfake16'
+samples_dict['efake'] = 'efake15 + efake16'
+samples_dict['jfake'] = 'jfake15 + jfake16'

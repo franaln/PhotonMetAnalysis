@@ -12,11 +12,11 @@ SRincl_H = 'ph_n>0 && el_n+mu_n==0 && ph_pt[0]>400 && met_et>400 && jet_n>2 && d
 # Control Regions
 CRQ_L  = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && jet_n>4 && met_et<50 && dphi_jetmet>0.4 && dphi_gammet>0.4 && meff>1500 && rt4<0.9'
 CRW_L  = 'ph_n>0  && el_n+mu_n>0  && ph_pt[0]>145 && met_et>100 && met_et<200 && dphi_jetmet>0.4 && meff>500 && bjet_n==0'
-CRT_L  = 'ph_n>0  && el_n+mu_n>0  && ph_pt[0]>145 && met_et>50  && met_et<200 && dphi_jetmet>0.4 && meff>500 && bjet_n>1'
+CRT_L  = 'ph_n>0  && el_n+mu_n>0  && ph_pt[0]>145 && jet_n>1 && met_et>50  && met_et<200 && dphi_jetmet>0.4 && meff>500 && bjet_n>1'
 
-CRQ_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && met_et<50 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4 && meff>2000'
-CRW_H = 'ph_n>0  && el_n+mu_n>0 && ph_pt[0]>145 && met_et>100 && met_et<200 && dphi_jetmet>0.4 && meff>500 && bjet_n==0'
-CRT_H = 'ph_n>0  && el_n+mu_n>0 && ph_pt[0]>145 && met_et>50 && met_et<200 && dphi_jetmet>0.4 && meff>500 && bjet_n>1'
+CRQ_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && jet_n>2 && met_et<50  && dphi_jetmet>0.4 && dphi_gammet>0.4 && meff>2000'
+CRW_H = 'ph_n>0  && el_n+mu_n>0 && ph_pt[0]>145  && met_et>100 && met_et<200 && dphi_jetmet>0.4 && meff>500 && bjet_n==0'
+CRT_H = 'ph_n>0  && el_n+mu_n>0 && ph_pt[0]>145  && jet_n>1 && met_et>50  && met_et<200 && dphi_jetmet>0.4 && meff>500 && bjet_n>1'
 
 # Validation Regions
 
@@ -65,7 +65,11 @@ CRQp_L  = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && jet_n>4 && met_et<150 && d
 CRQp_H  = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && jet_n>2 && met_et<150 && dphi_jetmet>0.4 && dphi_gammet>0.4 && meff>1500'
 
 
+# Signal Regions with relaxed meff
+SRloosemeff_L = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>200 && jet_n>4 && dphi_jetmet>0.4 && dphi_gammet>0.4 && meff>1000 && rt4<0.9'
+SRloosemeff_H = 'ph_n==1 && el_n+mu_n==0 && ph_pt[0]>400 && met_et>400 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4 && meff>1000' 
 
+SRloose_L = 'ph_n>0 && el_n+mu_n==0 && ph_pt[0]>145 && met_et>100 && jet_n>4 && dphi_jetmet>0.4 && dphi_gammet>0.4 && meff>2000'
 
 
 
