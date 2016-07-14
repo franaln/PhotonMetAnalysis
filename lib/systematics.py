@@ -1,4 +1,3 @@
-
 # photons+electrons
 systematics_egamma_kin = [
     'EG_RESOLUTION_ALL__1down', 'EG_RESOLUTION_ALL__1up',
@@ -14,11 +13,12 @@ systematics_muon_kin = [
 
 # jets 
 systematics_jet_kin = [
-    'JET_GroupedNP_1__1down', 'JET_GroupedNP_1__1up',
-    'JET_GroupedNP_2__1down',     'JET_GroupedNP_2__1up',
-    'JET_GroupedNP_3__1down',     'JET_GroupedNP_3__1up',
+    'JET_EtaIntercalibration_NonClosure__1up', 'JET_EtaIntercalibration_NonClosure__1down',
+    'JET_GroupedNP_1__1up', 'JET_GroupedNP_1__1down',
+    'JET_GroupedNP_2__1up', 'JET_GroupedNP_2__1down',
+    'JET_GroupedNP_3__1up', 'JET_GroupedNP_3__1down',
     'JET_JER_SINGLE_NP__1up',
-]
+    ]
 
 # met
 systematics_met = [
@@ -30,58 +30,20 @@ systematics_met = [
 
 # weights
 systematics_electron_w = [
-    'EL_EFF_ID_CorrUncertaintyNP0__1down', 'EL_EFF_ID_CorrUncertaintyNP0__1up',
-    'EL_EFF_ID_CorrUncertaintyNP1__1down',     'EL_EFF_ID_CorrUncertaintyNP1__1up',
-    'EL_EFF_ID_CorrUncertaintyNP2__1down',     'EL_EFF_ID_CorrUncertaintyNP2__1up',
-    'EL_EFF_ID_CorrUncertaintyNP3__1down',     'EL_EFF_ID_CorrUncertaintyNP3__1up',
-    'EL_EFF_ID_CorrUncertaintyNP4__1down',     'EL_EFF_ID_CorrUncertaintyNP4__1up',
-    'EL_EFF_ID_CorrUncertaintyNP5__1down',     'EL_EFF_ID_CorrUncertaintyNP5__1up',
-    'EL_EFF_ID_CorrUncertaintyNP6__1down',     'EL_EFF_ID_CorrUncertaintyNP6__1up',
-    'EL_EFF_ID_CorrUncertaintyNP7__1down',     'EL_EFF_ID_CorrUncertaintyNP7__1up',
-    'EL_EFF_ID_CorrUncertaintyNP8__1down',     'EL_EFF_ID_CorrUncertaintyNP8__1up',
-    'EL_EFF_ID_CorrUncertaintyNP9__1down',     'EL_EFF_ID_CorrUncertaintyNP9__1up',
-    'EL_EFF_ID_CorrUncertaintyNP10__1down',     'EL_EFF_ID_CorrUncertaintyNP10__1up',
-    'EL_EFF_ID_CorrUncertaintyNP11__1down',     'EL_EFF_ID_CorrUncertaintyNP11__1up',
-    'EL_EFF_ID_TOTAL_UncorrUncertainty__1down',     'EL_EFF_ID_TOTAL_UncorrUncertainty__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP0__1down',     'EL_EFF_Iso_CorrUncertaintyNP0__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP1__1down',     'EL_EFF_Iso_CorrUncertaintyNP1__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP2__1down',     'EL_EFF_Iso_CorrUncertaintyNP2__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP3__1down',     'EL_EFF_Iso_CorrUncertaintyNP3__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP4__1down',     'EL_EFF_Iso_CorrUncertaintyNP4__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP5__1down',     'EL_EFF_Iso_CorrUncertaintyNP5__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP6__1down',     'EL_EFF_Iso_CorrUncertaintyNP6__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP7__1down',     'EL_EFF_Iso_CorrUncertaintyNP7__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP8__1down',     'EL_EFF_Iso_CorrUncertaintyNP8__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP9__1down',     'EL_EFF_Iso_CorrUncertaintyNP9__1up',
-    'EL_EFF_Iso_CorrUncertaintyNP10__1down',     'EL_EFF_Iso_CorrUncertaintyNP10__1up',
-    'EL_EFF_Iso_TOTAL_UncorrUncertainty__1down',     'EL_EFF_Iso_TOTAL_UncorrUncertainty__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP0__1down',     'EL_EFF_Reco_CorrUncertaintyNP0__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP1__1down',     'EL_EFF_Reco_CorrUncertaintyNP1__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP2__1down',     'EL_EFF_Reco_CorrUncertaintyNP2__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP3__1down',     'EL_EFF_Reco_CorrUncertaintyNP3__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP4__1down',     'EL_EFF_Reco_CorrUncertaintyNP4__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP5__1down',     'EL_EFF_Reco_CorrUncertaintyNP5__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP6__1down',     'EL_EFF_Reco_CorrUncertaintyNP6__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP7__1down',     'EL_EFF_Reco_CorrUncertaintyNP7__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP8__1down',     'EL_EFF_Reco_CorrUncertaintyNP8__1up',
-    'EL_EFF_Reco_CorrUncertaintyNP9__1down',     'EL_EFF_Reco_CorrUncertaintyNP9__1up',
-    'EL_EFF_Reco_TOTAL_UncorrUncertainty__1down',     'EL_EFF_Reco_TOTAL_UncorrUncertainty__1up',
-    'EL_EFF_Trigger_CorrUncertaintyNP0__1down',     'EL_EFF_Trigger_CorrUncertaintyNP0__1up',
-    'EL_EFF_Trigger_CorrUncertaintyNP1__1down',     'EL_EFF_Trigger_CorrUncertaintyNP1__1up',
-    'EL_EFF_Trigger_CorrUncertaintyNP2__1down',     'EL_EFF_Trigger_CorrUncertaintyNP2__1up',
-    'EL_EFF_Trigger_CorrUncertaintyNP3__1down',     'EL_EFF_Trigger_CorrUncertaintyNP3__1up',
-    'EL_EFF_Trigger_CorrUncertaintyNP4__1down',     'EL_EFF_Trigger_CorrUncertaintyNP4__1up',
-    'EL_EFF_Trigger_TOTAL_UncorrUncertainty__1down',     'EL_EFF_Trigger_TOTAL_UncorrUncertainty__1up',
+    'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1down',   'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+    'EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR__1down',  'EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+    'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1down', 'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+#    'EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR__1down', 'EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+    'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1down', 'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1up',
 ]
 
 systematics_jet_w = [
-    'FT_EFF_B_systematics__1down', 'FT_EFF_B_systematics__1up',
-    'FT_EFF_C_systematics__1down',     'FT_EFF_C_systematics__1up',
-    'FT_EFF_Light_systematics__1down',     'FT_EFF_Light_systematics__1up',
-    'FT_EFF_extrapolation__1down',     'FT_EFF_extrapolation__1up',
-#    'FT_EFF_extrapolation from charm__1down',     'FT_EFF_extrapolation from charm__1up',
     'JvtEfficiencyDown', 'JvtEfficiencyUp',     
-    'JvtEfficiencyDown', 'JvtEfficiencyUp',
+    'FT_EFF_B_systematics__1down', 'FT_EFF_B_systematics__1up',
+    'FT_EFF_C_systematics__1down', 'FT_EFF_C_systematics__1up',
+    'FT_EFF_Light_systematics__1down', 'FT_EFF_Light_systematics__1up',
+    'FT_EFF_extrapolation__1down', 'FT_EFF_extrapolation__1up',
+#    'FT_EFF_extrapolation_from_charm__1down',  'FT_EFF_extrapolation_from_charm__1up',
 ]
 
 systematics_muon_w = [
@@ -97,19 +59,21 @@ systematics_muon_w = [
 
 systematics_photon_w = [
     'PH_EFF_ID_Uncertainty__1down', 'PH_EFF_ID_Uncertainty__1up',
+    # 'PH_Iso_DDonoff',
     ]
 
-# systematics_efake_w = [
-#     'efakeLow', 'efakeHigh'
-#     ]
+systematics_prw_w = [
+    'PRW_DATASF__1down', 'PRW_DATASF__1up',
+    ]
 
 syst_kin = systematics_egamma_kin + systematics_jet_kin + systematics_muon_kin + systematics_met
-syst_weights = systematics_electron_w + systematics_jet_w + systematics_muon_w + systematics_photon_w
+syst_weights = systematics_electron_w + systematics_jet_w + systematics_muon_w + systematics_photon_w + systematics_prw_w
 
 systematics_oneside = [
-        'MET_SoftTrk_ResoPara',
-        'MET_SoftTrk_ResoPerp',
-        'JET_JER_SINGLE_NP__1up',
+    'MET_SoftTrk_ResoPara',
+    'MET_SoftTrk_ResoPerp',
+    'JET_JER_SINGLE_NP__1up',
+    # 'PH_Iso_DDonoff'
 ]
 
 def get_one_side_systematics():
@@ -150,7 +114,6 @@ def get_affected_variables(syst):
 
     elif syst in systematics_met:
         return variables_met + variables_kin
-
 
 def affects_weight(syst):
     return syst in syst_weights
