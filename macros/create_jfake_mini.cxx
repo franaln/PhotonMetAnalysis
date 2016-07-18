@@ -389,7 +389,7 @@ void loop(TString input_path, TString output_path)
       new_ph_pt->push_back((*ph_noniso_pt)[i]);
       new_ph_eta->push_back((*ph_noniso_eta)[i]);
       new_ph_phi->push_back((*ph_noniso_phi)[i]);
-      new_ph_iso->push_back(0);
+      new_ph_iso->push_back(-99.);
       new_ph_w->push_back(1.);
     }
     
@@ -416,7 +416,7 @@ void loop(TString input_path, TString output_path)
         new_jet_phi->push_back((*jet_phi)[i]);
         new_jet_e->push_back((*jet_e)[i]);
         new_jet_w->push_back((*jet_w)[i]);
-        new_jet_isb->push_back(0); //(*jet_isb)[i]);
+        new_jet_isb->push_back((*jet_isb)[i]);
     }
 
     // event
