@@ -486,6 +486,8 @@ def get_histogram(name, **kwargs):
         # name = os.path.basename(sample_name).split('.')[0]
 
         # return _get_histogram(Sample(name), sample_name, **kwargs)
+
+
         return None # FIX
 
     # if name in ['efake', 'jfake']:

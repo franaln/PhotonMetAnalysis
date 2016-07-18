@@ -19,36 +19,6 @@ from statutils import get_significance
 from mass_dict import mass_dict
 
 
-def scale_gamjet(sel):
-
-    get_histogram = partial(miniutils.get_histogram, lumi='data', remove_var=True)
-
-    
-    h_met_gamjet = get_histogram('photonjet', 'met_et', 'SR', sel)
-
-    h_met_data = get_histogram('data', 'met_et', 'SR', sel) - \
-        get_histogram('multijet', 'met_et', 'SR', sel) - \
-        get_histogram('vgamma', 'met_et', 'SR', sel) - \
-        get_histogram('ttbar', 'met_et', 'SR', sel) - \
-        get_histogram('ttbarg', 'met_et', 'SR', sel) - \
-        get_histogram('wjets', 'met_et', 'SR', sel) - \
-        get_histogram('zjets', 'met_et', 'SR', sel)
-
-    
-    maxbin = h_met_gamjet.FindBin(50)
-
-    n_gamjet = h_met_gamjet.Integral(1, maxbin)
-    n_data   = h_met_data.Integral(1, maxbin) 
-
-    mu = n_data / n_gamjet
-
-    print n_gamjet, n_data, mu
-
-    return mu
-    
-
-
-
 def main():
 
     parser = argparse.ArgumentParser(description='get yields')
@@ -61,7 +31,8 @@ def main():
 
     parser.add_argument('--prw', action='store_true', help='apply prw weights')
 
-    parser.add_argument('--data', action='store_true', help='Include data')
+    parser.add_argument('--data', help='Include data: data|data15|data16')
+
     parser.add_argument('--signal', action='store_true', help='Include signal')
     parser.add_argument('--mc', action='store_true', help='Use MC backgrounds')
 
@@ -90,9 +61,36 @@ def main():
         'wgamma',
         'zgamma',
         'ttbarg',
-        'jfake',
-        'efake',
+        
+        'diphoton',
+        'vgammagamma',
+
         ]
+
+    dd_scale = 1.
+    if args.data is None:
+        # need to scale dd backgrounds from 3.2 to lumi
+        if args.lumi is None:
+            print 'Need to provide a lumi'
+            sys.exit(1)
+
+        dd_scale = float(args.lumi)/3.2
+
+        bkgs.append('jfake15')
+        bkgs.append('efake15')
+
+    elif args.data == 'data15':
+        args.lumi = 'data15'
+        bkgs.append('jfake15')
+        bkgs.append('efake15')
+    elif args.data == 'data16':
+        args.lumi = 'data16'
+        bkgs.append('jfake16')
+        bkgs.append('efake16')
+    elif arg.data == 'data':
+        args.lumi = 'data'
+        bkgs.append('jfake')
+        bkgs.append('efake')
     
     if args.mc:
         bkgs = [
@@ -100,7 +98,6 @@ def main():
             'multijet',
             'wgamma',
             'zgamma',
-            #'znunugamma',
             'ttbar',
             'ttbarg',
             'vjets',
@@ -119,8 +116,6 @@ def main():
     else:
         get_events = partial(miniutils.get_events, lumi=args.lumi, version=args.version)
 
-
-
     if args.regions:
         regions = args.regions.split(',')
 
@@ -133,9 +128,6 @@ def main():
         table = LatexTable()
     else:
         table = PrettyTable()
-
-    # # files = args.files.split(',')
-    # filelabels = [f[:10] for f in files]
 
     if samples:
         table.add_column('', [s for s in samples])
@@ -169,11 +161,10 @@ def main():
         else:
             
             # Data
-            if args.data:
-                if 'SR' in region and not args.unblind:
-                    cols['data'] = '-1'
-                else:
-                    cols['data'] = get_events('data', region=region, selection=selection)
+            if 'SR' in region and not args.unblind:
+                cols['data'] = '-1'
+            else:
+                cols['data'] = get_events(args.data, region=region, selection=selection)
 
             # Bkgs
             total_bkg = Value(0)
@@ -181,21 +172,8 @@ def main():
         
                 evts = get_events(sample, region=region, selection=selection)
 
-                if args.after: 
-                    if regions[-1] == 'L':
-                        if sample == 'photonjet':
-                            evts *= 0.99
-                        elif sample == 'wgamma':
-                            evts *= 1.12
-                        elif sample == 'ttbarg':
-                            evts *= 0.87
-                    elif regions[-1] == 'H':
-                        if sample == 'photonjet':
-                            evts *= 1.16
-                        elif sample == 'wgamma':
-                            evts *= 1.12
-                        elif sample == 'ttbarg':
-                            evts *= 0.88
+                if args.data is None and 'fake' in sample:
+                    evts *= dd_scale
 
                 cols[sample] = evts
 

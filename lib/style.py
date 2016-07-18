@@ -8,17 +8,17 @@ labels_dict = dict()
 labels_dict['data']         = 'Data'
 labels_dict['photonjet']    = '#gamma + jets'
 labels_dict['gamjet']       = '#gamma + jets'
-labels_dict['tgamma']       = 't#bar{t} #gamma' # /single-t #gamma'
-labels_dict['vgamma']       = 'W/Z #gamma'
-labels_dict['znngam']       = 'Z(#nu#nu) #gamma'
+labels_dict['tgamma']       = 't#bar{t}#gamma' # /single-t \\gamma'
+labels_dict['vgamma']       = 'W#gamma/Z#gamma'
+labels_dict['znngam']       = 'Z(#nu#nu)#gamma'
 labels_dict['efake']        = 'e#rightarrow#gamma fake'
 labels_dict['jfake']        = 'jet#rightarrow#gamma fake'
 labels_dict['multijet']     = 'Multijet'
 labels_dict['wjets']        = 'W + jets'
 labels_dict['zjets']        = 'Z + jets'
 labels_dict['vjets']        = 'W/Z + jets'
-labels_dict['ttbar']        = 't#bar{t}'
-labels_dict['diphoton']     = '#gamma#gamma / W/Z#gamma#gamma'
+labels_dict['ttbar']        = 'tt'
+labels_dict['diphoton']     = '#gamma#gamma/W#gamma#gamma/Z#gamma#gamma'
 
 mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}}'
 
@@ -64,33 +64,45 @@ colors_dict['GGM_M3_mu_1600_1250'] = '#8453fb'
 colors_dict['GGM_M3_mu_1600_1450'] = '#53fb84'
 
 # Plot config
+class PlotConf():
+
+    def __init__(self, xtitle='', ytitle='', legpos='right', xmin=None, xmax=None, logy=True):
+        self.xtitle = xtitle
+        self.ytitle = ytitle
+        self.legpos = legpos
+        self.xmin   = xmin
+        self.xmax   = xmax
+        self.logy   = logy
+
+
 plots_conf = dict()
-plots_conf['cuts']         = ('', 'Events', 'right')
-plots_conf['ph_n']         = ('Number of photons', 'Events', 'right')
-plots_conf['el_n']         = ('Number of electrons', 'Events', 'right')
-plots_conf['jet_n']        = ('Number of jets', 'Events', 'right')
-plots_conf['ph_pt']        = ('p_{T}^{#gamma} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_eta']       = ('Photon #eta', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_phi']       = ('Photon #phi', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_iso']       = ('Isolation (Etcone20) [GeV]', 'Events (1/BIN GeV)', 'right')
-plots_conf['met_et']       = ('E_{T}^{miss} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['met_phi']      = ('#phi^{miss}', 'Events', 'right')
-plots_conf['ht']           = ('H_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt']       = ('Jet p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt[0]']    = ('Jet1 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_pt[1]']    = ('Jet2 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['jet_eta']      = ('Jet #eta', 'Events', 'right')
-plots_conf['rt2']          = ('R_{T}^{2}', 'Events', 'left', 0.3, 1.1)
-plots_conf['rt4']          = ('R_{T}^{4}', 'Events / BIN', 'left', 0.3, 1.1)
-plots_conf['dphi_jetmet']  = ('#Delta#phi(jet, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_gamjet']  = ('#Delta#phi(#gamma, jet)', 'Events', 'right')
-plots_conf['dphi_gammet']  = ('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'right')
+plots_conf['cuts']         = PlotConf('', 'Events', 'right')
+plots_conf['ph_n']         = PlotConf('Number of photons', 'Events', 'right')
+plots_conf['el_n']         = PlotConf('Number of electrons', 'Events', 'right')
+plots_conf['jet_n']        = PlotConf('Number of jets', 'Events', 'right')
+plots_conf['ph_pt']        = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['ph_eta']       = PlotConf('Photon #eta', 'Events / (BIN GeV)', 'right')
+plots_conf['ph_phi']       = PlotConf('Photon #phi', 'Events / (BIN GeV)', 'right')
+plots_conf['ph_iso']       = PlotConf('E_{T}^{iso} - 0.022 #times  p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['met_et']       = PlotConf('E_{T}^{miss} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['met_phi']      = PlotConf('#phi^{miss}', 'Events', 'right')
+plots_conf['ht']           = PlotConf('H_{T} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['jet_pt']       = PlotConf('Jet p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['jet_pt[0]']    = PlotConf('Jet1 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['jet_pt[1]']    = PlotConf('Jet2 p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['jet_eta']      = PlotConf('Jet #eta', 'Events', 'right')
+plots_conf['rt2']          = PlotConf('R_{T}^{2}', 'Events', 'left', 0.3, 1.1)
+plots_conf['rt4']          = PlotConf('R_{T}^{4}', 'Events / BIN', 'left', 0.3, 1.1)
+plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet, E_{T}^{miss})', 'Events', 'right')
+plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'right')
+plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'right')
+plots_conf['avgmu']        = PlotConf('<#mu>', 'Events', 'right', logy=False)
 
-plots_conf['ht+met_et'] = ('M_{eff} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['meff']      = ('M_{eff} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['ht+met_et'] = PlotConf('M_{eff} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['meff']      = PlotConf('M_{eff} [GeV]', 'Events / (BIN GeV)', 'right')
 
-plots_conf['mgj']    = ('m_{#gammaj} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['mgjj']   = ('m_{#gammajj} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['mgjjj']  = ('m_{#gammajjj} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['mgj']    = PlotConf('m_{#gammaj} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['mgjj']   = PlotConf('m_{#gammajj} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['mgjjj']  = PlotConf('m_{#gammajjj} [GeV]', 'Events / (BIN GeV)', 'right')
 
-plots_conf['default'] = ('','', 'right')
+plots_conf['default']  = PlotConf()

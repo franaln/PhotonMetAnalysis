@@ -279,22 +279,23 @@ syst_muon = [
 ]
 
 # Fake photon backgrounds
-syst_feg = Systematic('Feg', nom_name, '_FegUp', '_FegDown', 'tree', 'histoSys')
-syst_fjg = Systematic('Fjg', nom_name, '_FjgUp', '_FjgDown', 'tree', 'histoSys')
+syst_feg = Systematic('Feg', nom_name, '_FegUp', '_FegDown', 'tree', 'overallSys')
+syst_fjg = Systematic('Fjg', nom_name, '_FjgUp', '_FjgDown', 'tree', 'overallSys')
 
 syst_weight = [
     Sys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
     Sys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
     Sys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
     Sys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
-
-
     # Sys('EL_EFF_Trigger_TOTAL_UncorrUncertainty'),
+
     Sys('FT_EFF_B_systematics'),
     Sys('FT_EFF_C_systematics'),
     Sys('FT_EFF_Light_systematics'),
     # Sys('FT_EFF_extrapolation'),
+
     Sys('JvtEfficiency'),
+
     Sys('MUON_EFF_STAT'),
     Sys('MUON_EFF_STAT_LOWPT'),
     Sys('MUON_EFF_SYS'),

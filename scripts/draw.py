@@ -19,28 +19,6 @@ import regions as regions_
 
 from drawlib import *
 
-def normalize_qcd_to_data():
-
-    bin0 = hdata.FindBin(0)
-    bin1 = hdata.FindBin(50)
-
-    data_norm = hdata.Integral(bin0, bin1)
-    
-    bkg_norm = 0.0
-    qcd_norm = 0.0
-    for name, hist in hbkg.iteritems():
-        if name in ('smpdata', 'qcd', 'photonjet'):
-            qcd_norm = hist.Integral(bin0, bin1)
-        else:
-            bkg_norm += hist.Integral(bin0, bin1)
-
-    s = (data_norm-bkg_norm)/qcd_norm if qcd_norm > 0.0 else 1.0
-
-    print 'MET < 50 GeV -> Data: %.2f, QCD: %.2f, Others: %.2f' % (data_norm, qcd_norm, bkg_norm)
-    print 'factor = %.2f' % s
-    return s
-
-
 def main():
 
     parser = argparse.ArgumentParser(description='')
@@ -56,8 +34,7 @@ def main():
 
     # Backgrounds
     parser.add_argument('--mc', action='store_true', help='use all backgrounds from MC')
-    # parser.add_argument('--qcd', default='sherpa', help='alpgen, pythia or sherpa')
-
+ 
     # normalization
     parser.add_argument('--muq', help='Normalization factor for gam+jet')
     parser.add_argument('--muw', help='Normalization factor for W gamma')
@@ -67,6 +44,7 @@ def main():
     parser.add_argument('--after', dest='after_fit', action='store_true')
 
     parser.add_argument('-l', dest='lumi')
+    parser.add_argument('--data', help='data15|data16|data')
 
     # other
     parser.add_argument('--opt', action='store_true', help='Optimization plot')
@@ -88,15 +66,13 @@ def main():
     global args
     args = parser.parse_args()
 
-    # if args.input_file:
-    #     # get_histogram = partial(get_histogram_from_file, args.input_file)
-    #     get_histogram = partial(miniutils.get_histogram, rootfile=args.input_file)
-    # else:
-
-    if args.n1:
-        get_histogram = partial(miniutils.get_histogram, remove_var=True, lumi=args.lumi)
+    if args.input_file:
+        get_histogram = partial(get_histogram_from_file, args.input_file)
     else:
-        get_histogram = partial(miniutils.get_histogram, remove_var=False, lumi=args.lumi)
+        if args.n1:
+            get_histogram = partial(miniutils.get_histogram, remove_var=True, lumi=args.lumi)
+        else:
+            get_histogram = partial(miniutils.get_histogram, remove_var=False, lumi=args.lumi)
 
     # regions
     if args.regions is not None:
@@ -105,16 +81,7 @@ def main():
         regions = ['',]
 
     # variables
-    if args.variables == 'all':
-        variables = ['ph_pt[0]', 
-                     'jet_n', 'bjet_n', 'jet_pt', 
-                     'met_et', 'ht', 'meff', 
-                     'rt2', 'rt4', 
-                     'dphi_gammet', 
-                     'dphi_gamjet', 
-                     'dphi_jetmet', ]
-    else:
-        variables = args.variables.split(',')
+    variables = args.variables.split(',')
 
     # systematics
     syst = 'Nom' # only nominal for now
@@ -128,8 +95,7 @@ def main():
         backgrounds = [
             'photonjet',
             'multijet',
-            'zllgamma',
-            'znunugamma',
+            'zgamma',
             'wgamma',
             'wjets',
             'zjets',
@@ -139,23 +105,20 @@ def main():
     else:
         backgrounds = [
             'photonjet',
-            'zllgamma',
-            'znunugamma',
+            'zgamma',
             'wgamma',
             'ttbarg',
             'jfake',
-            'efake'
+            'efake',
+            'diphoton',
+            'vgammagamma',
             ]
    
-    # dibsoon, topgamma?
-
-    # mu_t = Value(1.70, 0.62) 
-    # mu_w = Value(0.40, 0.32)
-    # mu_p = Value()
-
     # Standard DATA/Backgrounds plot
     for region in regions:
+
         for variable in variables:
+
             print 'plotting %s in region %s ...' % (variable, region)
 
             if args.input_file:
@@ -177,7 +140,7 @@ def main():
             for name in backgrounds:
                 h_bkg[name] = get_histogram(name, variable=variable, region=region_name, selection=selection, syst=syst) 
 
-                
+            # Scale backgrounds according to bkg-only fit
             if args.after_fit:
 
                 if args.muq is not None:
@@ -189,25 +152,32 @@ def main():
                     else:
                         h_bkg['photonjet'].Scale(float(args.muq))
 
+                if args.muw is not None:
+                    
+                    if ',' in args.muw:
+                        mu = ( float(n) for n in args.muw.split(',') )
+                        histogram_scale(h_bkg['wgamma'], *mu)
 
-                
-                # else:
-                #     if '_L' in region:
-                #         h_bkg['photonjet'].Scale(0.85)
-                #         h_bkg['wgamma']   .Scale(0.52)
-                #         h_bkg['ttbarg']   .Scale(0.78)
+                    else:
+                        h_bkg['wgamma'].Scale(float(args.muq))
 
-                #     elif '_H' in region:
-                #         pass
+                if args.mut is not None:
+                    
+                    if ',' in args.mut:
+                        mu = ( float(n) for n in args.mut.split(',') )
+                        histogram_scale(h_bkg['ttbarg'], *mu)
 
+                    else:
+                        h_bkg['ttbarg'].Scale(float(args.muq))
 
+                        
+            # Merge backgrounds to plot
             if args.mc:
                 h_bkg['vjets'] = h_bkg['wjets'].Clone()
                 h_bkg['vjets'].Add(h_bkg['zjets'], 1)
 
             h_bkg['vgamma'] = h_bkg['wgamma'].Clone()
-            h_bkg['vgamma'].Add(h_bkg['zllgamma'], 1)
-            h_bkg['vgamma'].Add(h_bkg['znunugamma'], 1)
+            h_bkg['vgamma'].Add(h_bkg['zgamma'], 1)
             
             if args.mc:
                 h_bkg['tgamma'] = h_bkg['ttbarg'].Clone()
@@ -215,10 +185,14 @@ def main():
             else:
                 h_bkg['tgamma'] = h_bkg['ttbarg'].Clone()
 
+            if 'diphoton' in h_bkg:
+                h_bkg['diphoton'].Add(h_bkg['vgammagamma'], 1)
+
             del h_bkg['wgamma']
-            del h_bkg['zllgamma']
-            del h_bkg['znunugamma']
+            del h_bkg['zgamma']
             del h_bkg['ttbarg']
+            if 'vgammagamma' in h_bkg:
+                del h_bkg['vgammagamma']
             if args.mc:
                 del h_bkg['wjets']
                 del h_bkg['zjets']
@@ -230,9 +204,9 @@ def main():
                 h_data = None
             elif args.blind is not None:
                 selection += '&& %s' % args.blind
-                h_data = miniutils.get_histogram('data', variable=variable, region=region_name, selection=selection, syst=syst, remove_var=False, lumi=args.lumi)
+                h_data = miniutils.get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst, remove_var=False, lumi=args.lumi)
             else:
-                h_data = get_histogram('data', variable=variable, region=region_name, selection=selection, syst=syst)
+                h_data = get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst)
 
             ## add overflow bins to the last bin
             for hist in h_bkg.itervalues():
@@ -248,18 +222,18 @@ def main():
                 h_signal = OrderedDict()
                     
                 if region.endswith('_L'):
-                    h_signal['GGM_M3_mu_1700_250'] = get_histogram('GGM_M3_mu_1700_250', variable=variable, region=region_name, selection=selection, syst=syst)
-                    h_signal['GGM_M3_mu_1700_650'] = get_histogram('GGM_M3_mu_1700_650', variable=variable, region=region_name, selection=selection, syst=syst)
+                    h_signal['GGM_M3_mu_1600_250'] = get_histogram('GGM_M3_mu_1600_250', variable=variable, region=region_name, selection=selection, syst=syst)
+                    h_signal['GGM_M3_mu_1600_650'] = get_histogram('GGM_M3_mu_1600_650', variable=variable, region=region_name, selection=selection, syst=syst)
 
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1700_250'])
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1700_650'])
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_250'])
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_650'])
 
                 elif region.endswith('_H'):
-                    h_signal['GGM_M3_mu_1400_1050'] = get_histogram('GGM_M3_mu_1400_1050', variable=variable, region=region_name, selection=selection, syst=syst)
-                    h_signal['GGM_M3_mu_1400_1375'] = get_histogram('GGM_M3_mu_1400_1375', variable=variable, region=region_name, selection=selection, syst=syst)
+                    h_signal['GGM_M3_mu_1600_1250'] = get_histogram('GGM_M3_mu_1600_1250', variable=variable, region=region_name, selection=selection, syst=syst)
+                    h_signal['GGM_M3_mu_1600_1450'] = get_histogram('GGM_M3_mu_1600_1450', variable=variable, region=region_name, selection=selection, syst=syst)
                     
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1400_1050'])
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1400_1375'])
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_1250'])
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_1450'])
                 else:
                     h_signal['GGM_M3_mu_1700_650'] = get_histogram('GGM_M3_mu_1700_650', variable=variable, region=region_name, selection=selection, syst=syst)
                     h_signal['GGM_M3_mu_1700_1050'] = get_histogram('GGM_M3_mu_1700_1050', variable=variable, region=region_name, selection=selection, syst=syst)

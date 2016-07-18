@@ -71,7 +71,6 @@ def do_plot(plotname,
             do_bkg_total=True, 
             do_ratio=True, 
             region_name='',
-            is25ns=True,
             ratio_type='', 
             normalize=False,
             do_fit=False,
@@ -91,12 +90,7 @@ def do_plot(plotname,
     else:
         conf = config_style.plots_conf.get(variable, config_style.plots_conf['default'])
 
-    xtitle, ytitle, legpos = conf[0], conf[1], conf[2]
-
-    if len(conf) > 4:
-        xmin, xmax = conf[3], conf[4]
-    else:
-        xmin, xmax = None, None
+    xtitle, ytitle, legpos = conf.xtitle, conf.ytitle, conf.legpos
 
     can = canvas(plotname, plotname, 800, 800)
     can.cd()
@@ -129,7 +123,7 @@ def do_plot(plotname,
         cup.Draw()
         cdown.Draw()
 
-        if logy:
+        if logy and conf.logy:
             cup.SetLogy()
 
         cup.SetTopMargin(0.08)
@@ -139,7 +133,7 @@ def do_plot(plotname,
         dn_size = calc_size(cdown)
 
     else:
-        if logy:
+        if logy and conf.logy:
             can.SetLogy()
 
         can.SetLeftMargin(0.15)
@@ -234,15 +228,15 @@ def do_plot(plotname,
 
     # add entries to legend
     if do_ratio:
-        legymin = 0.65
+        legymin = 0.64
         legymax = 0.88
 
         if legpos == 'left':
             legxmin = 0.20
             legxmax = 0.53
         elif legpos == 'right':
-            legxmin = 0.55
-            legxmax = 0.88
+            legxmin = 0.53
+            legxmax = 0.92
     else:
         legymin = 0.80
         legymax = 0.94
@@ -291,8 +285,8 @@ def do_plot(plotname,
             break
         chist = signal[name]
 
-    if xmin is not None and xmax is not None:
-        chist.GetXaxis().SetRangeUser(xmin, xmax)
+    if conf.xmin is not None and conf.xmax is not None:
+        chist.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
 
     if chist.GetXaxis().GetXmax() < 5.:
         chist.GetXaxis().SetNdivisions(512)
@@ -307,17 +301,19 @@ def do_plot(plotname,
     # if chist.GetMaximum() < 10:
     #     chist.SetMinimum(0.01)
     # else:
-    chist.SetMinimum(0.01)
+    if logy and conf.logy:
+        chist.SetMinimum(0.01)
 
-    if logy:
-        if 'dphi' in variable:
+    if logy and conf.logy:
+        if 'dphi' in variable or '_phi' in variable or '_eta' or variable:
             chist.SetMaximum(chist.GetMaximum()*100000)
         else:
             chist.SetMaximum(chist.GetMaximum()*500)
-
+    else:
+        chist.SetMaximum(chist.GetMaximum()*2)
 
     chist.GetXaxis().SetTitle(xtitle)
-    chist.GetXaxis().SetTitleOffset(1.3)
+    chist.GetXaxis().SetTitleOffset(1.4)
     chist.GetXaxis().SetLabelSize(0.)
 
     chist.GetXaxis().SetLabelSize(up_size)
@@ -337,10 +333,7 @@ def do_plot(plotname,
             ytitle = ytitle.replace('BIN', '{:.2f}'.format(width))
 
     chist.GetYaxis().SetTitle(ytitle)
-    if do_ratio:
-        chist.GetYaxis().SetTitleOffset(1.2)
-    else:
-        chist.GetYaxis().SetTitleOffset(1.2)
+    chist.GetYaxis().SetTitleOffset(1.2)
 
     if data:
         data_graph = make_poisson_cl_errors(data)
@@ -428,10 +421,8 @@ def do_plot(plotname,
 
     # luminosity
     if data:
-        if is25ns:
-            text = '#sqrt{s} = 13 TeV' ##, 3.2 fb^{-1}'
-        else:
-            text = '#sqrt{s} = 13 TeV, 84.97 pb^{-1}' 
+        #text = '\\sqrt{s} = 13\\, \\mathrm{TeV}' ##, 3.2 fb^{-1}'
+        text = '#sqrt{s} = 13 TeV, ~5.6 fb^{-1}'
         t = ROOT.TLatex(0, 0, text)
         t.SetNDC()
         t.SetTextFont(42)
@@ -439,7 +430,7 @@ def do_plot(plotname,
         t.SetTextColor(ROOT.kBlack)
         if legpos == 'right':
             if do_ratio:
-                t.DrawLatex(0.20, 0.78, text)
+                t.DrawLatex(0.20, 0.82, text)
             else:
                 t.DrawLatex(0.20, 0.78, text)
         else:
@@ -611,8 +602,8 @@ def do_plot(plotname,
 
         # x axis
         ratio.GetXaxis().SetTitle(xtitle)
-        if xmin is not None and xmax is not None:
-            ratio.GetXaxis().SetRangeUser(xmin, xmax)
+        if conf.xmin is not None and conf.xmax is not None:
+            ratio.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
         ratio.GetXaxis().SetLabelSize(ratio_xlabel_size)
         ratio.GetXaxis().SetTitleSize(ratio_xtitle_size)
         ratio.GetXaxis().SetTitleOffset(1.)
@@ -837,6 +828,10 @@ def do_plot(plotname,
         #     t.DrawLatex(x, y+0.5, '%s' % (i+1))
 
 
+    #can.Print(plotname+'.eps')
+    #cmd = 'eps2eps {plotname}.eps {plotname}_.eps && epstopdf {plotname}_.eps --outfile {plotname}.pdf && rm {plotname}.eps {plotname}_.eps'.format(plotname=plotname)
+    #os.system(cmd)
+    #print '==>', plotname+'.pdf'
     can.Print(plotname+'.pdf')
 
 
@@ -950,12 +945,12 @@ def do_plot_cmp(plotname,
     else:
         conf = config_style.plots_conf.get(variable, config_style.plots_conf['default'])
 
-    xtitle, ytitle, legpos = conf[0], conf[1], conf[2]
+    xtitle, ytitle, legpos = conf.xtitle, conf.ytitle, conf.legpos
 
-    if len(conf) > 4:
-        xmin, xmax = conf[3], conf[4]
-    else:
-        xmin, xmax = None, None
+    # if len(conf) > 4:
+    #     xmin, xmax = conf[3], conf[4]
+    # else:
+    #     xmin, xmax = None, None
 
     can = canvas(plotname, plotname, 800, 800)
     can.cd()
@@ -990,7 +985,7 @@ def do_plot_cmp(plotname,
         cup.Draw()
         cdown.Draw()
 
-        if logy:
+        if logy and conf.logy:
             cup.SetLogy()
 
         cup.SetTopMargin(0.08)
@@ -1000,7 +995,7 @@ def do_plot_cmp(plotname,
         dn_size = calc_size(cdown)
 
     else:
-        if logy:
+        if logy and conf.logy:
             can.SetLogy()
 
         can.SetLeftMargin(0.15)
@@ -1051,8 +1046,8 @@ def do_plot_cmp(plotname,
     # first histogram to configure (ROOT de mierda)
     (cname, chist) = histograms[0]
 
-    if xmin is not None and xmax is not None:
-        chist.GetXaxis().SetRangeUser(xmin, xmax)
+    if conf.xmin is not None and conf.xmax is not None:
+        chist.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
 
     if chist.GetXaxis().GetXmax() < 5.:
         chist.GetXaxis().SetNdivisions(512)
@@ -1069,11 +1064,13 @@ def do_plot_cmp(plotname,
     else:
         chist.SetMinimum(0.01)
 
-    if logy:
+    if logy and conf.logy:
         if 'dphi' in variable:
             chist.SetMaximum(chist.GetMaximum()*100000)
         else:
             chist.SetMaximum(chist.GetMaximum()*100)
+    else:
+        chist.SetMaximum(chist.GetMaximum()*2)
 
     chist.GetXaxis().SetTitle(xtitle)
     chist.GetXaxis().SetTitleOffset(1.3)

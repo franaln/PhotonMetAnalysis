@@ -8,7 +8,7 @@ bins['cuts'] = (1, 0.5, 1.5)
 ## photon
 bins['ph_n']  = (5, 0, 5)
 bins['ph_pt']  = (20, 0., 2000.)
-bins['ph_iso'] = (30, -10., 20.)
+bins['ph_iso'] = (40, -20., 20.)
 bins['ph_eta'] = (15, -3., 3.)
 bins['ph_phi'] = (17, -3.4, 3.4)
 
@@ -20,15 +20,9 @@ bins['jet_eta'] = (15, -3., 3.)
 bins['jet_phi'] = (34, -3.4, 3.4)
 
 ## met
-bins['met_et']    = (20, 0., 1000.)
-bins['met_sumet'] = (250, 0., 5000.)
-bins['met_et_refgam']   = (75, 0., 1500.)
-bins['met_et_refjet']   = (75, 0., 1500.)
-bins['met_et_sterm']    = (75, 0., 1500.)
-bins['met_sumet_jet']   = (250, 0., 5000.)
-bins['met_sumet_sterm'] = (250, 0., 5000.)
-bins['met_sumet_gamma'] = (250, 0., 5000.)
-bins['met_sig'] = (100, 0., 10.)
+bins['met_et']  = (20, 0., 1000.)
+bins['met_phi'] = (17, -3.4, 3.4)
+bins['met_truth_et']  = (20, 0., 1000.)
 
 ## dphi
 bins['dphi_jetmet']     = (17, 0., 3.4)
@@ -37,9 +31,11 @@ bins['dphi_gammet']     = (17, 0., 3.4)
 bins['dphi'] = (17, 0., 3.4)
 
 ## others
-bins['ht']              = (50, 0., 5000.)
-bins['meff']            = (50, 0., 5000.)
+bins['ht']              = (25, 0., 5000.)
+bins['meff']            = (25, 0., 5000.)
+bins['rt1']             = (22, 0., 1.1)
 bins['rt2']             = (22, 0., 1.1)
+bins['rt3']             = (22, 0., 1.1)
 bins['rt4']             = (22, 0., 1.1)
 
 ## leptons
