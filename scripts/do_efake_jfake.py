@@ -5,9 +5,9 @@ import os
 from samples import samples_dict
 
 ptag = '2667'
-version = '32'
+version = '34'
 
-mini_dir  = '/disk/falonso/mini2/'
+mini_dir  = '/raid/falonso/mini2/'
 
 data15 = samples_dict.get('data15')
 data16 = samples_dict.get('data16')
