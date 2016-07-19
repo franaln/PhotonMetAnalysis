@@ -304,6 +304,7 @@ def _get_histogram(ds, **kwargs):
     prw        = kwargs.get('prw', False)
     version    = kwargs.get('version', None)
     fs         = kwargs.get('fs', None)
+    year       = kwargs.get('year', None)
 
     use_sfw     = kwargs.get('use_sfw', True)
     use_mcw     = kwargs.get('use_mcw', True)
@@ -372,6 +373,12 @@ def _get_histogram(ds, **kwargs):
             selection = selection + ' && fs==%s' % fs
         else:
             selection = 'fs==%s' % fs
+
+    if year is not None:
+        if selection:
+            selection = selection + ' && year==%s' % year
+        else:
+            selection = 'year==%s' % year
 
     # change selection and variable for systematics
     if syst != 'Nom' and systematics.affects_kinematics(syst):
@@ -481,25 +488,11 @@ def get_histogram(name, **kwargs):
     version    = kwargs.get('version', None)
 
     if '.root' in name:
-
         # try to identify file
         # name = os.path.basename(sample_name).split('.')[0]
-
         # return _get_histogram(Sample(name), sample_name, **kwargs)
-
-
         return None # FIX
 
-    # if name in ['efake', 'jfake']:
-
-    #     ds_tmp = get_sample_datasets(name, version, ptag)
-
-    #     datasets = dict(ds_tmp)
-    #     paths = []
-    #     for s in datasets:
-    #         s['path'] = s['path'].replace('data15_13TeV', sample_name)
-
-    # else:
     datasets = get_sample_datasets(name, version, ptag)
 
     if datasets is None:
@@ -525,10 +518,6 @@ def get_histogram(name, **kwargs):
     else:
         
         for ds in datasets:
-
-            #if not os.path.exists(path):
-            #             print 'file doesn\'t exist:', path
-            #             continue
 
             h = _get_histogram(ds, **kwargs)
 
@@ -575,21 +564,6 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False)
 
     if not selection:
         return None
-
-    # sum strong+ewk contributions
-    # if 'GGM_M3_mu_total' in sample:
-    #     strong_sample = sample.replace('_total', '')
-
-    #     mu = sample.split('_')[5]
-    #     ewk_sample = 'GGM_mu_%s' % mu
-
-    #     h_strong = _get_cutflow(strong_sample, selection) 
-    #     h_ewk    = _get_cutflow(ewk_sample, selection) 
-        
-    #     h_sum = h_strong + h_ewk
-
-    #     return h_sum
-
 
     cuts = [ split_cut(cut) for cut in selection.split('&&') ]
 

@@ -1,8 +1,8 @@
 # samples
 
-default_ptags = ['2666', '2667', '2662', '2614']
+default_ptags = ['2689', '2688', '2666', '2667', '2662', '2614']
 
-default_versions = ['34', '32', '33', '30', '24']
+default_versions = ['35', '34', '32', '33', '30', '24']
 
 samples_dict = {
 
@@ -104,7 +104,26 @@ samples_dict = {
         'data16_13TeV.00300784.physics_Main',
         'data16_13TeV.00300800.physics_Main',
         'data16_13TeV.00300863.physics_Main',
-        'data16_13TeV.00300908.physics_Main',
+        'data16_13TeV.00300908.physics_Main', # DS1
+
+        'data16_13TeV.00301912.physics_Main',
+        'data16_13TeV.00301918.physics_Main',
+        'data16_13TeV.00301932.physics_Main',
+        'data16_13TeV.00301973.physics_Main',
+        'data16_13TeV.00302053.physics_Main',
+        'data16_13TeV.00302137.physics_Main',
+        'data16_13TeV.00302265.physics_Main',
+        'data16_13TeV.00302269.physics_Main',
+        'data16_13TeV.00302300.physics_Main',
+        'data16_13TeV.00302347.physics_Main',
+        'data16_13TeV.00302380.physics_Main',
+        'data16_13TeV.00302391.physics_Main',
+        'data16_13TeV.00302393.physics_Main',
+        'data16_13TeV.00302737.physics_Main',
+        'data16_13TeV.00302831.physics_Main',
+        'data16_13TeV.00302919.physics_Main',
+        'data16_13TeV.00302925.physics_Main',
+        'data16_13TeV.00302956.physics_Main', # DS1.2
         ],
     
     'data': 'data15 + data16',
