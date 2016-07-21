@@ -56,7 +56,7 @@ def main():
     else:
         results_dir = 'results/PhotonMetAnalysis_bkgonly_%s' % region
 
-    options = '-i %s --sr %s' % (histograms_file, region)
+    options = '-i %s --sr %s --rm' % (histograms_file, region)
     if args.do_validation:
         options += ' --val'
     if args.mc:

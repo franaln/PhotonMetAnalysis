@@ -8,8 +8,10 @@ from collections import OrderedDict
 from rootutils import *
 from statutils import *
 
+
 # config
-import style as config_style
+import style
+
 
 def calc_poisson_cl_lower(q, obs):
     """
@@ -84,11 +86,11 @@ def do_plot(plotname,
         bkg = {}
 
     
-    if variable not in config_style.plots_conf:
+    if variable not in style.plots_conf:
         vartmp = variable[:variable.find('[')]
-        conf = config_style.plots_conf.get(vartmp, config_style.plots_conf['default'])
+        conf = style.plots_conf.get(vartmp, style.plots_conf['default'])
     else:
-        conf = config_style.plots_conf.get(variable, config_style.plots_conf['default'])
+        conf = style.plots_conf.get(variable, style.plots_conf['default'])
 
     xtitle, ytitle, legpos = conf.xtitle, conf.ytitle, conf.legpos
 
@@ -147,12 +149,12 @@ def do_plot(plotname,
 
     if bkg:
         for name, hist in bkg.iteritems():
-            set_style(hist, color=config_style.colors_dict[name], fill=True)
+            set_style(hist, color=style.colors_dict[name], fill=True)
             hist.SetLineColor(ROOT.kBlack)
 
     if signal:
         for sig, hist in signal.iteritems():
-            set_style(hist, msize=1.2, lwidth=2, lstyle=2, color=config_style.colors_dict[sig])
+            set_style(hist, msize=1.2, lwidth=2, lstyle=2, color=style.colors_dict[sig])
 
     if bkg:
 
@@ -254,14 +256,14 @@ def do_plot(plotname,
 
     if bkg:
         for name, hist in bkg.iteritems():
-            legend1.AddEntry(hist, config_style.labels_dict[name], 'f')
+            legend1.AddEntry(hist, style.labels_dict[name], 'f')
 
         if do_bkg_total and sm_total is not None:
             legend1.AddEntry(sm_total_stat, "SM Total", 'f')
         #legend1.AddEntry(sm_total_all, "stat #oplus syst", 'f')
     
     if data:
-        legend1.AddEntry(data, config_style.labels_dict['data'], 'pl')
+        legend1.AddEntry(data, style.labels_dict['data'], 'pl')
 
     # we don't want to plot signals in Control Regions
     if 'CR' in region_name:
@@ -269,7 +271,7 @@ def do_plot(plotname,
 
     if signal:
         for name, hist in signal.iteritems():
-            legend2.AddEntry(hist, config_style.labels_dict[name], 'f')
+            legend2.AddEntry(hist, style.labels_dict[name], 'f')
 
     if do_ratio:
         cup.cd()
@@ -421,8 +423,7 @@ def do_plot(plotname,
 
     # luminosity
     if data:
-        #text = '\\sqrt{s} = 13\\, \\mathrm{TeV}' ##, 3.2 fb^{-1}'
-        text = '#sqrt{s} = 13 TeV, ~5.6 fb^{-1}'
+        text = style.data_label
         t = ROOT.TLatex(0, 0, text)
         t.SetNDC()
         t.SetTextFont(42)

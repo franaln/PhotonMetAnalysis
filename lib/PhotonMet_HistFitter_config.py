@@ -108,7 +108,7 @@ else:
 configMgr.histCacheFile  = hist_file
 configMgr.outputFileName = 'results/%s/Output.root' % configMgr.analysisName
 
-if args.rm:
+if args.rm and configMgr.analysisName:
     rmdir('./results/%s' % configMgr.analysisName)
     rmdir('./config/%s' % configMgr.analysisName)
     rmdir('./data/%s' % configMgr.analysisName)

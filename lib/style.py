@@ -3,6 +3,12 @@
 import ROOT
 from mass_dict import mass_dict
 
+data_label = '#sqrt{s} = 13 TeV, ~9.5 fb^{-1}'
+
+data15_label = '#sqrt{s} = 13 TeV, ~3.2 fb^{-1}'
+data16_label = '#sqrt{s} = 13 TeV, ~6.3 fb^{-1}'
+
+
 # Legend labels
 labels_dict = dict()
 labels_dict['data']         = 'Data'

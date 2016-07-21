@@ -20,7 +20,7 @@ from mass_dict import mass_dict
 from signalxs import gg_xs, gg_xs_unc
 import systematics
 
-import analysis as config_analysis
+import analysis 
 
 fzero = 0.0001
 
@@ -83,11 +83,11 @@ def sphistograms():
     if args.input is not None and args.lumi is not None:
         
         if args.lumi == 'data15':
-            lumi = config_analysis.lumi_data15
+            lumi = analysis.lumi_data15
         elif args.lumi == 'data16':
-            lumi = config_analysis.lumi_data16
+            lumi = analysis.lumi_data16
         elif args.lumi == 'data':
-            lumi = config_analysis.lumi_data15 + config_analysis.lumi_data16
+            lumi = analysis.lumi_data15 + analysis.lumi_data16
 
         lumi = lumi / 1000. # input should be normalized to 1 fb-1
 
@@ -159,10 +159,12 @@ def sphistograms():
     variables = args.variables.split(',')
 
     region_type = args.n
-
     if region_type is None:
         print 'error: indicate the region type: L or H'
         return 1
+
+    if args.regions is None or args.regions == 'all':
+        args.regions = ','.join(analysis.sr_regions + analysis.cr_regions + analysis.vr_regions)
     
     regions = [ '%s_%s' % (r, region_type) for r in args.regions.split(',') ]
    
@@ -171,7 +173,7 @@ def sphistograms():
     samples = []
     if args.samples is not None:
         if 'signal' in args.samples:
-            samples.extend(config_analysis.signal)
+            samples.extend(analysis.signal)
         elif 'bkg' in args.samples:
             samples.extend(mc)
         else:
@@ -204,8 +206,7 @@ def sphistograms():
 
         for region in regions:
 
-            region_type = region.split('_')[-1]
-            region_name = region.split('_')[0]
+            region_name, region_type = region.split('_')
             
             # don't need signal in VR
             if 'GGM' in sample:
@@ -217,6 +218,7 @@ def sphistograms():
             try:
                 selection = getattr(regions_, region)
             except AttributeError:
+                print 'Region %s not defined. continue...' % region
                 continue
 
             for variable in variables:
@@ -240,20 +242,20 @@ def sphistograms():
                                         region=region_name, selection=selection, 
                                         lumi=args.lumi, version=args.version)
 
-                hist = get_histogram(syst='Nom')
+                h_nom = get_histogram(syst='Nom')
 
                 # blind SR for now
                 if 'data' in sample and region_name.startswith('SR') and not args.unblind:
-                    hist.SetBinContent(1, 0.0)
+                    h_nom.SetBinContent(1, 0.0)
 
                 # jet fakes in SR (from extrapolation)
-                if sample.startswith('jfake') and region_name.startswith('SR') and variable == 'cuts':
+                if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
                     if region_type == 'L':
-                        hist.SetBinContent(1, 0.06)
+                        h_nom.SetBinContent(1, 0.08)
                     elif region_type == 'H':
-                        hist.SetBinContent(1, 0.00002)
+                        h_nom.SetBinContent(1, 0.0005)
 
-                histograms.add(hist)
+                histograms.add(h_nom)
 
 
                 if do_syst:
@@ -266,26 +268,26 @@ def sphistograms():
                         # one side systematics
                         for syst in systematics_expOS:
                             
-                            h_low = hist.Clone(hist.GetName().replace('Nom', syst.replace('__1up', '')+'Low'))
+                            h_dn = h_nom.Clone(h_nom.GetName().replace('Nom', syst.replace('__1up', '')+'Low'))
 
-                            h_high = get_histogram(syst=syst)
-                            h_high.SetName(h_high.GetName().replace(syst, syst+'High'))
+                            h_up = get_histogram(syst=syst)
+                            h_up.SetName(h_up.GetName().replace(syst, syst+'High'))
 
-                            histograms.add(h_low)
-                            histograms.add(h_high)
+                            histograms.add(h_dn)
+                            histograms.add(h_up)
 
                         # High-Low detector systematics
                         for syst in systematics_expHL:
 
                             if syst in ['MET_SoftTrk_Scale', ]:
-                                h_low  = get_histogram(syst=syst+'Down')
-                                h_high = get_histogram(syst=syst+'Up')
+                                h_dn  = get_histogram(syst=syst+'Down')
+                                h_up = get_histogram(syst=syst+'Up')
                             else:
-                                h_low  = get_histogram(syst=syst+'__1down')
-                                h_high = get_histogram(syst=syst+'__1up')
+                                h_dn  = get_histogram(syst=syst+'__1down')
+                                h_up = get_histogram(syst=syst+'__1up')
 
-                            histograms.add(h_low)
-                            histograms.add(h_high)
+                            histograms.add(h_dn)
+                            histograms.add(h_up)
                     
                         # # btag: only in the regions with bjet tag/veto
                         # if 'CRL' in region_name:
@@ -302,32 +304,32 @@ def sphistograms():
                     ## efakes 
                     if sample.startswith('efake'):
                         
-                        h_low = get_histogram(syst='FegLow')
-                        h_high = get_histogram(syst='FegHigh')
-
-                        if h_high.GetBinContent(1) < fzero:
-                            h_high.Fill(1, 0.045)
+                        h_dn = get_histogram(syst='FegLow')
+                        h_up = get_histogram(syst='FegHigh')
+                        
+                        if h_up.GetBinContent(1) < fzero:
+                            h_up.Fill(1, 0.045)
                             
-                        histograms.add(h_low)
-                        histograms.add(h_high)
+                        histograms.add(h_dn)
+                        histograms.add(h_up)
 
                     ## jet fakes 
                     if sample.startswith('jfake'):
                     
-                        h_high = get_histogram(syst='FjgLow')
-                        h_low  = get_histogram(syst='FjgHigh')
+                        h_dn = get_histogram(syst='FjgLow')
+                        h_up = get_histogram(syst='FjgHigh')
 
                         # in SR (from extrapolation)
-                        if sample.startswith('jfake') and region_name.startswith('SR') and variable == 'cuts':
+                        if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
                             if region_type == 'L':
-                                h_low.SetBinContent(1, 0.04)
-                                h_high.SetBinContent(1, 0.07)
+                                h_dn.SetBinContent(1, 0.06)
+                                h_up.SetBinContent(1, 0.11)
                             elif region_type == 'H':
-                                h_low.SetBinContent(1, 0.00001)
-                                h_high.SetBinContent(1, 0.00003)
-
-                        histograms.add(h_low)
-                        histograms.add(h_high)
+                                h_dn.SetBinContent(1, 0.0003)
+                                h_up.SetBinContent(1, 0.0006)
+                            
+                        histograms.add(h_dn)
+                        histograms.add(h_up)
 
 
                     # theoretical 
@@ -384,14 +386,14 @@ def sphistograms():
                             sigma_up = sigma
                             sigma_dn = sigma
 
-                        h_high = hist.Clone(hist.GetName().replace('Nom', syst+'High'))
-                        h_high.Scale(1 + sigma_up)
+                        h_up = h_nom.Clone(h_nom.GetName().replace('Nom', syst+'High'))
+                        h_up.Scale(1 + sigma_up)
                         
-                        h_low =  hist.Clone(hist.GetName().replace('Nom', syst+'Low'))
-                        h_low.Scale(1 - sigma_dn)
+                        h_dn =  h_nom.Clone(h_nom.GetName().replace('Nom', syst+'Low'))
+                        h_dn.Scale(1 - sigma_dn)
 
-                        histograms.add(h_high)
-                        histograms.add(h_low)
+                        histograms.add(h_up)
+                        histograms.add(h_dn)
                         
 
         # close/save histograms

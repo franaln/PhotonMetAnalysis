@@ -19,6 +19,8 @@ from style import colors_dict, labels_dict
 from drawlib import calc_poisson_cl_upper, calc_poisson_cl_lower
 import subprocess
 
+import style
+
 parser = argparse.ArgumentParser(description='plot regions pull')
     
 parser.add_argument('--ws', dest='workspace', required=True, help='Input workspace')
@@ -71,8 +73,8 @@ backgrounds = [
     'zllgamma', 
     'znunugamma',
     'ttbarg',
-    # 'diphoton',
-    # 'vgammagamma',
+    'diphoton',
+    'vgammagamma',
     ]
 
 if args.data == 'data15':
@@ -402,7 +404,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] 
 
-    #merged_bkgs['diphoton'] = to_merge['diphoton'] + to_merge['vgammagamma']
+    merged_bkgs['diphoton'] = to_merge['diphoton'] + to_merge['vgammagamma']
 
     for sam, h in merged_bkgs.iteritems():
         set_style(h, color=colors_dict[sam], fill=True)
@@ -475,11 +477,11 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     graph_data.Draw("P0Z")
 
     if args.data == 'data15':
-        text = '#sqrt{s} = 13 TeV, ~3.2 fb^{-1}'
+        text = style.data15_label
     elif args.data == 'data16':
-        text = '#sqrt{s} = 13 TeV, ~2.6 fb^{-1}'
+        text = style.data16_label
     else:
-        text = '#sqrt{s} = 13 TeV, ~5.8 fb^{-1}'
+        text = style.data_label
 
     t = ROOT.TLatex(0, 0, text)
     t.SetNDC()
@@ -488,7 +490,6 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     t.SetTextColor(ROOT.kBlack)
     t.DrawLatex(0.15, 0.75, text)
     t.DrawLatex(0.15, 0.66, region_name.replace('L', '{L}').replace('H', '{H}'))
-
 
     legend1.Draw()
 
