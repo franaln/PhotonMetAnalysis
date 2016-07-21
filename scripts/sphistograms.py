@@ -64,6 +64,8 @@ def sphistograms():
     parser.add_argument('-s', dest='samples', help='samples (comma separated)')
     parser.add_argument('-n', help='"L" or "H"')
 
+    parser.add_argument('--year', help='Select only MC event corresponding to this year')
+
     # other options
     parser.add_argument('--add', action='store_true')
     parser.add_argument('--dosyst', action='store_true')
@@ -210,9 +212,7 @@ def sphistograms():
             
             # don't need signal in VR
             if 'GGM' in sample:
-                if region_name in ['SR', 'SRincl', 'CRQ', 'CRW', 'CRT']:
-                    pass
-                else:
+                if region_name not in analysis.sr_regions + analysis.cr_regions:
                     continue
 
             try:
@@ -240,7 +240,7 @@ def sphistograms():
                 # nominal histogram
                 get_histogram = partial(miniutils.get_histogram, sample, variable=variable, 
                                         region=region_name, selection=selection, 
-                                        lumi=args.lumi, version=args.version)
+                                        lumi=args.lumi, version=args.version, year=args.year)
 
                 h_nom = get_histogram(syst='Nom')
 
