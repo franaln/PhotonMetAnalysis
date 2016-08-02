@@ -27,22 +27,21 @@ def main():
     parser.add_argument('-s', dest='samples', help='Samples separated with ,')
     parser.add_argument('-i', dest='files', help='Files separated with ,')
     parser.add_argument('-l', dest='lumi', help='Luminosity to scale')
+    parser.add_argument('-v', dest='version', help='force mini version')
     parser.add_argument('--sel', dest='selection')
-
     parser.add_argument('--prw', action='store_true', help='apply prw weights')
-
     parser.add_argument('--data', help='Include data: data|data15|data16')
-
-    parser.add_argument('--signal', action='store_true', help='Include signal')
-    parser.add_argument('--mc', action='store_true', help='Use MC backgrounds')
-
-    parser.add_argument('--after', action='store_true', help='Use fit normalization factors')
-
     parser.add_argument('--unblind', action='store_true', help='Unblind data')
 
-    parser.add_argument('--m3', default='1400', help='M3')
+    # backgrounds
+    parser.add_argument('--mc', action='store_true', help='Use MC backgrounds')
+    parser.add_argument('--muq', help='Normalization factor for gam+jet')
+    parser.add_argument('--muw', help='Normalization factor for W gamma')
+    parser.add_argument('--mut', help='Normalization factor for ttbar gamma')
 
-    parser.add_argument('-v', dest='version', help='force mini version')
+    # signal
+    parser.add_argument('--signal', action='store_true', help='Include signal')
+    parser.add_argument('--m3', default='1400', help='M3')
 
     # others
     parser.add_argument('--latex', action='store_true', help='use LatexTable instead PrettyTable')
@@ -65,19 +64,14 @@ def main():
         'diphoton',
         'vgammagamma',
 
+#        'vqqgamma',
         ]
 
     dd_scale = 1.
-    if args.data is None:
-        # need to scale dd backgrounds from 3.2 to lumi
-        if args.lumi is None:
-            print 'Need to provide a lumi'
-            sys.exit(1)
-
-        dd_scale = float(args.lumi)/3.2
-
-        bkgs.append('jfake15')
-        bkgs.append('efake15')
+    if args.data is None and args.samples is None:
+        sys.exit(1)
+        bkgs.append('jfake')
+        bkgs.append('efake')
 
     elif args.data == 'data15':
         args.lumi = 'data15'
@@ -87,7 +81,7 @@ def main():
         args.lumi = 'data16'
         bkgs.append('jfake16')
         bkgs.append('efake16')
-    elif arg.data == 'data':
+    elif args.data == 'data':
         args.lumi = 'data'
         bkgs.append('jfake')
         bkgs.append('efake')
@@ -175,8 +169,15 @@ def main():
                 if args.data is None and 'fake' in sample:
                     evts *= dd_scale
 
-                cols[sample] = evts
+                if not region.startswith('CR'):
+                    if args.muq is not None and sample == 'photonjet':
+                        evts *= float(args.muq)
+                    if args.muw is not None and sample == 'wgamma':
+                        evts *= float(args.muw)
+                    if args.mut is not None and sample == 'ttbarg':
+                        evts *= float(args.mut)
 
+                cols[sample] = evts
                 total_bkg += evts
            
             cols['Total bkg'] = total_bkg
@@ -198,6 +199,7 @@ def main():
                     purity = cols['wgamma'] / total_bkg
 
                     cols['wgamma'] = '%s (%.2f%%, mu=%.2f)' % (cols['wgamma'], purity.mean, mu.mean)
+
 
 
             # Signals

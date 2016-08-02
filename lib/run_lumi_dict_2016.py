@@ -61,5 +61,9 @@ run_lumi_dict[303338] = 515.380458
 run_lumi_dict[303421] = 481.088894
 run_lumi_dict[303499] = 421.167270
 run_lumi_dict[303560] = 324.621623
+run_lumi_dict[303638] = 462.309130
+run_lumi_dict[303832] = 94.258388
+run_lumi_dict[303846] = 490.742189
+run_lumi_dict[303892] = 459.882658
 
 #run_lumi_dict[Total] = 10064.300000

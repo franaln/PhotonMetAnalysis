@@ -19,6 +19,21 @@ import regions as regions_
 
 from drawlib import *
 
+def get_histogram_from_file(file_, sample, variable, region, syst='Nom'):
+    
+    if sample.startswith('data'):
+        syst = ''
+
+    hname = 'h%s%s_%s_obs_%s' % (sample, syst, region, variable)
+ 
+    print 'getting histogram %s' % (hname)
+ 
+    hist = file_.Get(hname)
+    hist.SetDirectory(0)
+
+    return hist.Clone()
+
+
 def main():
 
     parser = argparse.ArgumentParser(description='')
@@ -36,43 +51,33 @@ def main():
     parser.add_argument('--mc', action='store_true', help='use all backgrounds from MC')
  
     # normalization
+    parser.add_argument('--after', dest='after_fit', action='store_true')
+    parser.add_argument('--ws',  help='Workspace')
     parser.add_argument('--muq', help='Normalization factor for gam+jet')
     parser.add_argument('--muw', help='Normalization factor for W gamma')
     parser.add_argument('--mut', help='Normalization factor for ttbar gamma')
 
-    parser.add_argument('--normqcd', action='store_true')
-    parser.add_argument('--after', dest='after_fit', action='store_true')
-
+    # other
     parser.add_argument('-l', dest='lumi')
     parser.add_argument('--data', help='data15|data16|data')
-
-    # other
     parser.add_argument('--opt', action='store_true', help='Optimization plot')
-
     parser.add_argument('--sel', dest='selection', default='', help='Custom selection')
     parser.add_argument('--outname', help='If custom selection use this output_name')
-
     parser.add_argument('--n1', action='store_true', help='N-1 plot')
     parser.add_argument('--comp', action='store_true', dest='region_composition',
                         help='create region composition plot')
     parser.add_argument('--signal', action='store_true', help='Add signal samples (separated with ,)')
     parser.add_argument('--blind', help='Add this selection only to data')
-
-    parser.add_argument('--debug', action='store_true', help='print debug messages')
-
+    parser.add_argument('--prw', action='store_true', help='Use pile-up reweighting')
     parser.add_argument('--pl', action='store_true', help='publink')
     parser.add_argument('--www', action='store_true', help='create webpage')
+    parser.add_argument('--debug', action='store_true', help='print debug messages')
+    parser.add_argument('--publish', action='store_true', help='')
 
     global args
     args = parser.parse_args()
 
-    if args.input_file:
-        get_histogram = partial(get_histogram_from_file, args.input_file)
-    else:
-        if args.n1:
-            get_histogram = partial(miniutils.get_histogram, remove_var=True, lumi=args.lumi)
-        else:
-            get_histogram = partial(miniutils.get_histogram, remove_var=False, lumi=args.lumi)
+    get_histogram = partial(miniutils.get_histogram, remove_var=args.n1, lumi=args.lumi, use_prw=args.prw)
 
     # regions
     if args.regions is not None:
@@ -113,6 +118,50 @@ def main():
             'diphoton',
             'vgammagamma',
             ]
+
+
+    if args.input_file:
+
+        ifile = ROOT.TFile.Open(args.input_file)
+
+        for region in regions:
+
+            region_name = region.split('_')[0]
+
+            for variable in variables:
+                
+                print 'plotting %s in region %s ...' % (variable, region)
+
+                ## backgrounds
+                h_bkg = OrderedDict()
+
+                backgrounds = ['photonjet', 'vgamma', 'tgamma', 'diphoton', 'efake', 'jfake']
+                for name in backgrounds:
+                    h_bkg[name] = get_histogram_from_file(ifile, name, variable, region_name, syst=syst)
+
+                ## data
+                h_data = get_histogram_from_file(ifile, 'data', variable, region_name, syst=syst)
+
+                ## signal
+                h_signal = OrderedDict()
+
+                if region.endswith('_L'):
+                    h_signal['GGM_M3_mu_1600_250'] = get_histogram_from_file(ifile, 'GGM_M3_mu_1600_250', variable, region_name, syst=syst)
+                    h_signal['GGM_M3_mu_1600_650'] = get_histogram_from_file(ifile, 'GGM_M3_mu_1600_650', variable, region_name, syst=syst)
+                    
+                elif region.endswith('_H'):
+                    h_signal['GGM_M3_mu_1600_1250'] = get_histogram_from_file(ifile, 'GGM_M3_mu_1600_1250', variable, region_name, syst)
+                    h_signal['GGM_M3_mu_1600_1450'] = get_histogram_from_file(ifile, 'GGM_M3_mu_1600_1450', variable, region_name, syst)
+                
+            
+                outname = os.path.join(args.output, 'can_{}_{}_afterFit'.format(region, variable))
+            
+                do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region)
+                
+
+        ifile.Close()
+        sys.exit(0)
+
    
     # Standard DATA/Backgrounds plot
     for region in regions:
@@ -157,9 +206,12 @@ def main():
                     if ',' in args.muw:
                         mu = ( float(n) for n in args.muw.split(',') )
                         histogram_scale(h_bkg['wgamma'], *mu)
-
+                        if 'vqqgamma' in h_bkg:
+                            histogram_scale(h_bkg['vqqgamma'], *mu)
                     else:
-                        h_bkg['wgamma'].Scale(float(args.muq))
+                        h_bkg['wgamma'].Scale(float(args.muw))
+                        if 'vqqgamma' in h_bkg:
+                            histogram_scale(h_bkg['vqqgamma'], *mu)
 
                 if args.mut is not None:
                     
@@ -168,35 +220,49 @@ def main():
                         histogram_scale(h_bkg['ttbarg'], *mu)
 
                     else:
-                        h_bkg['ttbarg'].Scale(float(args.muq))
+                        h_bkg['ttbarg'].Scale(float(args.mut))
 
                         
             # Merge backgrounds to plot
+                        
+            ## V + jets
             if args.mc:
                 h_bkg['vjets'] = h_bkg['wjets'].Clone()
                 h_bkg['vjets'].Add(h_bkg['zjets'], 1)
+                
+                del h_bkg['wjets']
+                del h_bkg['zjets']
 
+            ## V + gamma
             h_bkg['vgamma'] = h_bkg['wgamma'].Clone()
             h_bkg['vgamma'].Add(h_bkg['zgamma'], 1)
-            
-            if args.mc:
-                h_bkg['tgamma'] = h_bkg['ttbarg'].Clone()
-                h_bkg['tgamma'].Add(h_bkg['ttbar'], 1)
-            else:
-                h_bkg['tgamma'] = h_bkg['ttbarg'].Clone()
-
-            if 'diphoton' in h_bkg:
-                h_bkg['diphoton'].Add(h_bkg['vgammagamma'], 1)
 
             del h_bkg['wgamma']
             del h_bkg['zgamma']
-            del h_bkg['ttbarg']
-            if 'vgammagamma' in h_bkg:
-                del h_bkg['vgammagamma']
+            
+            if 'vqqgamma' in h_bkg:
+                h_bkg['vgamma'].Add(h_bkg['vqqgamma'], 1)
+                del h_bkg['vqqgamma']
+
+            h_bkg['vgamma'].SetName(h_bkg['vgamma'].GetName().replace('wgamma', 'vgamma'))
+
+            ## tt + gamma
             if args.mc:
-                del h_bkg['wjets']
-                del h_bkg['zjets']
+                h_bkg['tgamma'] = h_bkg['ttbarg'].Clone()
+                h_bkg['tgamma'].Add(h_bkg['ttbar'], 1)
                 del h_bkg['ttbar']
+
+            else:
+                h_bkg['tgamma'] = h_bkg['ttbarg'].Clone()
+
+            del h_bkg['ttbarg']
+
+            h_bkg['tgamma'].SetName(h_bkg['tgamma'].GetName().replace('ttbarg', 'tgamma'))
+            
+            ## diphoton
+            if 'diphoton' in h_bkg:
+                h_bkg['diphoton'].Add(h_bkg['vgammagamma'], 1)
+                del h_bkg['vgammagamma']
 
 
             ## data
@@ -261,7 +327,7 @@ def main():
             if args.opt:
                 do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region) ##, do_ratio=False)
             else:
-                do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region)
+                do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, publish=args.publish)
                 
             if args.pl:
                 os.system('publink %s.pdf' % outname)

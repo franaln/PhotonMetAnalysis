@@ -1,8 +1,8 @@
 # samples
 
-default_ptags = ['2689', '2688', '2666', '2667', '2662', '2614']
+default_ptags = ['2689', '2688', '2666', '2667', '2622', '2614']
 
-default_versions = ['35', '34', '32', '33', '30', '24']
+default_versions = ['37', ] #', '34', '32', '33', '30', '24']
 
 samples_dict = {
 
@@ -104,8 +104,7 @@ samples_dict = {
         'data16_13TeV.00300784.physics_Main',
         'data16_13TeV.00300800.physics_Main',
         'data16_13TeV.00300863.physics_Main',
-        'data16_13TeV.00300908.physics_Main', # DS1
-
+        'data16_13TeV.00300908.physics_Main',
         'data16_13TeV.00301912.physics_Main',
         'data16_13TeV.00301918.physics_Main',
         'data16_13TeV.00301932.physics_Main',
@@ -121,9 +120,27 @@ samples_dict = {
         'data16_13TeV.00302393.physics_Main',
         'data16_13TeV.00302737.physics_Main',
         'data16_13TeV.00302831.physics_Main',
+        'data16_13TeV.00302872.physics_Main',
         'data16_13TeV.00302919.physics_Main',
         'data16_13TeV.00302925.physics_Main',
-        'data16_13TeV.00302956.physics_Main', # DS1.2
+        'data16_13TeV.00302956.physics_Main',
+        'data16_13TeV.00303007.physics_Main',
+        'data16_13TeV.00303079.physics_Main',
+        'data16_13TeV.00303201.physics_Main',
+        'data16_13TeV.00303208.physics_Main',
+        'data16_13TeV.00303264.physics_Main',
+        'data16_13TeV.00303266.physics_Main',
+        'data16_13TeV.00303291.physics_Main',
+        'data16_13TeV.00303304.physics_Main',
+        'data16_13TeV.00303338.physics_Main',
+        'data16_13TeV.00303421.physics_Main',        
+        'data16_13TeV.00303499.physics_Main',
+        'data16_13TeV.00303560.physics_Main',
+
+        # 'data16_13TeV.00303638.physics_Main',
+        # 'data16_13TeV.00303832.physics_Main',
+        # 'data16_13TeV.00303846.physics_Main',
+        # 'data16_13TeV.00303892.physics_Main',
         ],
     
     'data': 'data15 + data16',
@@ -270,7 +287,7 @@ samples_dict = {
         'mc15_13TeV.361436.Sherpa_CT10_Ztautau_Pt700_1000_CFilterBVeto',
         'mc15_13TeV.361437.Sherpa_CT10_Ztautau_Pt700_1000_BFilter',
         'mc15_13TeV.361438.Sherpa_CT10_Ztautau_Pt1000_2000_CVetoBVeto',
-        #'mc15_13TeV.361439.Sherpa_CT10_Ztautau_Pt1000_2000_CFilterBVeto',
+        'mc15_13TeV.361439.Sherpa_CT10_Ztautau_Pt1000_2000_CFilterBVeto',
         'mc15_13TeV.361440.Sherpa_CT10_Ztautau_Pt1000_2000_BFilter',
         'mc15_13TeV.361441.Sherpa_CT10_Ztautau_Pt2000_E_CMS_CVetoBVeto',
         'mc15_13TeV.361442.Sherpa_CT10_Ztautau_Pt2000_E_CMS_CFilterBVeto',
@@ -344,8 +361,8 @@ samples_dict = {
         'mc15_13TeV.361344.Sherpa_CT10_Wmunu_Pt1000_2000_BFilter',
         'mc15_13TeV.361345.Sherpa_CT10_Wmunu_Pt2000_E_CMS_CVetoBVeto',
         'mc15_13TeV.361346.Sherpa_CT10_Wmunu_Pt2000_E_CMS_CFilterBVeto',
-        #'mc15_13TeV.361347.Sherpa_CT10_Wmunu_Pt2000_E_CMS_BFilter',
-        #'mc15_13TeV.361348.Sherpa_CT10_Wtaunu_Pt0_70_CVetoBVeto',
+        'mc15_13TeV.361347.Sherpa_CT10_Wmunu_Pt2000_E_CMS_BFilter',
+        'mc15_13TeV.361348.Sherpa_CT10_Wtaunu_Pt0_70_CVetoBVeto',
         'mc15_13TeV.361349.Sherpa_CT10_Wtaunu_Pt0_70_CFilterBVeto',
         'mc15_13TeV.361350.Sherpa_CT10_Wtaunu_Pt0_70_BFilter',
         'mc15_13TeV.361351.Sherpa_CT10_Wtaunu_Pt70_140_CVetoBVeto',
@@ -463,18 +480,66 @@ samples_dict = {
     'GGM_M3_mu_1800_1650': 'mc15_13TeV.373137.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1800_1650',
     'GGM_M3_mu_1800_1730': 'mc15_13TeV.373138.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1800_1730',
     'GGM_M3_mu_1800_1770': 'mc15_13TeV.373139.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1800_1770',
+    'GGM_M3_mu_1900_150':  'mc15_13TeV.373140.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_150',
+    'GGM_M3_mu_1900_200':  'mc15_13TeV.373141.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_200',
+    'GGM_M3_mu_1900_250':  'mc15_13TeV.373142.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_250',
+    'GGM_M3_mu_1900_450':  'mc15_13TeV.373143.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_450',
+    'GGM_M3_mu_1900_650':  'mc15_13TeV.373144.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_650',
+    'GGM_M3_mu_1900_850':  'mc15_13TeV.373145.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_850',
+    'GGM_M3_mu_1900_1050': 'mc15_13TeV.373146.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_1050',
+    'GGM_M3_mu_1900_1250': 'mc15_13TeV.373147.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_1250',
+    'GGM_M3_mu_1900_1450': 'mc15_13TeV.373148.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_1450',
+    'GGM_M3_mu_1900_1650': 'mc15_13TeV.373149.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_1650',
+    'GGM_M3_mu_1900_1850': 'mc15_13TeV.373150.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1900_1850',
+    'GGM_M3_mu_2000_150': 'mc15_13TeV.373151.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_150',
+    'GGM_M3_mu_2000_200': 'mc15_13TeV.373152.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_200',
+    'GGM_M3_mu_2000_250': 'mc15_13TeV.373153.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_250',
+    'GGM_M3_mu_2000_450': 'mc15_13TeV.373154.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_450',
+    'GGM_M3_mu_2000_650': 'mc15_13TeV.373155.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_650',
+    'GGM_M3_mu_2000_850': 'mc15_13TeV.373156.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_850',
+    'GGM_M3_mu_2000_1050': 'mc15_13TeV.373157.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_1050',
+    'GGM_M3_mu_2000_1250': 'mc15_13TeV.373158.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_1250',
+    'GGM_M3_mu_2000_1450': 'mc15_13TeV.373159.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_1450',
+    'GGM_M3_mu_2000_1650': 'mc15_13TeV.373160.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_1650',
+    'GGM_M3_mu_2000_1850': 'mc15_13TeV.373161.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_1850',
 
+    # diphoton backgrounds
     'diphoton': 'mc15_13TeV.407013.Sherpa_CT10_2DP50_DirectPhotonFilter',
 
     'vgammagamma': [
         'mc15_13TeV.407022.Sherpa_CT10_enugammagammaPt50GeV',
         'mc15_13TeV.407023.Sherpa_CT10_munugammagammaPt50GeV',
-        #'mc15_13TeV.407024.Sherpa_CT10_taunugammagammaPt50GeV',
+        'mc15_13TeV.407024.Sherpa_CT10_taunugammagammaPt50GeV',
         'mc15_13TeV.407025.Sherpa_CT10_ZeegammagammaPt50GeV',
         'mc15_13TeV.407026.Sherpa_CT10_ZmumugammagammaPt50GeV',
         'mc15_13TeV.407027.Sherpa_CT10_ZtautaugammagammaPt50GeV',
         'mc15_13TeV.407028.Sherpa_CT10_ZnunugammagammaPt50GeV',
         ],
+
+    # V(qq) + gamma
+    'vqqgamma': [
+        'mc15_13TeV.305435.Sherpa_CT10_WqqGammaPt140_280',
+        'mc15_13TeV.305436.Sherpa_CT10_WqqGammaPt280_500',
+        'mc15_13TeV.305437.Sherpa_CT10_WqqGammaPt500_1000',
+        'mc15_13TeV.305438.Sherpa_CT10_WqqGammaPt1000_2000',
+        'mc15_13TeV.305439.Sherpa_CT10_WqqGammaPt2000_inf',
+        'mc15_13TeV.305440.Sherpa_CT10_ZqqGammaPt140_280',
+        'mc15_13TeV.305441.Sherpa_CT10_ZqqGammaPt280_500',
+        'mc15_13TeV.305442.Sherpa_CT10_ZqqGammaPt500_1000',
+        'mc15_13TeV.305443.Sherpa_CT10_ZqqGammaPt1000_2000',
+        'mc15_13TeV.305444.Sherpa_CT10_ZqqGammaPt2000_inf',
+        ],
+
+    # single-t
+    'singlet': [
+        'mc15_13TeV.410011.PowhegPythiaEvtGen_P2012_singletop_tchan_lept_top',
+        'mc15_13TeV.410012.PowhegPythiaEvtGen_P2012_singletop_tchan_lept_antitop',
+        'mc15_13TeV.410013.PowhegPythiaEvtGen_P2012_Wt_inclusive_top',
+        'mc15_13TeV.410014.PowhegPythiaEvtGen_P2012_Wt_inclusive_antitop',
+        'mc15_13TeV.410025.PowhegPythiaEvtGen_P2012_SingleTopSchan_noAllHad_top',
+        'mc15_13TeV.410026.PowhegPythiaEvtGen_P2012_SingleTopSchan_noAllHad_antitop',
+        'mc15_13TeV.410084.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma80_noallhad',
+        ]
 
     }
 

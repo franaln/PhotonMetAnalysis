@@ -371,7 +371,7 @@ void loop(TString input_path, TString output_path)
     
 
     // fill
-    if (*ph_n == 1 and (*ph_pt)[0] > 145)
+    if (*ph_n > 0 and (*ph_pt)[0] > 145)
       continue;
     
     new_el_n = *el_n;

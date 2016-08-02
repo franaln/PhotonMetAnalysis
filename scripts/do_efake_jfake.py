@@ -1,36 +1,50 @@
 #! /usr/bin/env python
 
 import os
+import sys
+import glob
+import argparse
 
-from samples import samples_dict
+parser = argparse.ArgumentParser(description='do_efake_jfake')
 
-ptag = '2667'
-version = '34'
+parser.add_argument('-v', dest='version', required=True, help='Mini version')
+parser.add_argument('-d', dest='dids', help='Specific run (comma separated)')
+
+args = parser.parse_args()
 
 mini_dir  = '/raid/falonso/mini2/'
 
-data15 = samples_dict.get('data15')
-data16 = samples_dict.get('data16')
+data15 = glob.glob(mini_dir+'v%s/data15_13TeV.*' % args.version) 
+data16 = glob.glob(mini_dir+'v%s/data16_13TeV.*' % args.version) 
 
-for s in data15 + data16:
+all_data = data15 + data16
 
-    short_name = '.'.join(s.split('.')[0:3])
+if args.dids is not None:
+
+    dids = args.dids.split(',')
     
-    input_path = mini_dir + 'v' + version + '/' + '%s.mini.p%s.v%s_output.root' % (short_name, ptag, version)
+    only_data = []
+    for s in all_data:
+        for did in dids:
+            if did in s:
+                only_data.append(s)
 
-    output_path_efake = input_path.replace('data15_13TeV', 'efake15').replace('data16_13TeV', 'efake16')
-    output_path_jfake = input_path.replace('data15_13TeV', 'jfake15').replace('data16_13TeV', 'jfake16')
+    all_data = only_data
+
+
+for s in sorted(all_data):
+
+    print 'Processing', s
+
+    output_path_efake = s.replace('data15_13TeV', 'efake15').replace('data16_13TeV', 'efake16')
+    output_path_jfake = s.replace('data15_13TeV', 'jfake15').replace('data16_13TeV', 'jfake16')
 
     # efake
-    cmd = '$SUSY_ANALYSIS/macros/create_efake_mini %s %s' % (input_path, output_path_efake)
-
-    print cmd
+    cmd = 'create_efake_mini %s %s' % (s, output_path_efake)
     os.system(cmd)
 
     # jfake
-    cmd = '$SUSY_ANALYSIS/macros/create_jfake_mini %s %s' % (input_path, output_path_jfake)
-
-    print cmd
+    cmd = 'create_jfake_mini %s %s' % (s, output_path_jfake)
     os.system(cmd)
 
 

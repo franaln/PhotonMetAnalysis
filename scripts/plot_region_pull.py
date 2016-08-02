@@ -19,6 +19,8 @@ from style import colors_dict, labels_dict
 from drawlib import calc_poisson_cl_upper, calc_poisson_cl_lower
 import subprocess
 
+from yieldstable import latexfitresults
+
 import style
 
 parser = argparse.ArgumentParser(description='plot regions pull')
@@ -28,6 +30,7 @@ parser.add_argument('-o', dest='output_dir', default='.', help='Output dir')
 parser.add_argument('-n', dest='region', help='L or H')
 parser.add_argument('--data', default='data', help='data15|data16|data')
 parser.add_argument('--unblind', action='store_true', help='Unblind! (use with caution)')
+parser.add_argument('--publish', action='store_true', help='')
 
 args = parser.parse_args()
 
@@ -54,7 +57,7 @@ regions = [
     'VRL3',
     'VRL4',
     
-    'SR',
+    #    'SR',
     'SRincl',
     ]
 
@@ -94,7 +97,7 @@ def get_region_color(region):
     # else:
     #     return get_color('#0086ef')
 
-    return get_color('#999994')
+    return get_color('#80807a')
 
     return 1
 
@@ -107,29 +110,17 @@ def get_poisson_error(obs):
 
 def MakeBox(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
 
-    graph = ROOT.TGraph(4)
-
-    if horizontal:
-
-        if pull > 0:
-            miny = -0.02
-        else:
-            miny = 0.02
-
-        graph.SetPoint(0, 0.1+offset, miny)
-        graph.SetPoint(1, 0.1+offset, pull)
-        graph.SetPoint(2, 0.9+offset, pull)
-        graph.SetPoint(3, 0.9+offset, miny)
+    if pull > 0.:
+        miny = -0.02
     else:
-        graph.SetPoint(0,0,0.3+offset)
-        graph.SetPoint(1,pull,0.3+offset)
-        graph.SetPoint(2,pull,0.7+offset)
-        graph.SetPoint(3,0,0.7+offset)
+        miny = 0.02
+            
+    box = ROOT.TBox(0.1+offset, miny, 0.9+offset, pull)
 
-    graph.SetFillColor(color)
-    graph.SetLineColor(color)
+    box.SetFillColor(color)
+    box.SetLineColor(color)
 
-    return graph
+    return box
 
 
 def GetFrame(prefix, npar, horizontal=False):
@@ -145,7 +136,7 @@ def GetFrame(prefix, npar, horizontal=False):
         frame.GetXaxis().SetLabelSize(0.12)
         frame.GetYaxis().SetLabelSize(0.12)
         frame.GetYaxis().SetNdivisions(4)
-        frame.SetYTitle("(n_{obs} - n_{exp}) / #sigma_{tot}")
+        frame.SetYTitle("(n_{#lower[-0.3]{obs}} - n_{exp}) / #sigma_{tot}")
     else:
         frame = ROOT.TH2F("frame"+prefix, prefix, 1, -3.5, 3.5, npar, -offset, npar+offset)
 
@@ -201,11 +192,11 @@ def GetBoxes(allp, regions_pull, frame, horizontal=False):
 
         color = get_region_color(name)
 
-        graph = MakeBox(offset=counter, pull=pull, color=color, horizontal=horizontal)
-        graph.Draw("LF")
+        box = MakeBox(offset=counter, pull=pull, color=color, horizontal=horizontal)
+        box.Draw()
 
         counter += 1
-        allp.append(graph)
+        allp.append(box) 
 
     return
 
@@ -241,7 +232,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
             if info[0] == region:
                 break
 
-        name = region.replace(" ","").replace('SRincl', 'SR^{incl}')
+        name = region.replace(" ","").replace('SRincl', 'SR') #^{incl}')
 
         n_obs = info[1]
         n_exp = info[2]
@@ -335,7 +326,6 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
         graph_data.SetPointError(counter, x_el, x_eu, y_el, y_eu)
 
-
         hbkg.SetBinContent(counter+1, n_exp)
         hbkg.SetBinError(counter+1, exp_total)
 
@@ -404,6 +394,9 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] 
 
+    if 'vqqgamma' in merged_bkgs:
+        merged_bkgs['vgamma'] += to_merge['vqqgamma']
+
     merged_bkgs['diphoton'] = to_merge['diphoton'] + to_merge['vgammagamma']
 
     for sam, h in merged_bkgs.iteritems():
@@ -416,9 +409,6 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     for hist in sorted(merged_bkgs.itervalues(), _compare):
         stack.Add(hist)
-
-    # for hist in merged_bkgs.itervalues():
-    #     stack.Add(hist)
 
     # Total background
     sm_total_style = 3354
@@ -457,7 +447,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     elif args.data == 'data16':
         legend1.AddEntry(graph_data, 'Data 2016', 'pl')
     else:
-        legend1.AddEntry(graph_data, 'Data 2015+2016', 'pl')
+        legend1.AddEntry(graph_data, 'Data', 'pl')
 
     set_style(graph_data, msize=1, lwidth=2, color=ROOT.kBlack)
     set_style(hdata, msize=1, lwidth=2, color=ROOT.kBlack)
@@ -488,8 +478,11 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     t.SetTextFont(42)
     t.SetTextSize(0.05)
     t.SetTextColor(ROOT.kBlack)
-    t.DrawLatex(0.15, 0.75, text)
-    t.DrawLatex(0.15, 0.66, region_name.replace('L', '{L}').replace('H', '{H}'))
+
+    if args.publish:
+        t.DrawLatex(0.15, 0.80, style.atlas_label)
+    t.DrawLatex(0.15, 0.73, text)
+    t.DrawLatex(0.15, 0.64, region_name.replace('L', '{L}').replace('H', '{H}'))
 
     legend1.Draw()
 
@@ -531,6 +524,7 @@ except IOError:
     print "Cannot open pickle %s, continuing to next" % pickleFilename
 
 mydict = pickle.load(picklefile)
+#mydict = latexfitresults(workspace, ','.join(regions), samples)
 
 results = []
 
@@ -550,8 +544,11 @@ for region in mydict["names"]:
 
     n_exp_components = []
     for sam in samples.split(","):
-        n_exp_components.append((sam, mydict["Fitted_events_"+sam][index]))
-        
+        if "Fitted_events_"+sam in mydict:
+            n_exp_components.append((sam, mydict["Fitted_events_"+sam][index]))
+        else:
+            n_exp_components.append((sam, 0.))
+
     results.append((region, n_obs, n_exp, exp_syst, n_exp_components))
 
 

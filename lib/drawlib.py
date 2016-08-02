@@ -57,8 +57,8 @@ def make_poisson_cl_errors(hist):
             y_val.append(binEntries)
             y_errU.append(binErrUp)
             y_errL.append(binErrLow)
-            x_errU.append(0.) #hist.GetXaxis().GetBinWidth( b )/2.0  )
-            x_errL.append(0.) #hist.GetXaxis().GetBinWidth( b )/2.0  ) 
+            x_errU.append(hist.GetXaxis().GetBinWidth(b)/2.)
+            x_errL.append(hist.GetXaxis().GetBinWidth(b)/2.) 
 
     if len(x_val) > 0:
         data_graph = ROOT.TGraphAsymmErrors(len(x_val), x_val, y_val, x_errL, x_errU, y_errL, y_errU)
@@ -76,7 +76,9 @@ def do_plot(plotname,
             ratio_type='', 
             normalize=False,
             do_fit=False,
-            logy=True):
+            logy=True,
+            publish=False,
+            ):
 
     if data is None:
         data = {}
@@ -85,7 +87,11 @@ def do_plot(plotname,
     if bkg is None:
         bkg = {}
 
-    
+
+    labels_dict = style.labels_dict
+    atlas_label = style.atlas_label
+    data_label  = style.data_label
+
     if variable not in style.plots_conf:
         vartmp = variable[:variable.find('[')]
         conf = style.plots_conf.get(vartmp, style.plots_conf['default'])
@@ -113,14 +119,14 @@ def do_plot(plotname,
         cdown = ROOT.TPad("d", "d", 0., 0.01, 0.99, 0.295)
         cup.SetRightMargin(0.05)
         cup.SetBottomMargin(0.005)
-
+        cup.SetLeftMargin(cup.GetLeftMargin()*0.9)
         cup.SetTickx()
         cup.SetTicky()
         cdown.SetTickx()
         cdown.SetTicky()
         cdown.SetRightMargin(0.05)
-        cdown.SetBottomMargin(0.3)
         cdown.SetTopMargin(0.0054)
+        cdown.SetLeftMargin(cdown.GetLeftMargin()*0.9)
         cdown.SetFillColor(ROOT.kWhite)
         cup.Draw()
         cdown.Draw()
@@ -129,7 +135,7 @@ def do_plot(plotname,
             cup.SetLogy()
 
         cup.SetTopMargin(0.08)
-        cdown.SetBottomMargin(0.4)
+        cdown.SetBottomMargin(0.3)
 
         up_size = calc_size(cup)
         dn_size = calc_size(cdown)
@@ -169,9 +175,6 @@ def do_plot(plotname,
         for hist in sorted(bkg.itervalues(), _compare):
             sm_stack.Add(hist)
 
-        # for hist in bkg.itervalues():
-        #     sm_stack.Add(hist)
-
         # Total background
         sm_total = None
         sm_totalerr = None
@@ -181,11 +184,6 @@ def do_plot(plotname,
         sm_stat_color = ROOT.kGray+1
         sm_syst_color = ROOT.kGray+3
 
-        # for h in bkg.itervalues():
-        #     if sm_total is None:
-        #         sm_total = histogram_equal_to(h)
-        #     sm_total += h
-
         sm_total = None
         for h in bkg.itervalues():
             if sm_total is None:
@@ -193,21 +191,6 @@ def do_plot(plotname,
             sm_total += h
 
         sm_total_stat = sm_total.Clone()
-        #sm_total_all  = sm_total.Clone()
-
-        # for b in xrange(sm_total_all.GetNbinsX()):
-    
-        #     mean = sm_total_all.GetBinContent(b+1)
-
-        #     if mean < 0.000000001:
-        #         continue
-
-        #     stat = sm_total_all.GetBinError(b+1) / mean
-        #     syst = systematics[region_name]
-
-        #     err = math.sqrt(stat*stat + syst*syst)
-
-        #     self.sm_total_all.SetBinError(b+1, err*mean)
 
         if sm_total is not None:
             sm_total.SetLineWidth(2)
@@ -220,12 +203,6 @@ def do_plot(plotname,
             sm_total_stat.SetFillStyle(sm_total_style)
             sm_total_stat.SetLineWidth(2)
             sm_total_stat.SetMarkerSize(0)
-            
-            # sm_total_all.SetFillColor(sm_syst_color)
-            # sm_total_all.SetLineColor(sm_syst_color)
-            # sm_total_all.SetFillStyle(sm_total_style)
-            # sm_total_all.SetLineWidth(2)
-            # sm_total_all.SetMarkerSize(0)
             
 
     # add entries to legend
@@ -251,19 +228,23 @@ def do_plot(plotname,
             legxmax = 0.92
 
     legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
+    legend1.SetTextFont(42)
+    legend1.SetTextSize(legend1.GetTextSize()*0.8)
     if signal:
-        legend2 = legend(legxmin, legymin-.15, legxmax-0.035, legymin -.01)
+        legend2 = legend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
+        legend2.SetTextFont(42)
+
 
     if bkg:
         for name, hist in bkg.iteritems():
-            legend1.AddEntry(hist, style.labels_dict[name], 'f')
+            legend1.AddEntry(hist, labels_dict[name], 'f')
 
         if do_bkg_total and sm_total is not None:
             legend1.AddEntry(sm_total_stat, "SM Total", 'f')
         #legend1.AddEntry(sm_total_all, "stat #oplus syst", 'f')
     
     if data:
-        legend1.AddEntry(data, style.labels_dict['data'], 'pl')
+        legend1.AddEntry(data, labels_dict['data'], 'pl')
 
     # we don't want to plot signals in Control Regions
     if 'CR' in region_name:
@@ -271,7 +252,7 @@ def do_plot(plotname,
 
     if signal:
         for name, hist in signal.iteritems():
-            legend2.AddEntry(hist, style.labels_dict[name], 'f')
+            legend2.AddEntry(hist, labels_dict[name], 'f')
 
     if do_ratio:
         cup.cd()
@@ -300,17 +281,20 @@ def do_plot(plotname,
     else:
         can.RedrawAxis()
 
-    # if chist.GetMaximum() < 10:
-    #     chist.SetMinimum(0.01)
-    # else:
     if logy and conf.logy:
         chist.SetMinimum(0.01)
 
     if logy and conf.logy:
-        if 'dphi' in variable or '_phi' in variable or '_eta' or variable:
+        if 'dphi' in variable: ## or 'phi' in variable or 'eta' or variable:
             chist.SetMaximum(chist.GetMaximum()*100000)
         else:
-            chist.SetMaximum(chist.GetMaximum()*500)
+
+            ymax = chist.GetMaximum()
+            for hist in signal.itervalues():
+                if hist.GetMaximum() < ymax:
+                    ymax = hist.GetMaximum()
+
+            chist.SetMaximum(ymax*1000)
     else:
         chist.SetMaximum(chist.GetMaximum()*2)
 
@@ -318,8 +302,12 @@ def do_plot(plotname,
     chist.GetXaxis().SetTitleOffset(1.4)
     chist.GetXaxis().SetLabelSize(0.)
 
-    chist.GetXaxis().SetLabelSize(up_size)
-    chist.GetXaxis().SetTitleSize(up_size)
+    if do_ratio:
+        chist.GetXaxis().SetLabelSize(0.)
+        chist.GetXaxis().SetTitleSize(0.)
+    else:
+        chist.GetXaxis().SetLabelSize(up_size)
+        chist.GetXaxis().SetTitleSize(up_size)
     chist.GetYaxis().SetLabelSize(up_size)
     chist.GetYaxis().SetTitleSize(up_size)
  
@@ -335,15 +323,12 @@ def do_plot(plotname,
             ytitle = ytitle.replace('BIN', '{:.2f}'.format(width))
 
     chist.GetYaxis().SetTitle(ytitle)
-    chist.GetYaxis().SetTitleOffset(1.2)
+    chist.GetYaxis().SetTitleOffset(1.1)
 
     if data:
         data_graph = make_poisson_cl_errors(data)
-
         set_style(data_graph, msize=1, lwidth=2, color=ROOT.kBlack)
-
         data_graph.Draw('P0Z')
-        #data.Draw("P same")
 
     if bkg and sm_total is not None:
         sm_total.Draw("histsame")
@@ -354,38 +339,6 @@ def do_plot(plotname,
 
     if data:
         data_graph.Draw('P0Z') 
-        #data.Draw("Psame")
-
-    model = None
-    if do_fit and data:
-
-        model = ROOT.TF1('model', '[0]*(1-x/13000.)**[1]/(x/13000.)**([2]+[3]*log(x/13000.))', 1300, 6000)
-        #model.SetParameters(3, 7, 8.5, 1.6)
-        model.SetParameters(0.1, 8.5, 5.5, 0.9)
-
-        fit_result = data.Fit('model', 'V0L', '', 1300, 5000)
-
-        #fitResult = dataH.Fit(fitfun,"RQ","",minRange, maxRange)
-        if int(fit_result) == -1:
-            print "Fit failed for", uniqueName
-        else:
-            # model.SetLineColor(ROOT.kBlue)
-            # model.SetLineWidth(3)
-            # extraFit = model.Clone('model_extrapolated')
-            # extraFit.SetRange(fitfun.GetXmax(), dataHist.GetXaxis().GetXmax())
-            # extraFit.SetLineColor(kGray+2)
-            # extraFit.SetLineWidth(2)
-            # extraFit.SetLineStyle(2)
-
-            model.SetRange(1300, 6000)
-            model.SetLineColor(get_color('#3253bf')) ##ROOT.kGray+2)
-            model.SetLineWidth(2)
-            model.SetLineStyle(2)
-
-            model.Draw('same')
-            data_graph.Draw('pz0')
-            
-            legend1.AddEntry(model, 'Fit', 'L')
 
     if do_ratio:
         cup.RedrawAxis()
@@ -396,71 +349,57 @@ def do_plot(plotname,
     if signal:
         legend2.Draw()
 
-    # ATLAS label
-    # if data:
-    #     l = ROOT.TLatex(0,0,'ATLAS')
-    #     l.SetNDC()
-    #     l.SetTextFont(72)
-    #     l.SetTextSize(0.05)
-    #     l.SetTextColor(ROOT.kBlack)
-    #     p = ROOT.TLatex(0,0, 'Internal')
-    #     p.SetNDC()
-    #     p.SetTextFont(42)
-    #     p.SetTextColor(ROOT.kBlack)
-    #     p.SetTextSize(0.05)
-    #     delx = 0.085*696*ROOT.gPad.GetWh()/(472*ROOT.gPad.GetWw())
-    #     if not do_ratio:
-    #         delx += 0.05
-    #     if legpos == 'right':
-    #         axmin = 0.20 ; aymin = 0.83
-    #         if not do_ratio:
-    #             aymin = 0.88
-    #     else:
-    #         axmin = 0.60 ; aymin = 0.83
-
-    #     l.DrawLatex(axmin, aymin, "ATLAS")
-    #     p.DrawLatex(axmin+delx, aymin, 'Internal')
-
-    # luminosity
+    # ATLAS/data labels
     if data:
         text = style.data_label
         t = ROOT.TLatex(0, 0, text)
         t.SetNDC()
         t.SetTextFont(42)
-        t.SetTextSize(0.04)
+        t.SetTextSize(0.045)
         t.SetTextColor(ROOT.kBlack)
+
         if legpos == 'right':
-            if do_ratio:
-                t.DrawLatex(0.20, 0.82, text)
-            else:
-                t.DrawLatex(0.20, 0.78, text)
+            if publish:
+                t.DrawLatex(0.19, 0.84, atlas_label)
+            t.DrawLatex(0.19, 0.75, data_label)
         else:
-            t.DrawLatex(0.60, 0.73, text)
+            if publish:
+                t.DrawLatex(0.60, 0.84, atlas_label)
+            t.DrawLatex(0.60, 0.75, data_label)
 
-      
-    # # text = 'Selection: '
-    # li = ROOT.TLine()
-    # li.SetLineStyle(2)
-    # li.SetLineWidth(2)
-    # li.SetLineColor(ROOT.kBlack)
+    if 'SR' in region_name:
+        
+        li = ROOT.TLine()
+        li.SetLineStyle(2)
+        li.SetLineWidth(2)
+        li.SetLineColor(ROOT.kBlack)
 
-    # ar = ROOT.TArrow(0, 0, 0, 0, 0.008, "|>")
-    # ar.SetLineWidth(2)
-    # ar.SetLineColor(ROOT.kBlack)
+        ar = ROOT.TArrow(0, 0, 0, 0, 0.008, "|>")
+        ar.SetLineWidth(2)
+        ar.SetLineColor(ROOT.kBlack)
 
-    # rl = ROOT.TLatex()
-    # rl.SetTextSize(0.035)
-    # rl.SetTextColor(ROOT.kBlack)
+        rl = ROOT.TLatex()
+        rl.SetTextSize(0.038)
+        rl.SetTextColor(ROOT.kBlack)
 
-    # # if variable == 'met_et' and region_name == 'SR_L':
-    # #     li.DrawLine(50, 0, 50, 4000)
-    # #     li.DrawLine(200, 0, 200, 4000)
+        if variable == 'met_et' and region_name.endswith('L'):
+            li.DrawLine(200, 0, 200, 50)
+            ar.DrawArrow(200, 10, 225, 10)
+            rl.DrawLatex(240, 9, 'SR_{L}')
+        elif variable == 'met_et' and region_name.endswith('H'):
+            li.DrawLine(400, 0, 400, 100)
+            ar.DrawArrow(400, 4, 425, 4)
+            rl.DrawLatex(435, 3.5, 'SR_{H}')
+        
+        if variable == 'meff' and region_name.endswith('L'):
+            li.DrawLine(2000, 0, 2000, 70)
+            ar.DrawArrow(2000, 10, 2150, 10)
+            rl.DrawLatex(2080, 17, 'SR_{L}')
+        elif variable == 'meff' and region_name.endswith('H'):
+            li.DrawLine(2000, 0, 2000, 70)
+            ar.DrawArrow(2000, 6, 2075, 6)
+            rl.DrawLatex(2100, 5.5, 'SR_{H}')
 
-    # #     ar.DrawArrow(50, 2500, 25, 2500)
-    # #     ar.DrawArrow(200, 10, 225, 10)
-
-    # #     rl.DrawLatex(25, 1000, 'CR_{QCD,L}')
-    # #     rl.DrawLatex(210, 20, 'SR_{L}')
     # # else:
     # if '_L' in region_name:
     #     text = region_name.replace('_L', '_{L}')
@@ -544,17 +483,11 @@ def do_plot(plotname,
         xmax     = ratio.GetXaxis().GetBinUpEdge(lastbin)
         xmin     = ratio.GetXaxis().GetBinLowEdge(firstbin)
 
-        lines = [None, None, None] ## for i in range(9)]
+        lines = [None, None, None]
 
         lines[0] = ROOT.TLine(xmin,  0., xmax,  0.)
         lines[1] = ROOT.TLine(xmin, -3., xmax, -3.)
         lines[2] = ROOT.TLine(xmin,  3., xmax,  3.)
-        # lines[3] = ROOT.TLine(xmin, -2., xmax, -2.)
-        # lines[4] = ROOT.TLine(xmin, -1., xmax, -1.)
-        # lines[5] = ROOT.TLine(xmin,  1., xmax,  1.)
-        # lines[6] = ROOT.TLine(xmin,  2., xmax,  2.)
-        # lines[7] = ROOT.TLine(xmin,  3., xmax,  3.)
-        # lines[8] = ROOT.TLine(xmin,  4., xmax,  4.)
 
         lines[0].SetLineWidth(1)
         lines[0].SetLineStyle(2)
@@ -568,8 +501,7 @@ def do_plot(plotname,
 
         ratio.GetYaxis().SetLabelSize(0.)
 
-        x = xmin - ratio.GetBinWidth(1) #ROOT.gPad.GetUxmin()
-
+        x = xmin - ratio.GetBinWidth(1) 
         t = ROOT.TLatex()
         t.SetTextSize(0.12)
         t.SetTextAlign(32)
@@ -584,17 +516,40 @@ def do_plot(plotname,
 
     elif do_ratio and data and bkg:
 
-        ratio = data.Clone()
-        ratio.Divide(sm_total)
+        ratio = data_graph.Clone()
+        for b in xrange(ratio.GetN()):
+            x = ROOT.Double(0.)
+            y = ROOT.Double(0.)
+            ratio.GetPoint(b, x, y)
+
+            sm_y = sm_total.GetBinContent(sm_total.FindBin(x))
+
+            exl = ratio.GetErrorXlow(b)
+            exh = ratio.GetErrorXhigh(b)
+
+            eyl = ratio.GetErrorYlow(b)
+            eyh = ratio.GetErrorYhigh(b)
+            
+            ratio_y   = y/sm_y
+            ratio_eyl = eyl/sm_y
+            ratio_eyh = eyh/sm_y
+
+            ratio.SetPoint(b, x, ratio_y)
+            ratio.SetPointError(b, exl, exh, ratio_eyl, ratio_eyh)
+
 
         # remove the point from the plot if zero
-        for b in xrange(ratio.GetNbinsX()):
-            if ratio.GetBinContent(b+1) < 0.00001:
-                ratio.SetBinContent(b+1, -1)
+        # for b in xrange(ratio.GetNbinsX()):
+        #     if ratio.GetBinContent(b+1) < 0.00001:
+        #         ratio.SetBinContent(b+1, -1)
+
+        #ratio = make_poisson_cl_errors(ratio)
+        set_style(ratio, msize=1, lwidth=2, color=ROOT.kBlack)
 
         cdown.cd()
+        frame = cdown.DrawFrame(chist.GetXaxis().GetXmin(), 0., chist.GetXaxis().GetXmax(), 2.2)
+
         ratio.SetTitle('')
-        ratio.SetStats(0)
         ratio.SetMarkerStyle(20)
         ratio.SetMarkerSize(1)
         ratio.SetLineWidth(2)
@@ -602,33 +557,31 @@ def do_plot(plotname,
         ratio.SetMarkerColor(ROOT.kBlack)
 
         # x axis
-        ratio.GetXaxis().SetTitle(xtitle)
-        if conf.xmin is not None and conf.xmax is not None:
-            ratio.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
-        ratio.GetXaxis().SetLabelSize(ratio_xlabel_size)
-        ratio.GetXaxis().SetTitleSize(ratio_xtitle_size)
-        ratio.GetXaxis().SetTitleOffset(1.)
-        ratio.GetXaxis().SetLabelOffset(0.03)
-        ratio.GetXaxis().SetTickLength(0.06)
+        frame.GetXaxis().SetTitle(xtitle)
+        frame.GetXaxis().SetLabelSize(ratio_xlabel_size)
+        frame.GetXaxis().SetTitleSize(ratio_xtitle_size)
+        frame.GetXaxis().SetTitleOffset(1.)
+        frame.GetXaxis().SetLabelOffset(0.03)
+        frame.GetXaxis().SetTickLength(0.06)
 
-        if ratio.GetXaxis().GetXmax() < 5.:
-            ratio.GetXaxis().SetNdivisions(512)
+        if frame.GetXaxis().GetXmax() < 5.:
+            frame.GetXaxis().SetNdivisions(512)
         else:
-            ratio.GetXaxis().SetNdivisions(508)
+            frame.GetXaxis().SetNdivisions(508)
 
         # y axis
-        ratio.GetYaxis().SetTitle('Data / SM')
-        ratio.GetYaxis().SetLabelSize(ratio_ylabel_size)
-        ratio.GetYaxis().SetTitleSize(ratio_ytitle_size)
-        ratio.GetYaxis().SetRangeUser(0, 2.2)
-        ratio.GetYaxis().SetNdivisions(504)
-        ratio.GetYaxis().SetTitleOffset(0.3)
-        ratio.GetYaxis().SetLabelOffset(0.01)
+        frame.GetYaxis().SetTitle('Data / SM')
+        frame.GetYaxis().CenterTitle()
+        frame.GetYaxis().SetLabelSize(ratio_ylabel_size)
+        frame.GetYaxis().SetTitleSize(ratio_ytitle_size)
+        frame.GetYaxis().SetRangeUser(0, 2.2)
+        frame.GetYaxis().SetNdivisions(504)
+        frame.GetYaxis().SetTitleOffset(0.35)
+        frame.GetYaxis().SetLabelOffset(0.01)
 
-        err_band_stat = ROOT.TGraphAsymmErrors(ratio.GetNbinsX())
-        # self.err_band_all  = ROOT.TGraphAsymmErrors(self.ratio.GetNbinsX())
+        err_band_stat = ROOT.TGraphAsymmErrors(sm_total.GetNbinsX())
 
-        for bin_ in xrange(ratio.GetNbinsX()):
+        for bin_ in xrange(sm_total.GetNbinsX()):
 
             x    = sm_total.GetBinCenter(bin_+1)
             xerr = sm_total.GetBinWidth(bin_+1)/2
@@ -638,28 +591,18 @@ def do_plot(plotname,
             sm_stat_high = sm_total_stat.GetBinError(bin_+1)
             sm_stat_low  = sm_total_stat.GetBinError(bin_+1)
 
-            #     sm_all_high = self.sm_total_all.GetBinError(bin_+1)
-            #     sm_all_low  = self.sm_total_all.GetBinError(bin_+1)
-
             try:
                 stat_low  = sm_stat_low/sm_y
-            #         all_low  = sm_all_low/sm_y
             except ZeroDivisionError:
                 stat_low = 0.0
-            #         all_low = 0.0
 
             try:
                 stat_high = sm_stat_high/sm_y
-            #         all_high = sm_all_high/sm_y
             except ZeroDivisionError:
                 stat_high = 0.0
-            #         all_high = 0.0
 
             err_band_stat.SetPoint(bin_, x, 1.)
             err_band_stat.SetPointError(bin_, xerr, xerr, stat_low, stat_high)
-
-            #     self.err_band_all.SetPoint(bin_, x, 1.)
-            #     self.err_band_all.SetPointError(bin_, xerr, xerr, all_low, all_high)
 
 
         err_band_stat.SetLineWidth(2)
@@ -668,31 +611,27 @@ def do_plot(plotname,
         err_band_stat.SetLineColor(sm_total_color)
         err_band_stat.SetFillColor(sm_total_color)
 
-        # self.err_band_all.SetMarkerSize(0)
-        # self.err_band_all.SetFillStyle(self.sm_total_style)
-        # self.err_band_all.SetLineColor(self.sm_syst_color)
-        # self.err_band_all.SetFillColor(self.sm_syst_color)
-        # self.err_band_all.SetLineWidth(2)
-
-        ratio.Draw()
-        # self.err_band_all.Draw('P2same')
+        # ratio.Draw('P0Z')
         err_band_stat.Draw('P2same')
-        ratio.Draw('same e0')
+        ratio.Draw('P0Z')
 
-        firstbin = ratio.GetXaxis().GetFirst()
-        lastbin  = ratio.GetXaxis().GetLast()
-        xmax     = ratio.GetXaxis().GetBinUpEdge(lastbin)
-        xmin     = ratio.GetXaxis().GetBinLowEdge(firstbin)
+        firstbin = frame.GetXaxis().GetFirst()
+        lastbin  = frame.GetXaxis().GetLast()
+        xmax     = frame.GetXaxis().GetBinUpEdge(lastbin)
+        xmin     = frame.GetXaxis().GetBinLowEdge(firstbin)
 
-        lines = [None, None, None,]
-        lines[0] = ROOT.TLine(xmin, 1., xmax, 1.)
-        lines[1] = ROOT.TLine(xmin, 0.5,xmax, 0.5)
-        lines[2] = ROOT.TLine(xmin, 1.5,xmax, 1.5)
+        lines = [
+            ROOT.TLine(xmin, 1., xmax, 1.),
+            ROOT.TLine(xmin, 0.5,xmax, 0.5),
+            ROOT.TLine(xmin, 1.5,xmax, 1.5),
+            ROOT.TLine(xmin, 2.0,xmax, 2.0),
+            ]
 
         lines[0].SetLineWidth(1)
         lines[0].SetLineStyle(2)
         lines[1].SetLineStyle(3)
         lines[2].SetLineStyle(3)
+        lines[3].SetLineStyle(3)
 
         for line in lines:
             line.Draw()
@@ -732,8 +671,8 @@ def do_plot(plotname,
                 ratio_e[i].SetBinContent(bin_, eff)
 
         for i, name in enumerate(names):
-            set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=config_style.colors_dict[name])
-            set_style(ratio_e[i], msize=1.2, lwidth=2, lstyle=3, color=config_style.colors_dict[name])
+            set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=style.colors_dict[name])
+            set_style(ratio_e[i], msize=1.2, lwidth=2, lstyle=3, color=style.colors_dict[name])
 
 
         cdown.cd()
@@ -829,10 +768,16 @@ def do_plot(plotname,
         #     t.DrawLatex(x, y+0.5, '%s' % (i+1))
 
 
-    #can.Print(plotname+'.eps')
-    #cmd = 'eps2eps {plotname}.eps {plotname}_.eps && epstopdf {plotname}_.eps --outfile {plotname}.pdf && rm {plotname}.eps {plotname}_.eps'.format(plotname=plotname)
-    #os.system(cmd)
-    #print '==>', plotname+'.pdf'
+
+    # Save 
+    # if publish:
+    #     can.Print(plotname+'.tex')
+    #     can.Print(plotname+'.eps')
+    #     cmd = 'eps2eps {plotname}.eps {plotname}_.eps && epstopdf {plotname}_.eps --outfile {plotname}.pdf && rm {plotname}.eps {plotname}_.eps'.format(plotname=plotname)
+    #     os.system(cmd)
+    #     print '->', plotname+'.pdf'
+
+    # else:
     can.Print(plotname+'.pdf')
 
 
@@ -849,15 +794,15 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
 
     if '[' in varx:
         vartmp = varx[:varx.find('[')]
-        confx = config_style.plots_conf.get(vartmp)
+        confx = style.plots_conf.get(vartmp)
     else:
-        confx = config_style.plots_conf.get(varx)
+        confx = style.plots_conf.get(varx)
 
     if '[' in vary:
         vartmp = vary[:vary.find('[')]
-        confy = config_style.plots_conf.get(vartmp)
+        confy = style.plots_conf.get(vartmp)
     else:
-        confy = config_style.plots_conf.get(vary)
+        confy = style.plots_conf.get(vary)
 
     xtitle = confx[0]
     ytitle = confy[0]
@@ -940,11 +885,11 @@ def do_plot_cmp(plotname,
                 pass
 
 
-    if variable not in config_style.plots_conf:
+    if variable not in style.plots_conf:
         vartmp = variable[:variable.find('[')]
-        conf = config_style.plots_conf.get(vartmp, config_style.plots_conf['default'])
+        conf = style.plots_conf.get(vartmp, style.plots_conf['default'])
     else:
-        conf = config_style.plots_conf.get(variable, config_style.plots_conf['default'])
+        conf = style.plots_conf.get(variable, style.plots_conf['default'])
 
     xtitle, ytitle, legpos = conf.xtitle, conf.ytitle, conf.legpos
 
@@ -1039,7 +984,7 @@ def do_plot_cmp(plotname,
         legend1 = legend(legxmin, legymin, legxmax, legymax)
 
     for (name, hist) in histograms:
-        legend1.AddEntry(hist, config_style.labels_dict.get(name, name))
+        legend1.AddEntry(hist, style.labels_dict.get(name, name))
 
     if do_ratio:
         cup.cd()

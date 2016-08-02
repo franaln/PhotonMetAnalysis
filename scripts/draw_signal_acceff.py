@@ -11,21 +11,25 @@ from drawutils import draw_grid_frame
 from  regions import SR_L, SR_H, SRincl_L, SRincl_H
 from mass_dict import mass_dict
 
-
+import style
 
 gl_min = 1146
-gl_max = 2050
+gl_max = 2100
 n1_min = 147
-n1_max = 2050
+n1_max = 2100
 
 gl_bins = (gl_max - gl_min) / 25
 n1_bins = (n1_max - n1_min) / 25
 
-h_srl = ROOT.TH2F('h_srl', 'h_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
-h_srh = ROOT.TH2F('h_srh', 'h_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sel_srl = ROOT.TH2F('h_sel_srl', 'h_sel_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sel_srh = ROOT.TH2F('h_sel_srh', 'h_sel_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_srl     = ROOT.TH2F('h_srl', 'h_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_srh     = ROOT.TH2F('h_srh', 'h_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
 
-h_sril = ROOT.TH2F('h_sril', 'h_sril', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
-h_srih = ROOT.TH2F('h_srih', 'h_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sel_sril = ROOT.TH2F('h_sel_sril', 'h_sel_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sel_srih = ROOT.TH2F('h_sel_srih', 'h_sel_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sril     = ROOT.TH2F('h_sril', 'h_sril', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_srih     = ROOT.TH2F('h_srih', 'h_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
 
 h_srl.SetDirectory(0)
 h_srh.SetDirectory(0)
@@ -46,8 +50,22 @@ for (m3, mu) in sorted(mass_dict.iterkeys()):
 
     # total events
     ds = get_sample_datasets(name)[0]
-    
     total_events = get_sumw(ds)
+
+    if total_events == 0:
+        continue
+
+    srl_events_scaled = get_events(name, selection=SR_L, lumi='data').mean
+    srh_events_scaled = get_events(name, selection=SR_H, lumi='data').mean
+
+    sril_events_scaled = get_events(name, selection=SRincl_L, lumi='data').mean
+    srih_events_scaled = get_events(name, selection=SRincl_H, lumi='data').mean
+
+    h_sel_srl.Fill(mgl, mn1, round(srl_events_scaled, 2))
+    h_sel_srh.Fill(mgl, mn1, round(srh_events_scaled, 2))
+
+    h_sel_sril.Fill(mgl, mn1, round(sril_events_scaled, 2))
+    h_sel_srih.Fill(mgl, mn1, round(srih_events_scaled, 2))
 
     srl_events = get_events(name, selection=SR_L, scale=False).mean
     srh_events = get_events(name, selection=SR_H, scale=False).mean
@@ -55,9 +73,7 @@ for (m3, mu) in sorted(mass_dict.iterkeys()):
     sril_events = get_events(name, selection=SRincl_L, scale=False).mean
     srih_events = get_events(name, selection=SRincl_H, scale=False).mean
 
-    if total_events == 0:
-        continue
-
+    ## acc x eff
     srl_acceff = round(srl_events/total_events, 2)
     srh_acceff = round(srh_events/total_events, 2)
 
@@ -70,7 +86,6 @@ for (m3, mu) in sorted(mass_dict.iterkeys()):
     h_sril.Fill(mgl, mn1, sril_acceff)
     h_srih.Fill(mgl, mn1, srih_acceff)
 
-    # print mgl, mn1, total_events, srl_events, srh_events, sril_events, srih_events, srl_acceff, srh_acceff, sril_acceff, srih_acceff
 
 # plot
 set_atlas_style()
@@ -153,3 +168,41 @@ frame_srih.RedrawAxis()
 frame_srih.SaveAs('acc_times_eff_srih.pdf')
 
 
+# Expected events
+# SRIL
+frame_exp_sril = draw_grid_frame() 
+frame_exp_sril.SetRightMargin(0.15)
+
+h_sel_sril.SetContour(999)
+h_sel_sril.GetZaxis().SetRangeUser(0.5, 10)
+h_sel_sril.SetMarkerStyle(21)
+h_sel_sril.SetMarkerSize(0.8)
+h_sel_sril.Draw('text same')
+
+l = ROOT.TLatex()
+l.SetNDC()
+l.SetTextSize(0.035)
+l.DrawLatex(0.17, 0.85, 'Expected events '+style.data_label)
+l.DrawLatex(0.17, 0.78, 'SR^{incl}_{L}')
+
+frame_exp_sril.RedrawAxis()
+frame_exp_sril.SaveAs('exp_events_sril.pdf')
+
+# SRIH
+frame_exp_srih = draw_grid_frame() 
+frame_exp_srih.SetRightMargin(0.15)
+
+h_sel_srih.SetContour(999)
+h_sel_srih.GetZaxis().SetRangeUser(0, 10)
+h_sel_srih.SetMarkerStyle(21)
+h_sel_srih.SetMarkerSize(0.8)
+h_sel_srih.Draw('text same')
+
+l = ROOT.TLatex()
+l.SetNDC()
+l.SetTextSize(0.035)
+l.DrawLatex(0.17, 0.85, 'Expected events '+style.data_label)
+l.DrawLatex(0.17, 0.78, 'SR^{incl}_{H}')
+
+frame_exp_srih.RedrawAxis()
+frame_exp_srih.SaveAs('exp_events_srih.pdf')

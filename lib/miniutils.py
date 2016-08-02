@@ -169,6 +169,7 @@ def get_lumi_weight(ds, lumi, fs=None):
 
     lumi = float(lumi)
 
+    weight = 0.
     if ds['project'] == 'mc15_13TeV':
 
         if 'GGM_mu' in ds['short_name'] and fs is not None:
@@ -187,9 +188,6 @@ def get_lumi_weight(ds, lumi, fs=None):
         except:
             weight = 0.
 
-    elif 'GGM' in ds['short_name']:
-
-        weight = (get_signal_xs(ds) * lumi) / 1000.
 
     return weight
 
@@ -308,7 +306,7 @@ def _get_histogram(ds, **kwargs):
 
     use_sfw     = kwargs.get('use_sfw', True)
     use_mcw     = kwargs.get('use_mcw', True)
-    use_puw     = kwargs.get('use_puw', False)
+    use_prw     = kwargs.get('use_prw', False)
 
     debug      = kwargs.get('debug', False)
 
@@ -346,7 +344,6 @@ def _get_histogram(ds, **kwargs):
     else:
         htemp  = ROOT.TH1D(hname, hname, *binning)
         htemp.Sumw2()
-
 
     #-----------
     # Selection
@@ -419,14 +416,20 @@ def _get_histogram(ds, **kwargs):
 
         # scale factors
         if use_sfw:
-            if syst != 'Nom' and systematics.affects_weight(syst):
+            if syst != 'Nom' and systematics.affects_weight(syst) and not 'PRW_DATASF' in syst:
                 w_str += '*weight_sf_%s' % syst 
             else:
                 w_str += '*weight_sf' 
 
         # pile-up
-        if use_puw:
-            w_str += '*weight_pu'
+        if use_prw:
+            if 'PRW_DATASF__1down' == syst:
+                w_str += '*weight_pu_down'
+            elif 'PRW_DATASF__1up' == syst:
+                w_str += '*weight_pu_up'
+            else:
+                w_str += '*weight_pu'
+
         
     if 'efake' in ds['name']:
         if syst == 'Nom':
@@ -598,21 +601,30 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False)
         if '.root' in sample:
             ds = [sample, ]
         else:
-            ds = get_datasets(sample)
+            ds = get_sample_datasets(sample)
 
         h_preselection = None
         for s in ds:
-            f = ROOT.TFile.Open(s)
-            htmp = f.Get('cutflow')
+            f = ROOT.TFile.Open(s['path'])
+            htmp = f.Get('cutflow_w')
 
             # Weight
-            if lumi is None or lumi == 'data':
-                lumi = lumi_data
+            if lumi is not None and not 'data' in lumi and float(lumi) < 100:
+                lumi = float(lumi) * 1000
+
+            if lumi == 'data15':
+                lumi = config_analysis.lumi_data15
+            elif lumi == 'data16':
+                lumi = config_analysis.lumi_data16
+            elif lumi == 'data':
+                lumi = config_analysis.lumi_data15 + config_analysis.lumi_data16
+        
+            if lumi is None:
+                lumi = 1000.
 
             if scale and 'data' not in sample:
-                lumi_weight = get_lumi_weight(sample, lumi)
+                lumi_weight = get_lumi_weight(s, lumi)
                 htmp.Scale(lumi_weight)
-
 
             if h_preselection is None:
                 h_preselection = htmp.Clone()

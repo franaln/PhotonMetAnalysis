@@ -170,9 +170,9 @@ def draw_grid_frame(xsize=800, ysize=600):
     ROOT.SetOwnership(canvas, False)
 
     glmin = 1146
-    glmax = 2050
+    glmax = 2100
     n1min = 147
-    n1max = 2050
+    n1max = 2100
 
     nx = (glmax - glmin) / 25
     ny = (n1max - n1min) / 25

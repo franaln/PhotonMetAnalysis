@@ -71,6 +71,7 @@ def sphistograms():
     parser.add_argument('--dosyst', action='store_true')
     parser.add_argument('--unblind', action='store_true')
     parser.add_argument('--version', help='Use this version')
+    parser.add_argument('--prw', action='store_true', help='Use pile-up reweighting')
 
     # scale to lumi?
     parser.add_argument('-i', '--input')
@@ -135,8 +136,7 @@ def sphistograms():
         histograms = HistManager(args.output)
 
         for key in keys:
-
-            if 'Unitary' in key:
+            if 'Unitary' in key or 'data' in key or 'efake' in key or 'jfake' in key:
                 continue
 
             hist1 = infile1.Get(key)
@@ -240,7 +240,7 @@ def sphistograms():
                 # nominal histogram
                 get_histogram = partial(miniutils.get_histogram, sample, variable=variable, 
                                         region=region_name, selection=selection, 
-                                        lumi=args.lumi, version=args.version, year=args.year)
+                                        lumi=args.lumi, version=args.version, year=args.year, use_prw=args.prw)
 
                 h_nom = get_histogram(syst='Nom')
 
@@ -251,9 +251,9 @@ def sphistograms():
                 # jet fakes in SR (from extrapolation)
                 if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
                     if region_type == 'L':
-                        h_nom.SetBinContent(1, 0.08)
+                        h_nom.SetBinContent(1, 0.04)
                     elif region_type == 'H':
-                        h_nom.SetBinContent(1, 0.0005)
+                        h_nom.SetBinContent(1, 0.0001)
 
                 histograms.add(h_nom)
 
@@ -322,11 +322,11 @@ def sphistograms():
                         # in SR (from extrapolation)
                         if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
                             if region_type == 'L':
-                                h_dn.SetBinContent(1, 0.06)
-                                h_up.SetBinContent(1, 0.11)
+                                h_dn.SetBinContent(1, 0.03)
+                                h_up.SetBinContent(1, 0.05)
                             elif region_type == 'H':
-                                h_dn.SetBinContent(1, 0.0003)
-                                h_up.SetBinContent(1, 0.0006)
+                                h_dn.SetBinContent(1, 0.0001)
+                                h_up.SetBinContent(1, 0.0001)
                             
                         histograms.add(h_dn)
                         histograms.add(h_up)

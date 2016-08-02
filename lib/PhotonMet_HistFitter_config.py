@@ -11,10 +11,10 @@ from configManager import configMgr
 from configWriter import fitConfig, Measurement, Channel, Sample
 from systematic import Systematic
 
-from style import colors_dict
+#from style import colors_dict
 
 def color(sample):
-    return ROOT.TColor.GetColor(colors_dict[sample])
+    return ROOT.kBlack #ROOT.TColor.GetColor(colors_dict[sample])
 
 def rmdir(dir_):
     try:
@@ -42,8 +42,9 @@ parser.add_argument("--rm", action='store_true')
 parser.add_argument("--asimov", action='store_true')
 parser.add_argument("--ntoys", type=int, default=5000)
 parser.add_argument("--npoints", type=int, default=1)
+parser.add_argument("--sigxs", action='store_true')
 
-userArg = [ i.replace('"', '') for i in configMgr.userArg.split()]
+userArg = [ i.replace('"', '') for i in configMgr.userArg.split() ]
 args = parser.parse_args(userArg)
 print "Parsed user args %s" % str(args)
 
@@ -57,11 +58,9 @@ data_name = args.data
 
 nom_name  = 'Nom'
 model_hypo_test = 'GGM'
-do_signal_theory_unc = False
+do_signal_theory_unc = args.sigxs
 variable = 'cuts'
-binning  = (1, 0.5, 1.5) ##get_binning(variable)
-
-region_str = "%s_%s" % (base_analysis, signal_region)
+binning  = (1, 0.5, 1.5) 
 
 configMgr.writeXML = False  #for debugging
 
@@ -73,14 +72,10 @@ configMgr.blindVR = False
 configMgr.useSignalInBlindedData = False
 
 #--- Parameters for hypothesis test
-configMgr.doExclusion = False
-
 configMgr.calculatorType = 2 if args.asimov else 0 # 0: toys, 2: asimov?
 configMgr.testStatType = 3
 configMgr.nPoints = args.npoints
 configMgr.nTOYs = args.ntoys
-
-muSigInitValue = [0.05, 0., 5.]
 
 
 #--------------------------------
@@ -115,14 +110,17 @@ if args.rm and configMgr.analysisName:
 
 
 ## Read the histograms already produced
-inputFileNames = [configMgr.histCacheFile,]
+inputFileNames = [configMgr.histCacheFile, ]
     
 ## Scaling calculated by outputLumi / inputLumi
-configMgr.inputLumi  = 3.2 # Luminosity of input TTree after weighting
-configMgr.outputLumi = 3.2 # Luminosity required for output histograms
+configMgr.inputLumi  = 13.3 # Luminosity of input TTree after weighting
+configMgr.outputLumi = 13.3 # Luminosity required for output histograms
 configMgr.setLumiUnits("fb-1")
 
 ## Regions
+sr_name = signal_region[:-1] # could be SR or SRincl
+sr_type = signal_region[-1].upper()
+
 regions = [
     'SR', 
     'SRincl',
@@ -130,7 +128,6 @@ regions = [
     'VRM1', 'VRM2', 'VRM3', 
     'VRD1', 'VRD2', 'VRD3',
     'VRL1', 'VRL2', 'VRL3', 'VRL4',
-    'VRM2incl', 'VRL2incl', 'VRL3incl',
   ]
 
 for r in regions:
@@ -144,7 +141,6 @@ for r in regions:
 # W/Z + jets
 wjets_sample = Sample('wjets', color("wjets"))
 zjets_sample = Sample('zjets', color("zjets"))
-#dibosonSample = Sample("diboson", colors_dict["diboson"])
 
 wjets_sample.setNormByTheory()
 zjets_sample.setNormByTheory()
@@ -152,9 +148,6 @@ zjets_sample.setNormByTheory()
 # ttbar
 ttbar_sample  = Sample('ttbar', color("ttbar"))
 ttbarg_sample = Sample('ttbarg', color("ttbarg"))
-#topSample     = Sample("Top", colors_dict["ttbar"]) 
-#topSample.setTreeName("ttbar")  ##change tree name for ttbar
-#topgSample       = Sample("topgamma", colors_dict["topgamma"])
 
 ttbar_sample.setNormByTheory()
 ttbarg_sample.setNormFactor("mu_t", 1., 0., 2.)   
@@ -163,19 +156,19 @@ ttbarg_sample.setNormFactor("mu_t", 1., 0., 2.)
 wgamma_sample     = Sample('wgamma', color("wgamma"))
 zllgamma_sample   = Sample('zllgamma', color("zllgamma"))
 znunugamma_sample = Sample('znunugamma', color("znunugamma"))
-#zllgamma_sample   = Sample('zgamma', color("zgamma"))
-#VqqgammaSample   = Sample("vqqgamma", colors_dict["vqqgamma"])
+#vqqgamma_sample   = Sample("vqqgamma", color('vqqgamma'))
 
 zllgamma_sample.setNormByTheory()
 znunugamma_sample.setNormByTheory()
 wgamma_sample.setNormFactor("mu_w", 1., 0., 2.)
 
-# QCD
+# Fake met
 photonjet_sample = Sample('photonjet', color("photonjet"))
-multijet_sample = Sample('multijet', color("multijet"))
+multijet_sample  = Sample('multijet', color("multijet"))
 
 multijet_sample.setNormByTheory()
 photonjet_sample.setNormFactor("mu_q", 1., 0., 2.)
+
 
 # Diphoton backgrounds
 diphoton_sample    = Sample('diphoton', color("diphoton"))
@@ -199,7 +192,6 @@ else: # should be 'data'
 data_sample = Sample(data_name, ROOT.kBlack)
 data_sample.setData()
 
-
 # stat uncertainty
 wjets_sample.setStatConfig(useStat)
 zjets_sample.setStatConfig(useStat)
@@ -212,6 +204,7 @@ photonjet_sample.setStatConfig(useStat)
 multijet_sample.setStatConfig(useStat)
 diphoton_sample.setStatConfig(useStat)
 vgammagamma_sample.setStatConfig(useStat)
+#vqqgamma_sample.setStatConfig(useStat)
 
 if use_mc_bkgs:
     bkg_samples = [
@@ -236,6 +229,7 @@ else:
         jfake_sample,
         diphoton_sample,
         vgammagamma_sample,
+#        vqqgamma_sample,
         ]
 
 data_samples = [data_sample,]
@@ -252,10 +246,20 @@ def Sys(name='', kind='overallSys'):
 
 ## Detector uncertainties
 syst_jets = [
-    Systematic('JET_EtaIntercalibration_NonClosure', nom_name, '_JET_EtaIntercalibration_NonClosureUp', '_JET_EtaIntercalibration_NonClosureDown', 'tree', 'overallSys'),
-    Systematic('JET_GroupedNP_1', nom_name, '_JET_GroupedNP_1Up', '_JET_GroupedNP_1Down', 'tree', 'overallSys'),
-    Systematic('JET_GroupedNP_2', nom_name, '_JET_GroupedNP_2Up', '_JET_GroupedNP_2Down', 'tree', 'overallSys'),
-    Systematic('JET_GroupedNP_3', nom_name, '_JET_GroupedNP_3Up', '_JET_GroupedNP_3Down', 'tree', 'overallSys'),
+    Sys('JET_EtaIntercalibration_NonClosure'),
+    Sys('JET_GroupedNP_1'),
+    Sys('JET_GroupedNP_2'),
+    Sys('JET_GroupedNP_3'),
+
+    Sys('JET_Rtrk_Baseline_Kin'),
+    Sys('JET_Rtrk_Baseline_Sub'),
+    Sys('JET_Rtrk_Modelling_Kin'),
+    Sys('JET_Rtrk_Modelling_Sub'),
+    Sys('JET_Rtrk_TotalStat_Kin'),
+    Sys('JET_Rtrk_TotalStat_Sub'),
+    Sys('JET_Rtrk_Tracking_Kin'),
+    Sys('JET_Rtrk_Tracking_Sub'),
+
     Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NPUp', '', 'tree', 'histoSysOneSide'),
 ]
 
@@ -270,6 +274,7 @@ syst_met = [
 syst_egamma = [
     Sys("EG_RESOLUTION_ALL"),
     Sys("EG_SCALE_ALL"),
+    Sys('PH_Iso_DDonoff'),
 ]
 
 syst_muon = [
@@ -287,12 +292,12 @@ syst_weight = [
     Sys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
     Sys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
     Sys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
-    # Sys('EL_EFF_Trigger_TOTAL_UncorrUncertainty'),
+    Sys('EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR'),
 
-    Sys('FT_EFF_B_systematics'),
-    Sys('FT_EFF_C_systematics'),
-    Sys('FT_EFF_Light_systematics'),
-    # Sys('FT_EFF_extrapolation'),
+    # Sys('FT_EFF_B_systematics'),
+    # Sys('FT_EFF_C_systematics'),
+    # Sys('FT_EFF_Light_systematics'),
+    # # Sys('FT_EFF_extrapolation'),
 
     Sys('JvtEfficiency'),
 
@@ -312,45 +317,77 @@ syst_weight = [
 
 syst_to_all = syst_jets +syst_met + syst_egamma + syst_muon + syst_weight
 
-
 ## Theory Uncertainties
-theoSysGJ    = Sys('theoSysGJ') 
-theoSysTopG  = Sys('theoSysTopG')
-theoSysWG    = Sys('theoSysWG')
+
+## gamjet
+sigma_gamjet_srl = 0.57
+sigma_gamjet_srh = 0.43
+
+if sr_type == 'L':
+    syst_gamjet_theo = Systematic("theoSysGJ", 1 , 1+sigma_gamjet_srl, 1-sigma_gamjet_srl, "user", "userOverallSys")
+else:
+    syst_gamjet_theo = Systematic("theoSysGJ", 1 , 1+sigma_gamjet_srh, 1-sigma_gamjet_srh, "user", "userOverallSys")
+
+## wgamma
+sigma_wgamma_srl   = 0.065
+sigma_wgamma_srh   = 0.083
+sigma_wgamma_crql  = 0.056
+sigma_wgamma_crqh  = 0.070
+sigma_wgamma_crwtl = 0.044
+sigma_wgamma_crwth = 0.044
+
+if sr_type == 'L':
+    syst_wgamma_theo_sr   = Systematic("theoSysWG", 1 , 1+sigma_wgamma_srl,   1-sigma_wgamma_srl,   "user", "userOverallSys")
+    syst_wgamma_theo_crq  = Systematic("theoSysWG", 1 , 1+sigma_wgamma_crql,  1-sigma_wgamma_crql,  "user", "userOverallSys")
+    syst_wgamma_theo_crwt = Systematic("theoSysWG", 1 , 1+sigma_wgamma_crwtl, 1-sigma_wgamma_crwtl, "user", "userOverallSys")
+else:
+    syst_wgamma_theo_sr   = Systematic("theoSysWG", 1 , 1+sigma_wgamma_srh,   1-sigma_wgamma_srh,   "user", "userOverallSys")
+    syst_wgamma_theo_crq  = Systematic("theoSysWG", 1 , 1+sigma_wgamma_crqh,  1-sigma_wgamma_crqh,  "user", "userOverallSys")
+    syst_wgamma_theo_crwt = Systematic("theoSysWG", 1 , 1+sigma_wgamma_crwth, 1-sigma_wgamma_crwth, "user", "userOverallSys")
+
+## ttgamma
+sigma_ttgamma_srl   = 0.133
+sigma_ttgamma_srh   = 0.372
+sigma_ttgamma_crql  = 0.136
+sigma_ttgamma_crqh  = 0.177
+sigma_ttgamma_crwtl = 0.085
+sigma_ttgamma_crwth = 0.085
+
+if sr_type == 'L':
+    syst_ttgamma_theo_sr   = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_srl,   1-sigma_ttgamma_srl,   "user", "userOverallSys")
+    syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crql,  1-sigma_ttgamma_crql,  "user", "userOverallSys")
+    syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crwtl, 1-sigma_ttgamma_crwtl, "user", "userOverallSys")
+else:
+    syst_ttgamma_theo_sr   = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_srh,   1-sigma_ttgamma_srh,   "user", "userOverallSys")
+    syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crqh,  1-sigma_ttgamma_crqh,  "user", "userOverallSys")
+    syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crwth, 1-sigma_ttgamma_crwth, "user", "userOverallSys")
+
 theoSysZG    = Sys('theoSysZG') 
 sigXsec      = Sys('SigXSec')
 
-# theoSysGJgen = getSys('theoSysGJgen', 'histoSys')
-# theoSysTop  = getSys('theoSysTop')
-# theoSysSingleTop  = getSys('theoSysSingleTop')
-# theoSysSingleTopG  = getSys('theoSysSingleTopG')
-# theoSysWZ  = getSys('theoSysWZ')
-# theoSysVV  = getSys('theoSysVV')
+
 
 # Add Sample Specific Systematics (apparently it's needed to add these systs to the samples *BEFORE* adding them to the FitConfig
 if do_syst: 
 
     #-- sample specific systematics
-    ttbarg_sample.addSystematic(theoSysTopG)
-    wgamma_sample.addSystematic(theoSysWG)
     zllgamma_sample.addSystematic(theoSysZG)
     znunugamma_sample.addSystematic(theoSysZG)
-    photonjet_sample.addSystematic(theoSysGJ)
+    # ttbarg_sample.addSystematic(theoSysTopG)
+    # wgamma_sample.addSystematic(theoSysWG)
+    photonjet_sample.addSystematic(syst_gamjet_theo)
 
     efake_sample.addSystematic(syst_feg)
     jfake_sample.addSystematic(syst_fjg)
     
     #-- global systematics
     for gsyst in syst_to_all:
-        # fitconfig.addSystematic(gsyst)
 
         for sample in bkg_samples:
             if sample.name.startswith('efake') or sample.name.startswith('jfake'):
                 continue
 
-            #print "*** Adding %s in %s" % (gsyst.name, sample.name) 
             sample.addSystematic(gsyst)
-
 
     #-- channel specific systematics (still *before* adding them to FitConfig)
     # for bsyst in syst_bjet:
@@ -388,7 +425,7 @@ fitconfig.addSamples(bkg_samples + data_samples)
 # Measurement
 measName = "BasicMeasurement"
 measLumi = 1.0
-measLumiError = 0.021
+measLumiError = 0.029 # Preliminar for ICHEP: 2.9% (3.7% for 2016 and 2.1% for 2015)
 
 meas = fitconfig.addMeasurement(measName, measLumi, measLumiError)
 
@@ -404,12 +441,19 @@ constraint_channels = []
 validation_channels = []
 signal_channels = []
 
+
+# ---------------
+# Signal region 
+# ---------------
+SR = fitconfig.addChannel(variable, [sr_name], *binning)
+signal_channels.append(SR)
+
 # -----------------
 #  Control regions 
 # -----------------
+CRQ = fitconfig.addChannel(variable, ['CRQ'], *binning)
 CRW = fitconfig.addChannel(variable, ["CRW"], *binning)
 CRT = fitconfig.addChannel(variable, ["CRT"], *binning)
-CRQ = fitconfig.addChannel(variable, ['CRQ'], *binning)
 
 constraint_channels.append(CRQ)
 constraint_channels.append(CRW)
@@ -418,6 +462,19 @@ constraint_channels.append(CRT)
 wgamma_sample.setNormRegions(["CRW", variable])
 ttbarg_sample.setNormRegions(["CRT",variable])
 photonjet_sample.setNormRegions(["CRQ",variable])
+
+# Add theoretical systematics region specific
+SR. getSample("wgamma").addSystematic(syst_wgamma_theo_sr)
+CRQ.getSample("wgamma").addSystematic(syst_wgamma_theo_crq)
+CRW.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
+CRT.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
+
+SR. getSample("ttbarg").addSystematic(syst_ttgamma_theo_sr)
+CRQ.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crq)
+CRW.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
+CRT.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
+
+
 
 
 # -------------------
@@ -433,13 +490,14 @@ if do_validation:
     validation_channels.append(VRM2)
     validation_channels.append(VRM3)
 
-    VRD1  = fitconfig.addChannel(variable, ["VRD1"], *binning)
-    VRD2  = fitconfig.addChannel(variable, ["VRD2"], *binning)
-    VRD3  = fitconfig.addChannel(variable, ["VRD3"], *binning)
+    if sr_type == 'L':
+        VRD1  = fitconfig.addChannel(variable, ["VRD1"], *binning)
+        VRD2  = fitconfig.addChannel(variable, ["VRD2"], *binning)
+        VRD3  = fitconfig.addChannel(variable, ["VRD3"], *binning)
 
-    validation_channels.append(VRD1)
-    validation_channels.append(VRD2)
-    validation_channels.append(VRD3)
+        validation_channels.append(VRD1)
+        validation_channels.append(VRD2)
+        validation_channels.append(VRD3)
 
     VRL1  = fitconfig.addChannel(variable, ["VRL1"], *binning)
     VRL2  = fitconfig.addChannel(variable, ["VRL2"], *binning)
@@ -451,27 +509,7 @@ if do_validation:
     validation_channels.append(VRL3)
     validation_channels.append(VRL4)
 
-    # inclusive VR
-    # VRM2incl = fitconfig.addChannel(variable, ["VRM2incl"], *binning)
-    # VRL2incl = fitconfig.addChannel(variable, ["VRL2incl"], *binning)
-    # VRL3incl = fitconfig.addChannel(variable, ["VRL3incl"], *binning)
-
-    # validation_channels.append(VRM2incl)
-    # validation_channels.append(VRL2incl)
-    # validation_channels.append(VRL3incl)
-
    
-# ---------------
-# Signal region 
-# ---------------
-sr_name = signal_region[:-1] # could be SR or SRincl
-
-SR = fitconfig.addChannel(variable, [sr_name], *binning)
-# if myFitType == FitType.Discovery:
-#     SR.addDiscoverySamples([sr_name,], [1.,], [0.,], [100.,], [ROOT.kMagenta,])
-
-signal_channels.append(SR)
-
 
 
 # Add CR/VR/SR 
@@ -486,12 +524,6 @@ if myFitType == FitType.Background:
         validation_channels.append(SRincl)
 
 else:
-    #for sr in signal_channels:
-        #print sr
-        #print sr.name
-        #sr.addDiscoverySamples([sr.name],[1.],[0.],[100.],[ROOT.kMagenta])
-        #meas.addPOI("mu_%s" % sr.name)
-
     fitconfig.setSignalChannels(signal_channels) #--- Define SR as signal region.
 
 if do_validation:
@@ -518,7 +550,7 @@ if myFitType == FitType.Exclusion:
         sigSample = Sample("GGM_M3_mu_%d_%d" % (m3, mu), ROOT.kOrange+3)
         sigSample.setNormByTheory()
         sigSample.setStatConfig(useStat)
-        sigSample.setNormFactor("mu_SIG", muSigInitValue[0], muSigInitValue[1], muSigInitValue[2])
+        sigSample.setNormFactor("mu_SIG", 1., 0., 5.)
 
         if do_signal_theory_unc:
             configMgr.fixSigXSec = True
