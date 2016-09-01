@@ -75,7 +75,7 @@ def sphistograms():
 
     # scale to lumi?
     parser.add_argument('-i', '--input')
-    parser.add_argument('--lumi')
+    parser.add_argument('--lumi', help='data15, data16, data (2015+2016) or lumi in fb-1')
 
     # sum 2015 and 2016
     parser.add_argument('--sum', help='Sum this two files')
@@ -91,7 +91,9 @@ def sphistograms():
             lumi = analysis.lumi_data16
         elif args.lumi == 'data':
             lumi = analysis.lumi_data15 + analysis.lumi_data16
-
+        else:
+            lumi = float(args.lumi) * 1000.
+        
         lumi = lumi / 1000. # input should be normalized to 1 fb-1
 
         print 'Scaling histogram from %s to %s (%s fb-1)' % (args.input, args.lumi, lumi)

@@ -304,6 +304,7 @@ def _get_histogram(ds, **kwargs):
     fs         = kwargs.get('fs', None)
     year       = kwargs.get('year', None)
 
+    use_lumiw   = kwargs.get('use_lumiw', True)
     use_sfw     = kwargs.get('use_sfw', True)
     use_mcw     = kwargs.get('use_mcw', True)
     use_prw     = kwargs.get('use_prw', False)
@@ -403,52 +404,55 @@ def _get_histogram(ds, **kwargs):
     if lumi is None:
         lumi = 1000.
     
-    w_str = ''
+    w_list = []
     if ds['project'] == 'mc15_13TeV':
 
         # lumi weight
-        lumi_weight = get_lumi_weight(ds, lumi, fs)        
-        w_str += '%s' % lumi_weight
+        if use_lumiw:
+            lumi_weight = get_lumi_weight(ds, lumi, fs)        
+            w_list.append('%s' % lumi_weight)
 
         # mc weight
         if use_mcw:
-            w_str += '*weight_mc'
+            w_list.append('weight_mc')
 
         # scale factors
         if use_sfw:
             if syst != 'Nom' and systematics.affects_weight(syst) and not 'PRW_DATASF' in syst:
-                w_str += '*weight_sf_%s' % syst 
+                w_list.append('weight_sf_%s' % syst)
             else:
-                w_str += '*weight_sf' 
+                w_list.append('weight_sf')
 
         # pile-up
         if use_prw:
             if 'PRW_DATASF__1down' == syst:
-                w_str += '*weight_pu_down'
+                w_list.append('weight_pu_down')
             elif 'PRW_DATASF__1up' == syst:
-                w_str += '*weight_pu_up'
+                w_list.append('weight_pu_up')
             else:
-                w_str += '*weight_pu'
+                w_list.append('weight_pu')
 
         
     if 'efake' in ds['name']:
         if syst == 'Nom':
-            w_str += 'weight_feg'
+            w_list.append('weight_feg')
         elif syst == 'FegLow':
-            w_str += 'weight_feg_dn'
+            w_list.append('weight_feg_dn')
         elif syst == 'FegHigh':
-            w_str += 'weight_feg_up'
+            w_list.append('weight_feg_up')
 
     elif 'jfake' in ds['name']:
         if syst == 'Nom':
-            w_str += 'weight_fjg'
+            w_list.append('weight_fjg')
         elif syst == 'FjgLow':
-            w_str += 'weight_fjg_dn'
+            w_list.append('weight_fjg_dn')
         elif syst == 'FjgHigh':
-            w_str += 'weight_fjg_up'
+            w_list.append('weight_fjg_up')
 
     if not scale:
         w_str = ''
+    else:
+        w_str = '*'.join(w_list)
 
     varexp = ''
     if selection and w_str:

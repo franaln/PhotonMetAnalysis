@@ -218,7 +218,7 @@ def plot_exclusion(path, region, outdir, sig_xs_syst):
     leg1.DrawLatex(1200, 1550, style.data_label)
 
     leg1.SetTextSize(0.04)
-    leg1.DrawLatex(1850, 290, style.atlas_label)
+    leg1.DrawLatex(1810, 230, style.atlas_label)
 
     # Region
     leg3 = ROOT.TLatex()

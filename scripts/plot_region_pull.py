@@ -481,7 +481,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     if args.publish:
         t.DrawLatex(0.15, 0.80, style.atlas_label)
-    t.DrawLatex(0.15, 0.73, text)
+    t.DrawLatex(0.15, 0.72, text)
     t.DrawLatex(0.15, 0.64, region_name.replace('L', '{L}').replace('H', '{H}'))
 
     legend1.Draw()
