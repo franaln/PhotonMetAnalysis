@@ -7,7 +7,7 @@ bins['cuts'] = (1, 0.5, 1.5)
 
 ## photon
 bins['ph_n']  = (5, 0, 5)
-bins['ph_pt']  = (20, 0., 2000.)
+bins['ph_pt']  = (50, 0., 2000.)
 bins['ph_iso'] = (40, -20., 20.)
 bins['ph_eta'] = (15, -3., 3.)
 bins['ph_phi'] = (17, -3.4, 3.4)
@@ -23,6 +23,9 @@ bins['jet_phi'] = (34, -3.4, 3.4)
 bins['met_et']  = (20, 0., 1000.)
 bins['met_phi'] = (17, -3.4, 3.4)
 bins['met_truth_et']  = (20, 0., 1000.)
+bins['met_sig'] = (50, 0., 50.)
+bins['met_sumet']  = (80, 0., 8000.)
+
 
 ## dphi
 bins['dphi_jetmet']     = (17, 0., 3.4)
@@ -53,10 +56,13 @@ bins['mgjj'] = (100, 0, 7000.)
 bins['mgjjj'] = (107, 0, 7490.)
 
 ##
+bins['ph_pt[0]+met_et'] = (50, 0, 5000.)
 bins['ht+met_et'] = (50, 0, 5000.)
 bins['ht+met_et-ph_pt'] = (60, 0, 6000.)
-bins['ph_pt[0]/ht'] = (11, 0, 1.1)
-bins['(jet_pt[0]+jet_pt[1])/(ht-ph_pt[0])'] = (22, 0., 1.1)
+
+bins['mt']  = (50, 0, 2500.)
+bins['mt2'] = (50, 0, 15000.)
+bins['stgam'] = (50, 0, 5000.)
 
 bins['avg_mu'] = (50, 0, 50)
 bins['avgmu'] = (50, 0, 50)

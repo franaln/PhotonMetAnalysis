@@ -1,47 +1,49 @@
 # single photon analysis
-# mini utils
+# mini->histogram machinery
 
 import os
 import re
 import ROOT
 
 from rootutils import RootFile, Value, histogram, histogram_equal_to
-from signalxs import get_gg_xs, get_ewk_xs, get_ewk_sumw
 from xs_dict import xs_dict
 import systematics
 
 # config
 import analysis as config_analysis
-import samples as config_samples
-import binning as config_binning
+import samples
+import binning
 
 MiniDir1  = '/ar/pcunlp001/raid/falonso/mini2'
 MiniDir2  = '/ar/pcunlp002/disk/falonso/mini2'
+
+# FS for EWK samples
+relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
 
 # --------
 # Binning
 #---------
 def get_binning_single_variable(variable):
 
-    if '[' in variable and ']' in variable:
-        binning_ = config_binning.bins.get(variable[:variable.index('[')], None)
-    else:
-        binning_ = config_binning.bins.get(variable, None)
+    binning_ = binning.bins.get(variable, None)
+    
+    if binning_ is None and '[' in variable and ']' in variable:
+        binning_ = binning.bins.get(variable[:variable.index('[')], None)
 
     if binning_ is None:
         try:
-            binning_ = config_binning.bins.get(variable.split('_')[1], None)
+            binning_ = binning.bins.get(variable.split('_')[1], None)
         except:
             binning_ = None
 
     if binning_ is None:
         try:
-            binning_ = config_binning.bins.get(variable.split('_')[0], None)
+            binning_ = binning.bins.get(variable.split('_')[0], None)
         except:
             binning_ = None
 
     if binning_ is None and 'ht+' in variable:
-        binning_ = config_binning.bins.get('meff', None)
+        binning_ = binning.bins.get('meff', None)
 
     return binning_
 
@@ -67,6 +69,12 @@ def get_binning(variable):
 #------------
 # Cuts utils
 #------------
+def num(s):
+    try:
+        return int(s)
+    except ValueError:
+        return float(s)
+
 def split_cut(s):
     s = s.strip()
     for op in ['==', '>=', '<=', '>', '<', '!=']:
@@ -75,7 +83,6 @@ def split_cut(s):
             break
 
     return (var.strip(), op, value.strip())
-
 
 def invert_cut(s):
     (var, op, value) = split_cut(s)
@@ -88,7 +95,6 @@ def invert_cut(s):
         newop = op
 
     return '%s %s %s' % (var, newop, value)
-
 
 def check_cut(value, op, cut):
     if op == '==':
@@ -103,13 +109,6 @@ def check_cut(value, op, cut):
         return (value < cut)
     elif op == '!=':
         return (value != cut)
-
-
-def num(s):
-    try:
-        return int(s)
-    except ValueError:
-        return float(s)
 
 
 #----------------------------
@@ -128,26 +127,17 @@ def get_xs(ds):
 
 def get_signal_xs(ds, fs=0):
 
+    from signalxs import get_xs_did
+
     if 'GGM_M3' in ds['short_name']:
 
-        l = re.findall(ur'GGM_M3_mu_(\d*)_(\d*)', ds['short_name'])[0]
-
-        did = int(ds['did'])
-
-        m3, mu = int(l[0]), int(l[1])
-
-        xs, unc = get_gg_xs(did, m3, mu)
+        xs, unc = get_xs_did(ds['did'])
 
         return xs
 
     elif 'GGM_mu' in ds['short_name']:
 
-        l = re.findall(ur'*GGM_mu_(\d*)', ds['short_name'])[0]
-
-        did = int(ds['did'])
-        mu = int(l[0])
-     
-        xs, unc = get_ewk_xs(did, mu, fs)
+        xs, unc = get_xs_did(ds['did'], fs=fs)
 
         return xs
 
@@ -167,9 +157,11 @@ def get_sumw(ds):
 
 def get_lumi_weight(ds, lumi, fs=None):
 
+    from signalxs import get_ewk_sumw
+
     lumi = float(lumi)
 
-    weight = 0.
+    weight = 1.
     if ds['project'] == 'mc15_13TeV':
 
         if 'GGM_mu' in ds['short_name'] and fs is not None:
@@ -188,7 +180,6 @@ def get_lumi_weight(ds, lumi, fs=None):
         except:
             weight = 0.
 
-
     return weight
 
 
@@ -197,7 +188,7 @@ def get_lumi_weight(ds, lumi, fs=None):
 #----------
 def get_datasets_names(name): 
 
-    ds_tmp = config_samples.samples_dict.get(name)
+    ds_tmp = samples.samples_dict.get(name)
 
     ds = []
     if isinstance(ds_tmp, str):
@@ -245,6 +236,24 @@ def find_path(project, did, short_name, versions, ptags):
 
     return ''
 
+def get_did(name):
+
+    # get datasets corresponding to sample
+    dsnames = get_datasets_names(name)
+
+    if not dsnames:
+        raise Exception('sample %s not found in samples.py' % name)
+
+    for ds in dsnames:
+        try:
+            m = r_ds.match(ds)
+            project, did, short_name = m.group(1), m.group(2), m.group(3)
+        except:
+            raise Exception(ds)
+
+        return did
+
+
 def get_sample_datasets(name, version=None, ptag=None):
 
     # get datasets corresponding to sample
@@ -262,8 +271,8 @@ def get_sample_datasets(name, version=None, ptag=None):
         except:
             raise Exception(ds)
 
-        versions = [version,] if version is not None else config_samples.default_versions
-        ptags = [ptag,] if ptag is not None else config_samples.default_ptags
+        versions = [version,] if version is not None else samples.default_versions
+        ptags = [ptag,] if ptag is not None else samples.default_ptags
 
         path = find_path(project, did, short_name, versions, ptags)
 
@@ -280,7 +289,6 @@ def get_sample_datasets(name, version=None, ptag=None):
 
         datasets.append(dataset)
                 
-
     return datasets
     
 
@@ -334,7 +342,7 @@ def _get_histogram(ds, **kwargs):
     #     name = sample.name
 
     if fs is not None:
-        hname = 'h%s_%s%s_%s_obs_%s' % (name, fs, systname, region, variable.replace(':', '_'))
+        hname = 'h%s_%s%s_%s_obs_%s' % (ds['did'], fs, systname, region, variable.replace(':', '_'))
     else:
         # to avoid the ROOT warning, not using this name anyway
         hname = 'h%s%s_%s_obs_%s' % (ds['did'], systname, region, variable.replace(':', '_')) 
@@ -403,9 +411,9 @@ def _get_histogram(ds, **kwargs):
         
     if lumi is None:
         lumi = 1000.
-    
+
     w_list = []
-    if ds['project'] == 'mc15_13TeV':
+    if ds['project'] == 'mc15_13TeV' and scale:
 
         # lumi weight
         if use_lumiw:
@@ -490,15 +498,41 @@ def get_histogram(name, **kwargs):
     region     = kwargs.get('region', 'SR')
     syst       = kwargs.get('syst', 'Nom')
     rootfile   = kwargs.get('rootfile', None)
-
     ptag       = kwargs.get('ptag', None)
     version    = kwargs.get('version', None)
 
     if '.root' in name:
         # try to identify file
-        # name = os.path.basename(sample_name).split('.')[0]
-        # return _get_histogram(Sample(name), sample_name, **kwargs)
-        return None # FIX
+        dname = os.path.basename(name).replace('.root', '')
+
+        try:
+            project, did = dname.split('.')[:2]
+        except:
+            project, did = 'mc15_13TeV', 0
+
+        dataset = {
+            'name': dname,
+            'project': project,
+            'did': did,
+            'short_name': dname,
+            'path': name,
+            }
+
+        hist = None
+
+        if 'GGM_mu' in name and 'fs' not in kwargs:
+            for fs in relevant_fs:
+                h = _get_histogram(dataset, fs=fs, **kwargs)
+                if hist is None:
+                    hist = h.Clone()
+                else:
+                    hist.Add(h, 1)
+
+        else:
+            hist = _get_histogram(dataset, **kwargs)
+
+
+        return hist
 
     datasets = get_sample_datasets(name, version, ptag)
 
@@ -509,25 +543,22 @@ def get_histogram(name, **kwargs):
     hist = None
                                  
     # ewk grid: sum over all sub-processes
-    if 'GGM_mu' in name and len(datasets) == 1:
-        pass
-    #     relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
-    #     for fs in relevant_fs:
+    if 'GGM_mu' in name and len(datasets) == 1 and 'fs' not in kwargs:
+
+        for fs in relevant_fs:
             
-    #         h = _get_histogram(sample.name, sample.paths[0], fs=fs, **kwargs)
+            h = _get_histogram(datasets[0], fs=fs, **kwargs)
 
-    #         if hist is None:
-    #             hist = h.Clone()
-    #         else:
-    #             hist.Add(h, 1)
-
-    
+            if hist is None:
+                hist = h.Clone()
+            else:
+                hist.Add(h, 1)
+                
     else:
         
         for ds in datasets:
 
             h = _get_histogram(ds, **kwargs)
-
             if hist is None:
                 hist = h.Clone()
             else:

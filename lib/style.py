@@ -1,10 +1,10 @@
 # Style
 
 import ROOT
-from mass_dict import mass_dict
+from signalgrid import grid_m3_mu, grid_mu
 
 # Labels
-atlas_label = '#bf{#it{ATLAS}} Internal'
+atlas_label = '' ##bf{#it{ATLAS}} Preliminary'
 
 data_label   = '#sqrt{s} = 13 TeV, 13.3 fb^{-1}'
 data15_label = '#sqrt{s} = 13 TeV, ~3.2 fb^{-1}'
@@ -30,11 +30,19 @@ labels_dict['diphoton']     = '#gamma#gamma/W#gamma#gamma/Z#gamma#gamma'
 
 mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}}'
 
-for (m3, mu), (mgl, mn1) in mass_dict.iteritems():
+for (m3, mu), (mgl, mn1) in grid_m3_mu.iteritems():
 
     name = 'GGM_M3_mu_%i_%i' % (m3, mu)
     
     label = 'm_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
+
+    labels_dict[name] = label
+
+for mu, mn1 in grid_mu.iteritems():
+
+    name = 'GGM_mu_%i' % mu
+    
+    label = '%s = %i GeV' % (mn1_text, mn1)
 
     labels_dict[name] = label
 
@@ -71,6 +79,19 @@ colors_dict['GGM_M3_mu_1600_650']  = '#e44e5d' #'#ea7a85'
 colors_dict['GGM_M3_mu_1600_1250'] = '#a77aea'
 colors_dict['GGM_M3_mu_1600_1450'] = '#7abdea'
 
+# 2015+2016 (35 ifb) benchmark points 
+colors_dict['GGM_M3_mu_2000_250'] = '#85ea7a' 
+colors_dict['GGM_M3_mu_2000_450'] = '#fa3a92'
+colors_dict['GGM_M3_mu_2000_850'] = '#8453fb'
+
+colors_dict['GGM_M3_mu_2000_1450']  = '#85ea7a' 
+colors_dict['GGM_M3_mu_2000_1650']  = '#fa3a92'
+colors_dict['GGM_M3_mu_2000_1850'] = '#8453fb'
+
+colors_dict['GGM_mu_150'] = '#85ea7a' 
+colors_dict['GGM_mu_450'] = '#fa3a92'
+colors_dict['GGM_mu_850'] = '#8453fb'
+
 # Plot config
 class PlotConf():
 
@@ -92,8 +113,13 @@ plots_conf['ph_pt']        = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / BIN GeV'
 plots_conf['ph_eta']       = PlotConf('Photon #eta', 'Events / BIN GeV', 'right')
 plots_conf['ph_phi']       = PlotConf('Photon #phi', 'Events / BIN GeV', 'right')
 plots_conf['ph_iso']       = PlotConf('E_{T}^{iso} - 0.022 #times  p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
+plots_conf['ph_pt[0]']     = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['ph_eta[0]']    = PlotConf('Photon #eta', 'Events / BIN GeV', 'right')
+plots_conf['ph_phi[0]']    = PlotConf('Photon #phi', 'Events / BIN GeV', 'right')
+plots_conf['ph_iso[0]']    = PlotConf('E_{T}^{iso} - 0.022 #times  p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
 plots_conf['met_et']       = PlotConf('E_{T}^{miss} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['met_phi']      = PlotConf('#phi^{miss}', 'Events', 'right')
+plots_conf['met_sig']      = PlotConf('E_{T}^{miss} significance', 'Events / BIN', 'right')
 plots_conf['ht']           = PlotConf('H_{T} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['jet_pt']       = PlotConf('Jet p_{T} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['jet_pt[0]']    = PlotConf('Jet1 p_{T} [GeV]', 'Events / BIN GeV', 'right')
@@ -112,5 +138,11 @@ plots_conf['meff']      = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['mgj']    = PlotConf('m_{#gammaj} [GeV]', 'Events / (BIN GeV)', 'right')
 plots_conf['mgjj']   = PlotConf('m_{#gammajj} [GeV]', 'Events / (BIN GeV)', 'right')
 plots_conf['mgjjj']  = PlotConf('m_{#gammajjj} [GeV]', 'Events / (BIN GeV)', 'right')
+
+plots_conf['ph_pt[0]+met_et'] = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['stgam'] = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
+
+plots_conf['mt']  = PlotConf('M_{T}', 'Events / BIN', 'right')
+plots_conf['mt2'] = PlotConf('M_{T}^{2}', 'Events / BIN', 'right')
 
 plots_conf['default']  = PlotConf()
