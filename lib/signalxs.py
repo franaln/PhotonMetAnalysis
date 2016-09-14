@@ -1,117 +1,63 @@
 # Signal cross sections
 
-gg_xs_file = '/afs/cern.ch/work/f/falonso/Susy/Run2/XS/xs_13TeV_gg/SignalCalc_SUSYTools.txt'
-ewk_xs_file = '/afs/cern.ch/work/f/falonso/Susy/Run2/XS/xs_13TeV_ewk_onlyrelevant/SignalCalc_SUSYTools.txt'
+import os
+from samples import samples_dict
 
-#----------------
-# Strong grid xs
-#----------------
+gg_xs_file  = os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu.txt'
+ewk_xs_file = os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu.txt'
 
-# +------+-------+----------------+-------------+
-# |   m3 | mass1 |   crossSection |   Tot_error |
-# +------+-------+----------------+-------------+
-# | 1000 |  1145 |    0.121755019 | 0.180222496 |
-# | 1100 |  1241 |   0.0662688389 | 0.188618302 |
-# | 1200 |  1335 |   0.0371481292 | 0.202826485 |
-# | 1300 |  1429 |   0.0213276502 | 0.217487603 |
-# | 1400 |  1522 |   0.0125334058 | 0.232631654 |
-# | 1500 |  1613 |  0.00752641121 | 0.246899739 |
-# | 1600 |  1705 |  0.00457510725 | 0.263639212 |
-# | 1700 |  1795 |  0.00282816053 | 0.282019496 |
-# | 1800 |  1885 |     0.00176476 | 0.298575491 |
-# | 1900 |  1974 |  0.00111735344 | 0.314276665 |
-# | 2000 |  2063 | 0.000712399138 | 0.332606643 |
-# +------+-------+----------------+-------------+
 
-gg_xs = {
-    1000:    0.121755019,
-    1100:   0.0662688389,
-    1200:   0.0371481292,
-    1300:   0.0213276502,
-    1400:   0.0125334058,
-    1500:  0.00752641121,
-    1600:  0.00457510725,
-    1700:  0.00282816053,
-    1800:     0.00176476,
-    1900:  0.00111735344,
-    2000: 0.000712399138,
-    }
-
-gg_xs_unc = {
-    1000:    0.180222496,
-    1100:    0.188618302,
-    1200:    0.202826485,
-    1300:    0.217487603,
-    1400:    0.232631654,
-    1500:    0.246899739,
-    1600:    0.263639212,
-    1700:    0.282019496,
-    1800:    0.298575491,
-    1900:    0.314276665,
-    2000:    0.332606643,
-}
-
-def get_gg_xs(did, m3, mu):
-
-    slha = 'susy.%s.GGM_M3_mu_%s_%s.slha' % (did, m3, mu)
-
-    with open(gg_xs_file) as f:
-        for line in f:
-            line = line.replace('\n', '')
-            if not line or not line.startswith('susy'):
-                continue
-
-            slha_, fs_, xs_, _, _, unc_ = line.split()
-
-            if slha_ == slha:
-                return (float(xs_), float(unc_))
-            
-    return None
-
+def get_did(name):
+    sample = samples_dict[name]
+    return sample.split('.')[1]
     
 
-#----------------
-# Ewk grid xs
-#----------------
+relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
 
-ewk_xs_herwig = {
-    150: 2.43371,
-    200: 0.834933,
-    250: 0.356451,
-    350: 9.23904e-02,
-    450: 3.23256e-02,
-    550: 1.30743e-02,
-    650: 5.87848e-03,
-    750: 2.83376e-03,
-    850: 1.43249e-03,
-    950: 7.5664e-04,
-    1050: 4.06728e-04,
-    1150: 2.25701e-04,
-    1250: 1.2779e-04,
-    1350: 7.22578e-05,
-    1450: 4.2227e-05,
-    1550: 2.44628e-05,
-    1650: 1.41813e-05,
-    1750: 8.37812e-06,
-    1800: 6.43074e-06,
-    }
+def get_xs_did(did, fs=None):
 
-def get_ewk_xs(did, mu, fs):
-
-    slha = 'susy.%s.GGM_mu_%s.slha' % (did, mu)
-    fs = '%s' % fs
-
-    with open(ewk_xs_file) as f:
+    xs_file = ewk_xs_file if int(did) in range(373162, 373173) else gg_xs_file
+    
+    with open(xs_file) as f:
         for line in f:
             line = line.replace('\n', '')
-            if not line or not line.startswith('susy'):
+            if not line or line.startswith('#'):
                 continue
 
-            slha_, fs_, xs_, _, _, unc_ = line.split()
-            if slha_ == slha and fs == fs_:
+            did_, fs_, xs_, _, _, unc_ = line.split()
+
+            if int(did_) == int(did) and (fs is None or int(fs) == int(fs_)):
                 return (float(xs_), float(unc_))
             
-    return None
+    raise Exception('XS not found for DID=%s, FS=%s' % (did, fs))
+
+
+def get_xs(par1, par2=None, fs=None):
+
+    # GGM_mu
+    if par2 is None:
+        name = 'GGM_mu_%i' % par1
+    # GGM_M3_mu
+    else:
+        name = 'GGM_M3_mu_%i_%i' % (par1, par2)
+
+    did = get_did(name)
+
+    return get_xs_did(did, fs)
+
+
+def get_ewk_totalxs(did):
+
+    total_xs = 0.
+    total_unc = 0.
+    for fs in relevant_fs:
+        tmp = get_xs(did, fs=fs)
+        total_xs += tmp[0]
+        total_unc += tmp[1]
+
+    total_unc /= len(relevant_fs) # avg between diff fs. FIX?
+
+    return (total_xs, total_unc)
 
 
 ewk_sumw = {
@@ -281,7 +227,13 @@ ewk_sumw = {
         }
 }
 
-def get_ewk_sumw(mu, fs):
+def get_ewk_sumw(mu, fs=None):
+
+    if fs is None:
+        total_sumw = 0
+        for fs in relevant_fs:
+            total_sumw += get_ewk_sumw(mu, fs)
+        return total_sumw
 
     sumw = 0
     try: 
@@ -290,6 +242,4 @@ def get_ewk_sumw(mu, fs):
         pass
 
     return sumw
-
-
 
