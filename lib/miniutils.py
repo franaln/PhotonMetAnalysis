@@ -30,6 +30,11 @@ def get_binning_single_variable(variable):
     if binning_ is None and '[' in variable and ']' in variable:
         binning_ = binning.bins.get(variable[:variable.index('[')], None)
 
+    for variable_ in binning.bins.iterkeys():
+        if variable_ in variable:
+            binning_ = binning.bins[variable_]
+            break
+
     if binning_ is None:
         try:
             binning_ = binning.bins.get(variable.split('_')[1], None)
@@ -217,20 +222,8 @@ def find_path(project, did, short_name, versions, ptags):
             vtag    = '_' + version.split('_')[1]
             version = version.split('_')[0]
 
-        version_i = int(version)
-
-        if version_i > 33:
-            mini_dir = MiniDir1
-        else:
-            mini_dir = MiniDir2
-
-        if version_i > 31:
-            for ptag in ptags:
-                path = '%s/v%s/%s.%s.%s.mini.p%s.v%s%s_output.root' % (mini_dir, version, project, did, short_name, ptag, version, vtag)
-                if os.path.isfile(path):
-                    return path
-        else:
-            path = '%s/v%s/%s.%s.%s.mini_v%s_output.root' % (mini_dir, version, project, did, short_name, version)
+        for ptag in ptags:
+            path = '%s/v%s/%s.%s.%s.mini.p%s.v%s%s_output.root' % (MiniDir1, version, project, did, short_name, ptag, version, vtag)
             if os.path.isfile(path):
                 return path
 

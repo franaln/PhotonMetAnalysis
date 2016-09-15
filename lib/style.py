@@ -27,6 +27,8 @@ labels_dict['zjets']        = 'Z + jets'
 labels_dict['vjets']        = 'W/Z + jets'
 labels_dict['ttbar']        = 'tt'
 labels_dict['diphoton']     = '#gamma#gamma/W#gamma#gamma/Z#gamma#gamma'
+labels_dict['others']       = 'Others'
+labels_dict['fakes']        = '#gamma fakes'
 
 mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}}'
 
@@ -68,6 +70,8 @@ colors_dict['vjets']       = '#a4cee6'
 colors_dict['ttbar']       = '#32b422'
 colors_dict['diphoton']    = '#e5ac49'
 colors_dict['vgammagamma'] = '#e5ac49'
+colors_dict['others']      = '#676363'
+colors_dict['fakes']       = '#676363'
 
 colors_dict['GGM_M3_mu_1400_250']  = '#85ea7a' 
 colors_dict['GGM_M3_mu_1400_650']  = '#fa3a92'
@@ -80,17 +84,17 @@ colors_dict['GGM_M3_mu_1600_1250'] = '#a77aea'
 colors_dict['GGM_M3_mu_1600_1450'] = '#7abdea'
 
 # 2015+2016 (35 ifb) benchmark points 
-colors_dict['GGM_M3_mu_2000_250'] = '#85ea7a' 
-colors_dict['GGM_M3_mu_2000_450'] = '#fa3a92'
-colors_dict['GGM_M3_mu_2000_850'] = '#8453fb'
+colors_dict['GGM_M3_mu_2000_250'] = '#4e5de3' # '#5de34e' 
+colors_dict['GGM_M3_mu_2000_450'] = '#f90876'
+colors_dict['GGM_M3_mu_2000_850'] = '#6021fa'
 
-colors_dict['GGM_M3_mu_2000_1450']  = '#85ea7a' 
-colors_dict['GGM_M3_mu_2000_1650']  = '#fa3a92'
-colors_dict['GGM_M3_mu_2000_1850'] = '#8453fb'
+colors_dict['GGM_M3_mu_2000_1450']  = '#4e5de3' #'#5de34e' 
+colors_dict['GGM_M3_mu_2000_1650']  = '#f90876'
+colors_dict['GGM_M3_mu_2000_1850'] = '#6021fa'
 
-colors_dict['GGM_mu_150'] = '#85ea7a' 
-colors_dict['GGM_mu_450'] = '#fa3a92'
-colors_dict['GGM_mu_850'] = '#8453fb'
+colors_dict['GGM_mu_150'] = '#a3fb3b' #'#5de34e' 
+colors_dict['GGM_mu_450'] = '#f90876'
+colors_dict['GGM_mu_850'] = '#6021fa'
 
 # Plot config
 class PlotConf():
@@ -120,6 +124,7 @@ plots_conf['ph_iso[0]']    = PlotConf('E_{T}^{iso} - 0.022 #times  p_{T} [GeV]',
 plots_conf['met_et']       = PlotConf('E_{T}^{miss} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['met_phi']      = PlotConf('#phi^{miss}', 'Events', 'right')
 plots_conf['met_sig']      = PlotConf('E_{T}^{miss} significance', 'Events / BIN', 'right')
+plots_conf['met_sumet']    = PlotConf('SumEt [GeV]', 'Events / BIN', 'right')
 plots_conf['ht']           = PlotConf('H_{T} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['jet_pt']       = PlotConf('Jet p_{T} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['jet_pt[0]']    = PlotConf('Jet1 p_{T} [GeV]', 'Events / BIN GeV', 'right')
