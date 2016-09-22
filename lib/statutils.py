@@ -94,14 +94,57 @@ def poisson_significance(obs, exp):
     return 0.0
 
 
-# def calc_z_bi(s, b):
+def calc_poisson_cl_lower(q, obs):
+    """
+    Calculate lower confidence limit
+    e.g. to calculate the 68% lower limit for 2 observed events:
+    calcPoissonCLLower(0.68, 2.)
+    """
+    ll = 0.
+    if obs >= 0.:
+        a = (1. - q) / 2. # = 0.025 for 95% confidence interval
+        ll = ROOT.TMath.ChisquareQuantile(a, 2.*obs) / 2.
 
-#     n_on = 
+    return ll
 
-#     tau = mu_b_hat / (sigma_b**2)
-#     n_off = tau * mu_b_hat
-    
-#     p_bi = ROOT.TMath.BetaIncomplete(1./(1.+tau), n_on, n_off+1)
-#     z_bi = math.sqrt(2) * ROOT.TMath.ErfInverse(1 - 2*p_bi)
+def calc_poisson_cl_upper(q, obs):
+    """
+    Calculate upper confidence limit
+    e.g. to calculate the 68% upper limit for 2 observed events:
+    calcPoissonCLUpper(0.68, 2.)
+    """
+    ul = 0.
+    if obs >= 0. :
+        a = 1. - (1. - q) / 2. # = 0.025 for 95% confidence interval
+        ul = ROOT.TMath.ChisquareQuantile(a, 2.* (obs + 1.)) / 2.
+
+    return ul
+
+def make_poisson_cl_errors(hist):
+
+    x_val  = array('f')
+    y_val = array('f')
+    x_errU = array('f')
+    x_errL = array('f')
+    y_errU = array('f')
+    y_errL = array('f')
+
+    for b in xrange(1, hist.GetNbinsX()+1):
+        binEntries = hist.GetBinContent(b)
+        if binEntries > 0.:
+            binErrUp   = calc_poisson_cl_upper(0.68, binEntries) - binEntries
+            binErrLow  = binEntries - calc_poisson_cl_lower(0.68, binEntries)
+            x_val.append(hist.GetXaxis().GetBinCenter(b))
+            y_val.append(binEntries)
+            y_errU.append(binErrUp)
+            y_errL.append(binErrLow)
+            x_errU.append(hist.GetXaxis().GetBinWidth(b)/2.)
+            x_errL.append(hist.GetXaxis().GetBinWidth(b)/2.) 
+
+    if len(x_val) > 0:
+        data_graph = ROOT.TGraphAsymmErrors(len(x_val), x_val, y_val, x_errL, x_errU, y_errL, y_errU)
+        return data_graph
+    else:
+        return ROOT.TGraph()
 
     
