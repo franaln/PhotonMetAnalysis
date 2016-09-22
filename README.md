@@ -21,13 +21,10 @@ PhotonMetAnalysis
     mkdir -p run/data run/config run/results
     cp HistFitter/config/HistFactorySchema.dtd run/config
 
-## Run HistFitter (need to be update!)
+## Run Analysis
 
-* Run from "run" directory
-* Use "PhotonMet_HistFitter_config.py" configfile
-* There are some scripts to help you:
+* Setup ROOT/HistFitter...
 
-    ```
-    run_bkgonly.py -i [histograms_file] -o [output_dir] ...
-    ```
+    source setup.sh
+
 
