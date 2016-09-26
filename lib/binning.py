@@ -9,7 +9,8 @@ bins['cuts'] = (1, 0.5, 1.5)
 bins['ph_n']  = (5, 0, 5)
 bins['ph_pt']  = (50, 0., 2000.)
 bins['ph_iso'] = (40, -20., 20.)
-bins['ph_eta'] = (15, -3., 3.)
+bins['ph_eta'] = (30, -3., 3.)
+bins['ph_etas2'] = (30, -3., 3.)
 bins['ph_phi'] = (17, -3.4, 3.4)
 
 ## jets
@@ -21,6 +22,8 @@ bins['jet_phi'] = (34, -3.4, 3.4)
 
 ## met
 bins['met_et']  = (20, 0., 1000.)
+#bins['met_et']  = [0, 50, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+
 bins['met_phi'] = (17, -3.4, 3.4)
 bins['tst_et']  = (20, 0., 1000.)
 bins['tst_phi'] = (17, -3.4, 3.4)
@@ -71,3 +74,5 @@ bins['avgmu'] = (50, 0, 50)
 bins['deta_gamjet'] = (60, 0., 6.)
 bins['dr_gamjet'] = (60, 0., 6.)
 
+bins['jet_pt[0]']  = (20, 0., 2000.)
+bins['jet_pt[1]']  = (20, 0., 2000.)

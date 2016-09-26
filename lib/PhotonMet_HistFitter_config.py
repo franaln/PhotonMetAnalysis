@@ -123,7 +123,7 @@ sr_type = signal_region[-1].upper()
 
 regions = [
     'SR', 
-    'SRincl',
+    'SRi',
     'CRQ', 'CRW', 'CRT',
     'VRM1', 'VRM2', 'VRM3', 
     'VRD1', 'VRD2', 'VRD3',
@@ -464,15 +464,16 @@ ttbarg_sample.setNormRegions(["CRT",variable])
 photonjet_sample.setNormRegions(["CRQ",variable])
 
 # Add theoretical systematics region specific
-SR. getSample("wgamma").addSystematic(syst_wgamma_theo_sr)
-CRQ.getSample("wgamma").addSystematic(syst_wgamma_theo_crq)
-CRW.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
-CRT.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
+if do_syst:
+    SR. getSample("wgamma").addSystematic(syst_wgamma_theo_sr)
+    CRQ.getSample("wgamma").addSystematic(syst_wgamma_theo_crq)
+    CRW.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
+    CRT.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
 
-SR. getSample("ttbarg").addSystematic(syst_ttgamma_theo_sr)
-CRQ.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crq)
-CRW.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
-CRT.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
+    SR. getSample("ttbarg").addSystematic(syst_ttgamma_theo_sr)
+    CRQ.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crq)
+    CRW.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
+    CRT.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
 
 
 
@@ -520,8 +521,8 @@ if myFitType == FitType.Background:
 
     # For now as a validation region. FIX!
     if sr_name == 'SR': 
-        SRincl  = fitconfig.addChannel(variable, ["SRincl"], *binning)
-        validation_channels.append(SRincl)
+        SRi  = fitconfig.addChannel(variable, ["SRi"], *binning)
+        validation_channels.append(SRi)
 
 else:
     fitconfig.setSignalChannels(signal_channels) #--- Define SR as signal region.

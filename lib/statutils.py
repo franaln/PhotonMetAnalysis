@@ -1,5 +1,6 @@
 import ROOT
 import math
+from array import array
 
 def get_significance_unc(s, b, sb_over_b=0.5):
 

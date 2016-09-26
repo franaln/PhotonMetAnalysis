@@ -84,16 +84,14 @@ colors_dict['GGM_M3_mu_1600_1250'] = '#a77aea'
 colors_dict['GGM_M3_mu_1600_1450'] = '#7abdea'
 
 # 2015+2016 (35 ifb) benchmark points 
-colors_dict['GGM_M3_mu_2000_250'] = '#4e5de3' # '#5de34e' 
-colors_dict['GGM_M3_mu_2000_450'] = '#f90876'
-colors_dict['GGM_M3_mu_2000_850'] = '#6021fa'
+colors_dict['GGM_M3_mu_2000_250'] = '#4e5de4' ###7a85ea'
+colors_dict['GGM_M3_mu_2000_450'] = '#e44e5d' ##f90876'
 
-colors_dict['GGM_M3_mu_2000_1450']  = '#4e5de3' #'#5de34e' 
-colors_dict['GGM_M3_mu_2000_1650']  = '#f90876'
-colors_dict['GGM_M3_mu_2000_1850'] = '#6021fa'
+colors_dict['GGM_M3_mu_2000_1650']  = '#4e5de4' ###f90876'
+colors_dict['GGM_M3_mu_2000_1850']  = '#e44e5d' ##6021fa'
 
-colors_dict['GGM_mu_150'] = '#a3fb3b' #'#5de34e' 
-colors_dict['GGM_mu_450'] = '#f90876'
+colors_dict['GGM_mu_200'] = '#4e5de4'
+colors_dict['GGM_mu_450'] = '#e44e5d'
 colors_dict['GGM_mu_850'] = '#6021fa'
 
 # Plot config
@@ -132,9 +130,9 @@ plots_conf['jet_pt[1]']    = PlotConf('Jet2 p_{T} [GeV]', 'Events / BIN GeV', 'r
 plots_conf['jet_eta']      = PlotConf('Jet #eta', 'Events', 'right')
 plots_conf['rt2']          = PlotConf('R_{T}^{2}', 'Events', 'left', 0.3, 1.1)
 plots_conf['rt4']          = PlotConf('R_{T}^{4}', 'Events / BIN', 'left', 0.3, 1.1)
-plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet, E_{T}^{miss})', 'Events', 'right')
-plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'right')
-plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'right')
+plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet, E_{T}^{miss})', 'Events', 'top')
+plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'top')
+plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'top')
 plots_conf['avgmu']        = PlotConf('<#mu>', 'Events', 'right', logy=False)
 
 plots_conf['ht+met_et'] = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
@@ -151,3 +149,32 @@ plots_conf['mt']  = PlotConf('M_{T}', 'Events / BIN', 'right')
 plots_conf['mt2'] = PlotConf('M_{T}^{2}', 'Events / BIN', 'right')
 
 plots_conf['default']  = PlotConf()
+
+
+def get_plotconf(variable):
+
+    if ':' in variable:
+
+        varx, vary = variable.split(':')
+
+        if '[' in varx:
+            vartmp = varx[:varx.find('[')]
+            confx = plots_conf.get(vartmp)
+        else:
+            confx = plots_conf.get(varx)
+
+        if '[' in vary:
+            vartmp = vary[:vary.find('[')]
+            confy = plots_conf.get(vartmp)
+        else:
+            confy = plots_conf.get(vary)
+
+        if confx is None:
+            confx = plots_conf['default']
+        if confy is None:
+            confy = plots_conf['default']
+
+        return confx, confy
+
+    else:
+        return plots_conf.get(variable, plots_conf['default'])

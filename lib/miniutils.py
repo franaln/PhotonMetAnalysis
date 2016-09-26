@@ -4,13 +4,14 @@
 import os
 import re
 import ROOT
+from array import array
 
 from rootutils import RootFile, Value, histogram, histogram_equal_to
 from xs_dict import xs_dict
 import systematics
 
 # config
-import analysis as config_analysis
+import analysis
 import samples
 import binning
 
@@ -26,14 +27,15 @@ relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 
 def get_binning_single_variable(variable):
 
     binning_ = binning.bins.get(variable, None)
-    
+
     if binning_ is None and '[' in variable and ']' in variable:
         binning_ = binning.bins.get(variable[:variable.index('[')], None)
 
-    for variable_ in binning.bins.iterkeys():
-        if variable_ in variable:
-            binning_ = binning.bins[variable_]
-            break
+    if variable is None:
+        for variable_ in binning.bins.iterkeys():
+            if variable_ in variable:
+                binning_ = binning.bins[variable_]
+                break
 
     if binning_ is None:
         try:
@@ -264,8 +266,8 @@ def get_sample_datasets(name, version=None, ptag=None):
         except:
             raise Exception(ds)
 
-        versions = [version,] if version is not None else samples.default_versions
-        ptags = [ptag,] if ptag is not None else samples.default_ptags
+        versions = [version,] if version is not None else analysis.versions
+        ptags = [ptag,] if ptag is not None else analysis.ptags
 
         path = find_path(project, did, short_name, versions, ptags)
 
@@ -344,7 +346,10 @@ def _get_histogram(ds, **kwargs):
         htemp = ROOT.TH2D(hname, hname, *binning)
         htemp.Sumw2()
     else:
-        htemp  = ROOT.TH1D(hname, hname, *binning)
+        if len(binning) > 3:
+            htemp = ROOT.TH1D(hname, hname, len(binning)-1, array('d', binning))
+        else:
+            htemp = ROOT.TH1D(hname, hname, *binning)
         htemp.Sumw2()
 
     #-----------
@@ -354,9 +359,6 @@ def _get_histogram(ds, **kwargs):
     if remove_var and variable in selection and not variable == 'cuts':
         
         selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
-
-        # if variable == 'jet_n':
-        #     selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == 'rt4' ])
 
     if remove_var and (':' in variable):
         if varx in selection:
@@ -392,15 +394,19 @@ def _get_histogram(ds, **kwargs):
     #---------
     # Weights
     #---------
-    if lumi is not None and not 'data' in lumi and float(lumi) < 100:
-        lumi = float(lumi) * 1000
+    if lumi is not None:
+        try:
+            if float(lumi) < 100:
+                lumi = float(lumi) * 1000
+        except:
+            pass
 
     if lumi == 'data15':
-        lumi = config_analysis.lumi_data15
+        lumi = analysis.lumi_data15
     elif lumi == 'data16':
-        lumi = config_analysis.lumi_data16
+        lumi = analysis.lumi_data16
     elif lumi == 'data':
-        lumi = config_analysis.lumi_data15 + config_analysis.lumi_data16
+        lumi = analysis.lumi_data15 + analysis.lumi_data16
         
     if lumi is None:
         lumi = 1000.
@@ -637,15 +643,19 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False)
             htmp = f.Get('cutflow_w')
 
             # Weight
-            if lumi is not None and not 'data' in lumi and float(lumi) < 100:
-                lumi = float(lumi) * 1000
+            if lumi is not None:
+                try: 
+                    if float(lumi) < 100:
+                        lumi = float(lumi) * 1000
+                except:
+                    pass
 
             if lumi == 'data15':
-                lumi = config_analysis.lumi_data15
+                lumi = analysis.lumi_data15
             elif lumi == 'data16':
-                lumi = config_analysis.lumi_data16
+                lumi = analysis.lumi_data16
             elif lumi == 'data':
-                lumi = config_analysis.lumi_data15 + config_analysis.lumi_data16
+                lumi = analysis.lumi_data15 + analysis.lumi_data16
         
             if lumi is None:
                 lumi = 1000.

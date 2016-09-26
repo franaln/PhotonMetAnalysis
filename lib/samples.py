@@ -1,9 +1,5 @@
 # samples
 
-default_ptags = ['2689', '2688', '2666', '2667', '2622', '2614']
-
-default_versions = ['37', ] #', '34', '32', '33', '30', '24']
-
 samples_dict = {
 
     'data15': [
@@ -503,6 +499,18 @@ samples_dict = {
     'GGM_M3_mu_2000_1650': 'mc15_13TeV.373160.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_1650',
     'GGM_M3_mu_2000_1850': 'mc15_13TeV.373161.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_2000_1850',
 
+    'GGM_mu_150': 'mc15_13TeV.373162.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_150',
+    'GGM_mu_200': 'mc15_13TeV.373163.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_200',
+    'GGM_mu_250': 'mc15_13TeV.373164.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_250',
+    'GGM_mu_450': 'mc15_13TeV.373165.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_450',
+    'GGM_mu_650': 'mc15_13TeV.373166.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_650',
+    'GGM_mu_850': 'mc15_13TeV.373167.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_850',
+    'GGM_mu_1050': 'mc15_13TeV.373168.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1050',
+    'GGM_mu_1250': 'mc15_13TeV.373169.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1250',
+    'GGM_mu_1450': 'mc15_13TeV.373170.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1450',
+    'GGM_mu_1650': 'mc15_13TeV.373171.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1650',
+    'GGM_mu_1850': 'mc15_13TeV.373172.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1850',
+
     # diphoton backgrounds
     'diphoton': 'mc15_13TeV.407013.Sherpa_CT10_2DP50_DirectPhotonFilter',
 
@@ -543,6 +551,7 @@ samples_dict = {
 
     }
 
+# electron/jet fakes samples
 samples_dict['efake15'] = [ i.replace('data15_13TeV', 'efake15') for i in samples_dict['data15'] ]
 samples_dict['jfake15'] = [ i.replace('data15_13TeV', 'jfake15') for i in samples_dict['data15'] ]
 

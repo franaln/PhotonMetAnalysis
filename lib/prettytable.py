@@ -1212,7 +1212,7 @@ class PrettyTable(object):
             for field in self._field_names:
                 if options["fields"] and field not in options["fields"]:
                     continue
-                lines.append("        <th>%s</th>" % escape(field).replace("\n", linebreak))
+                lines.append("        <th>%s</th>" % field.replace("\n", linebreak))
             lines.append("    </tr>")
 
         # Data
@@ -1223,7 +1223,7 @@ class PrettyTable(object):
             for field, datum in zip(self._field_names, row):
                 if options["fields"] and field not in options["fields"]:
                     continue
-                lines.append("        <td>%s</td>" % escape(datum).replace("\n", linebreak))
+                lines.append("        <td>%s</td>" % datum.replace("\n", linebreak))
             lines.append("    </tr>")
 
         lines.append("</table>")
@@ -1268,7 +1268,7 @@ class PrettyTable(object):
             for field in self._field_names:
                 if options["fields"] and field not in options["fields"]:
                     continue
-                lines.append("        <th style=\"padding-left: %dem; padding-right: %dem; text-align: center\">%s</th>" % (lpad, rpad, escape(field).replace("\n", linebreak)))
+                lines.append("        <th style=\"padding-left: %dem; padding-right: %dem; text-align: center\">%s</th>" % (lpad, rpad, field.replace("\n", linebreak)))
             lines.append("    </tr>")
 
         # Data
@@ -1284,7 +1284,7 @@ class PrettyTable(object):
             for field, datum, align, valign in zip(self._field_names, row, aligns, valigns):
                 if options["fields"] and field not in options["fields"]:
                     continue
-                lines.append("        <td style=\"padding-left: %dem; padding-right: %dem; text-align: %s; vertical-align: %s\">%s</td>" % (lpad, rpad, align, valign, escape(datum).replace("\n", linebreak)))
+                lines.append("        <td style=\"padding-left: %dem; padding-right: %dem; text-align: %s; vertical-align: %s\">%s</td>" % (lpad, rpad, align, valign, datum.replace("\n", linebreak)))
             lines.append("    </tr>")
         lines.append("</table>")
 
@@ -1402,6 +1402,9 @@ class TableHandler(HTMLParser):
 
     def handle_data(self, data):
         self.last_content += data
+
+    def handle_entityref(self, name):
+        self.last_content += '&%s' % name
 
     def generate_table(self, rows):
         """

@@ -16,14 +16,12 @@ from functools import partial
 from rootutils import RootFile
 import miniutils
 import regions as regions_
-from mass_dict import mass_dict
-from signalxs import gg_xs, gg_xs_unc
+from signalxs import get_xs
 import systematics
 
 import analysis 
 
 fzero = 0.0001
-
 
 class HistManager:
 
@@ -68,7 +66,7 @@ def sphistograms():
 
     # other options
     parser.add_argument('--add', action='store_true')
-    parser.add_argument('--dosyst', action='store_true')
+    parser.add_argument('--syst', action='store_true')
     parser.add_argument('--unblind', action='store_true')
     parser.add_argument('--version', help='Use this version')
     parser.add_argument('--prw', action='store_true', help='Use pile-up reweighting')
@@ -174,17 +172,13 @@ def sphistograms():
    
     data = ['data15', 'data16', 'data',]
 
-    samples = []
-    if args.samples is not None:
-        if 'signal' in args.samples:
-            samples.extend(analysis.signal)
-        elif 'bkg' in args.samples:
-            samples.extend(mc)
-        else:
-            samples = args.samples.split(',')
+    samples = args.samples.split(',')
+    if 'signal' in samples:
+        samples.remove('signal')
+        samples.extend(analysis.signal)
 
     # Systematics
-    do_syst = args.dosyst
+    do_syst = args.syst
 
     ## high-low systematics
     systematics_expHL = systematics.get_high_low_systematics()
@@ -378,8 +372,9 @@ def sphistograms():
                     if 'GGM_M3' in sample:
                         syst = 'SigXSec'
 
-                        m3 = int(sample.split('_')[3]) #extract M3 value from sample name
-                        sigma = gg_xs_unc.get(m3, 0.) #get relative uncertainty
+                        m3, mu = int(sample.split('_')[3]), int(sample.split('_')[4]) 
+
+                        sigma = get_xs.get(m3, mu)[1] #get relative uncertainty
                         
                     
                     if syst is not None:

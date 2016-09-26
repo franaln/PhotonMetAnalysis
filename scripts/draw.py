@@ -16,8 +16,7 @@ from rootutils import *
 from collections import OrderedDict
 import miniutils
 import regions as regions_
-
-from drawlib import *
+from drawutils import *
 
 def get_histogram_from_file(file_, sample, variable, region, syst='Nom'):
     
@@ -72,7 +71,7 @@ def main():
     parser.add_argument('--pl', action='store_true', help='publink')
     parser.add_argument('--www', action='store_true', help='create webpage')
     parser.add_argument('--debug', action='store_true', help='print debug messages')
-    parser.add_argument('--publish', action='store_true', help='')
+    parser.add_argument('--ext', dest='extensions', help='')
 
     global args
     args = parser.parse_args()
@@ -324,10 +323,8 @@ def main():
             else:
                 outname = os.path.join(args.output, 'can_{}_{}_beforeFit'.format(tag, varname))
             
-            if args.opt:
-                do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region) ##, do_ratio=False)
-            else:
-                do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, publish=args.publish)
+
+            do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, extensions=args.extensions.split(','))
                 
             if args.pl:
                 os.system('publink %s.pdf' % outname)

@@ -71,7 +71,11 @@ def main():
         hf_extra_options = args.hf_options
 
     cmd = 'HistFitter.py -u \'"%s"\' -w -f -V -F bkg %s %s' % (options, hf_extra_options, configfile)
-    run_cmd(cmd, logfile=output_dir+'/'+args.logfile, stdout=True)
+    run_cmd(cmd, logfile='hf.log', stdout=True)
+
+    # mv logfile
+    if args.logfile is not None:
+        os.system('mv hf.log %s' % os.path.join(old_pwd, args.logfile))
 
     # mv from results dir to output dir    
     mv_cmd = 'cp %s/* %s/' % (results_dir, output_dir)

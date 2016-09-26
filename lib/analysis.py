@@ -2,7 +2,10 @@
 use_purw = False
 
 # Mini version
-# versions = ['34']
+versions = ['37', ]
+
+ptags = ['2689', '2688', '2666', '2667', '2622', '2614']
+
 
 # Luminosity
 # lumi_data15 = 3209.05 # 20.1 
@@ -17,9 +20,11 @@ lumi_data15 = 3212.96  # All
 lumi_data16 = 10064.30 # DS2
 #lumi_data16 = 11571.50 # DS2.1
 
+lumi_data = lumi_data15 + lumi_data16
+
 # Signal
-from mass_dict import mass_dict
-signal = [ 'GGM_M3_mu_%i_%i' % (m3, mu) for (m3, mu) in mass_dict.keys() ]
+from signalgrid import grid_m3_mu
+signal = [ 'GGM_M3_mu_%i_%i' % (m3, mu) for (m3, mu) in grid_m3_mu.keys() ]
 
 # Backgrounds
 backgrounds_mc = [
@@ -38,7 +43,7 @@ backgrounds_dd = [
     'jfake',
     ]
 
-backgrounds_extra_mc = [
+backgrounds_mc_alt = [
     'ttbar', 
     'zjets', 
     'wjets',
@@ -52,7 +57,7 @@ region_types = ['L', 'H',]
 
 sr_regions = [
     'SR',
-    'SRincl',
+    'SRi',
     ]
 
 cr_regions = [

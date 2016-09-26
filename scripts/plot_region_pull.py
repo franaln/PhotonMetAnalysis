@@ -16,7 +16,7 @@ from rootutils import *
 from collections import OrderedDict
 
 from style import colors_dict, labels_dict
-from drawlib import calc_poisson_cl_upper, calc_poisson_cl_lower
+from drawutils import calc_poisson_cl_upper, calc_poisson_cl_lower
 import subprocess
 
 from yieldstable import latexfitresults
@@ -27,45 +27,19 @@ parser = argparse.ArgumentParser(description='plot regions pull')
     
 parser.add_argument('--ws', dest='workspace', required=True, help='Input workspace')
 parser.add_argument('-o', dest='output_dir', default='.', help='Output dir')
-parser.add_argument('-n', dest='region', help='L or H')
+parser.add_argument('-r', dest='regions', help='regions')
+parser.add_argument('-n', dest='region_type', help='L or H')
 parser.add_argument('--data', default='data', help='data15|data16|data')
 parser.add_argument('--unblind', action='store_true', help='Unblind! (use with caution)')
 parser.add_argument('--publish', action='store_true', help='')
+parser.add_argument('--ext', dest='extensions', default='pdf,', help='')
 
 args = parser.parse_args()
 
 workspace = args.workspace
-region_name = 'SR_' + args.region
-region_type = args.region
-
-# regions
-regions = [
-    'CRQ',
-    'CRW',
-    'CRT',
-    
-    'VRM1',
-    'VRM2',
-    'VRM3',
-
-    'VRD1',
-    'VRD2',
-    'VRD3',
-    
-    'VRL1',
-    'VRL2',
-    'VRL3',
-    'VRL4',
-    
-    #    'SR',
-    'SRincl',
-    ]
-
-if region_type == 'H':
-    regions.remove('VRD1')
-    regions.remove('VRD2')
-    regions.remove('VRD3')
-
+region_name = 'SR_' + args.region_type
+region_type = args.region_type
+regions = args.regions.split(',')
 
 set_atlas_style()
 
@@ -455,8 +429,9 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     hdata.GetYaxis().SetTitle("Number of events")
     hdata.GetYaxis().SetTitleSize(0.05)
     hdata.GetYaxis().SetTitleOffset(0.9)
-    hdata.GetXaxis().SetLabelSize(0.06)
+    hdata.GetXaxis().SetLabelSize(0.00)
     hdata.GetYaxis().SetLabelSize(0.05)
+
 
     # current
     hdata.Draw('p')
@@ -501,7 +476,8 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     allp = []
     GetBoxes(allp, regions_pull, frame, True)
     
-    c.Print(args.output_dir+"/pull_regions_"+prefix+"_" + args.data + ".pdf")
+    for ext in args.extensions.split(','):
+        c.Print(args.output_dir+"/pull_regions_"+prefix+"_" + args.data + '.' + ext)
 
     return
 

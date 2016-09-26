@@ -1,18 +1,23 @@
 import os
 import ROOT
-import pickle
 
-import YieldsTable
-from prettytable import PrettyTable
+try:
+    import cPickle as pickle
+except:
+    import pickle
+
+from prettytable import PrettyTable, from_html_one
 from latextable import LatexTable
 
-from ROOT import Util
+ROOT.gSystem.Load('%s/lib/libSusyFitter.so' % os.getenv('HISTFITTER'))
+ROOT.gInterpreter.ProcessLine('#include "{0}/src/Utils.h" '.format(os.getenv('HISTFITTER')))
 
-from cmdLineUtils import getPdfInRegions,getName,getPdfInRegionsWithRangeName
+from ROOT import Util
+import YieldsTable
+from cmdLineUtils import getPdfInRegions, getName, getPdfInRegionsWithRangeName
 from fitutils import get_normalization_factors
 
-
-labels_dict = {
+labels_latex_dict = {
     'wgamma': '$W + \gamma$',
     'ttbarg': '$t\\bar{t}$ + $\gamma$',
     'topgamma': 'single-$t$ + $\gamma$',
@@ -35,10 +40,25 @@ labels_dict = {
 
     'efake': '$e\\rightarrow\\gamma$ fakes',
     'jfake': '$j\\rightarrow\\gamma$ fakes',
-
-
     }
 
+labels_html_dict = {
+    'wgamma': 'W gamma',
+    'ttbarg': 'tt gamma',
+    'topgamma': 't gamma',
+    'diboson': 'Dibosons',
+    'wjets': 'W + jets',
+    'ttbar': 'tt',
+    'zjets': 'Z + jets',
+    'zllgamma': 'Z(ll) + gamma',
+    'znunugamma': 'Z(nunu) + gamma',
+    'photonjet': 'gamma + jet',
+    'vqqgamma': 'V(qq) gamma',
+    'group_zllgamma_znunugamma': 'Z gamma',
+    'group_diphoton_vgammagamma': 'diphoton',
+    'efake': 'e fakes',
+    'jfake': 'j fakes',
+    }
 
 def latexfitresults(filename, region_list, sample_list):
 
@@ -248,12 +268,11 @@ def latexfitresults(filename, region_list, sample_list):
     return tablenumbers
 
 
-def yieldstable(workspace, samples, channels, output_name, table_name, latex=True, is_cr=False, show_before_fit=False, unblind=True):
+def yieldstable(workspace, samples, channels, output_name, table_name, is_cr=False, show_before_fit=False, unblind=True):
 
     if is_cr:
         show_before_fit=True
         normalization_factors = get_normalization_factors(workspace)
-
 
     #sample_str = samples.replace(",","_")
     from cmdLineUtils import cmdStringToListOfLists
@@ -272,9 +291,9 @@ def yieldstable(workspace, samples, channels, output_name, table_name, latex=Tru
         #m = YieldsTable.latexfitresults(workspace, regions_list, samples_list, 'obsData') 
         m = latexfitresults(workspace, regions_list, samples_list)
 
-        # f = open(output_name.replace(".tex",".pickle"), 'w')
-        # pickle.dump(m3, f)
-        # f.close()
+        with open(output_name.replace('.tex',  '.pickle'), 'w') as f:
+            pickle.dump(m, f)
+
 
     regions_names = [ region.replace("_cuts", "").replace('_','\_') for region in m['names'] ]
 
@@ -288,10 +307,8 @@ def yieldstable(workspace, samples, channels, output_name, table_name, latex=Tru
 
     samples_list = samples_list_decoded
 
-    if latex:
-        table = LatexTable(field_names, align=align, env=True)
-    else:
-        table = PrettyTable(field_names)
+    tablel = LatexTable(field_names, align=align, env=True)
+    tablep = PrettyTable(field_names, align=align)
 
     #  number of observed events
     if unblind:
@@ -299,25 +316,31 @@ def yieldstable(workspace, samples, channels, output_name, table_name, latex=Tru
     else:
         row = ['Observed events',] + [ '-' for n in m['nobs'] ]
 
-    table.add_row(row)
-    table.add_line()
+    tablel.add_row(row)
+    tablep.add_row(row)
+    tablel.add_line()
+    tablep.add_line()
 
     #print the total fitted (after fit) number of events
     # if the N_fit - N_error extends below 0, make the error physical , meaning extend to 0
-  
-    row = ['Fitted bkg events', ]
+    rowl = ['Expected SM events', ]
+    rowp = ['Expected SM events', ]
 
     for index, n in enumerate(m['TOTAL_FITTED_bkg_events']):
 
         if (n - m['TOTAL_FITTED_bkg_events_err'][index]) > 0. :
-            row.append('$%.2f \pm %.2f$' % (n, m['TOTAL_FITTED_bkg_events_err'][index]))
+            rowl.append('$%.2f \pm %.2f$' % (n, m['TOTAL_FITTED_bkg_events_err'][index]))
+            rowp.append('%.2f &plusmn %.2f' % (n, m['TOTAL_FITTED_bkg_events_err'][index]))
 
         else:
             print "WARNING:   negative symmetric error after fit extends below 0. for total bkg pdf:  will print asymmetric error w/ truncated negative error reaching to 0."
-            row.append('$%.2f_{-%.2f}^{+%.2f}$' % (n, n, m['TOTAL_FITTED_bkg_events_err'][index]))
+            rowl.append('$%.2f_{-%.2f}^{+%.2f}$' % (n, n, m['TOTAL_FITTED_bkg_events_err'][index]))
+            rowp.append('%.2f -%.2f +%.2f' % (n, n, m['TOTAL_FITTED_bkg_events_err'][index]))
 
-    table.add_row(row)
-    table.add_line()
+    tablel.add_row(rowl)
+    tablel.add_line()
+    tablep.add_row(rowp)
+    tablep.add_line()
 
     map_listofkeys = m.keys()
 
@@ -326,7 +349,8 @@ def yieldstable(workspace, samples, channels, output_name, table_name, latex=Tru
     for sample in samples_list:
         for name in map_listofkeys:
 
-            row = []
+            rowl = []
+            rowp = []
 
             if not "Fitted_events_" in name: 
                 continue
@@ -335,30 +359,32 @@ def yieldstable(workspace, samples, channels, output_name, table_name, latex=Tru
             if sample_name != sample:
                 continue
         
-            sample_name = labels_dict.get(sample_name, sample_name)
-            sample_name = sample_name.replace("_","\_")
-            
-            row.append('Fitted %s events' % sample_name)
+            rowl.append('%s' % labels_latex_dict.get(sample_name, sample_name).replace('_', '\_'))
+            rowp.append('%s' % labels_html_dict.get(sample_name, sample_name))
 
             for index, n in enumerate(m[name]):
 
                 if ((n - m['Fitted_err_'+sample][index]) > 0.) or not abs(n) > 0.00001:
-                    row.append('$%.2f \\pm %.2f$' % (n, m['Fitted_err_'+sample][index]))
+                    rowl.append('$%.2f \\pm %.2f$' % (n, m['Fitted_err_'+sample][index]))
+                    rowp.append('%.2f &plusmn %.2f' % (n, m['Fitted_err_'+sample][index]))
 
                 else:
                     print "WARNING:   negative symmetric error after fit extends below 0. for sample", sample, "    will print asymmetric error w/ truncated negative error reaching to 0."
-                    row.append('$%.2f_{-%.2f}^{+%.2f}$' % (n, n, m['Fitted_err_'+sample][index]))
+                    rowl.append('$%.2f_{-%.2f}^{+%.2f}$' % (n, n, m['Fitted_err_'+sample][index]))
+                    rowp.append('%.2f -%.2f +%.2f' % (n, n, m['Fitted_err_'+sample][index]))
 
-
-            table.add_row(row)
+            tablel.add_row(rowl)
+            tablep.add_row(rowp)
   
-    table.add_line()
+    tablel.add_line()
+    tablep.add_line()
 
     # print the total expected (before fit) number of events
     if show_before_fit:
 
         # if the N_fit - N_error extends below 0, make the error physical , meaning extend to 0
-        row = ['MC exp. SM events',]
+        rowl = ['Before SM events',]
+        rowp = ['(before fit) SM events',]
 
         total_before = []
         purity_before = []
@@ -368,10 +394,14 @@ def yieldstable(workspace, samples, channels, output_name, table_name, latex=Tru
             if regions_names[index].startswith('CR'):
                 total_before.append(n)
 
-            row.append('$%.2f$' % n)
+            rowl.append('$%.2f$' % n)
+            rowp.append('%.2f' % n)
 
-        table.add_row(row)
-        table.add_line()
+        tablel.add_row(rowl)
+        tablel.add_line()
+
+        tablep.add_row(rowp)
+        tablep.add_line()
 
         map_listofkeys = m.keys()
 
@@ -381,11 +411,8 @@ def yieldstable(workspace, samples, channels, output_name, table_name, latex=Tru
 
             for name in map_listofkeys:
 
-                row = []
-
-#   File "/afs/cern.ch/user/f/falonso/work/Susy/Run2/PhotonMetAnalysis/lib/yieldstable.py", line 370, in yieldstable
-#     if "MC_exp_events_" in name  and sample in name:
-# TypeError: 'in <string>' requires string as left operand, not list
+                rowl = []
+                rowp = []
 
                 if "MC_exp_events_" in name and sample in name:
 
@@ -393,15 +420,9 @@ def yieldstable(workspace, samples, channels, output_name, table_name, latex=Tru
 
                     if sample_name != sample:
                         continue
-
-                    sample_name = labels_dict.get(sample_name, sample_name)
-                    sample_name = sample_name.replace("_","\_")
-
               
-                    if sample not in ['efake', 'jfake']:
-                        row.append('MC exp. %s events' % sample_name)
-                    else: 
-                        row.append('%s events' % sample_name)
+                    rowl.append('(before fit) %s' % labels_latex_dict.get(sample_name, sample_name).replace('_', '\_'))
+                    rowp.append('(before fit) %s' % labels_html_dict.get(sample_name, sample_name))
 
                     for index, n in enumerate(m[name]):
                     
@@ -412,43 +433,61 @@ def yieldstable(workspace, samples, channels, output_name, table_name, latex=Tru
                         if regions_names[index] == 'CRT' and sample == 'ttbarg':
                             purity_before.append(n)
 
-                        row.append('$%.2f$' % n)
+                        rowl.append('$%.2f$' % n)
+                        rowp.append('%.2f' % n)
 
-                    table.add_row(row)
-
-        table.add_line()
+                    tablel.add_row(rowl)
+                    tablep.add_row(rowp)
+  
+        tablel.add_line()
+        tablep.add_line()
 
     if show_before_fit and all([r.startswith('CR') for r in regions_names]) and normalization_factors is not None:
 
-        table.add_row(['', '', '', ''])
-        table.add_line()
+        tablel.add_row(['', '', '', ''])
+        tablel.add_line()
+
+        tablep.add_row(['', '', '', ''])
+        tablep.add_line()
 
         # purity
-        row = ['Purity',]
+        rowl = ['Purity',]
+        rowp = ['Purity',]
+
         for index, region in enumerate(regions_names):
 
             purity = int(purity_before[index]/total_before[index] * 100.)
 
-            row.append('$%i\%%$' % purity)
+            rowl.append('$%i\%%$' % purity)
+            rowp.append('%i%%' % purity)
             
-        table.add_row(row)
-        table.add_line()
+        tablel.add_row(rowl)
+        tablel.add_line()
+
+        tablep.add_row(rowp)
+        tablep.add_line()
 
         # normalization
-        row = ['Normalization factor ($\mu$)',]
+        rowl = ['Normalization factor ($\mu$)',]
+        rowp = ['Normalization factor (mu)',]
         for region in regions_names:
-            row.append('$%.2f \pm %.2f$' % normalization_factors[region])
+            rowl.append('$%.2f \pm %.2f$' % normalization_factors[region])
+            rowp.append('%.2f &plusmn %.2f' % normalization_factors[region])
 
-        table.add_row(row)
-        table.add_line()
-
-
-    table.save_tex(output_name)
-
-
+        tablel.add_row(rowl)
+        tablel.add_line()
+        tablep.add_row(rowp)
+        tablep.add_line()
 
 
-def merge_tables_sr(table_srl, table_srh, table_output):
+    tablel.save_tex(output_name)
+
+    with open(output_name.replace('.tex', '.html'), 'w+') as f:
+        f.write(tablep.get_html_string())
+
+
+
+def merge_tables(table_srl, table_srh, output_name):
 
     if not os.path.isfile(table_srl) or not os.path.isfile(table_srh):
         return None
@@ -488,18 +527,35 @@ def merge_tables_sr(table_srl, table_srh, table_output):
         new_lines.append(new_line)
 
 
-
-    with open(table_output, 'w') as f:
+    with open(output_name, 'w') as f:
         
         s = r'\begin{{tabular}}{{l|{RCOLS}|{RCOLS}}}\hline & \multicolumn{{{NCOLS}}}{{c|}}{{\SRL}} & \multicolumn{{{NCOLS}}}{{c}}{{\SRH}}\\'.format(RCOLS='r'*ncols, NCOLS=str(ncols))
 
         f.write(s)
-
         f.write('\n'.join(new_lines))
-
         f.write('\end{tabular}\n')
 
 
+    # merge HTML tables
+    table1 = from_html_one(open(table_srl.replace('.tex', '.html')).read())
+    table2 = from_html_one(open(table_srh.replace('.tex', '.html')).read())
+
+    field_names  = [ '%s (L)' % fn for fn in table1._field_names[1:] ]
+    field_names += [ '%s (H)' % fn for fn in table2._field_names[1:] ]
+
+    table3 = PrettyTable(['',] + field_names, align={'': 'left'})
+
+    for row1, row2  in zip(table1._rows, table2._rows):
+
+        if row1[0] == row2[0]:
+            table3.add_row(row1 + row2[1:])
+        else:
+            raise
+
+    with open(output_name.replace('.tex', '.html'), 'w+') as f:
+        f.write(table3.get_html_string())
+
+    
 
 
 

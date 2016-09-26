@@ -4,18 +4,23 @@ from statutils import *
 
 import style
 
+# Gauginos labels
 n1_text = '#tilde{#chi} #kern[-0.8]{#lower[0.8]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}'
 n2_text = '#tilde{#chi} #kern[-0.8]{#lower[0.8]{#scale[0.6]{2}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}'
 n3_text = '#tilde{#chi} #kern[-0.8]{#lower[0.8]{#scale[0.6]{3}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}'
 c1_text = '#tilde{#chi} #kern[-0.8]{#lower[0.8]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{#pm}}}'
-
 mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[0.8]{#scale[0.6]{1}}} #kern[-1.41]{#lower[-0.6]{#scale[0.6]{0}}}}'
 
-def draw_box(x, y, size=1, color='blue'):
+# Grid plot size
+glmin = 1146
+glmax = 2100 #2400
+n1min = 147
+n1max = 2100 #2400
 
+
+def draw_box(x, y, size=1, color='blue'):
     y1 = y
     y2 = y + size
-
     x1 = x
     x2 = x + size
 
@@ -23,6 +28,7 @@ def draw_box(x, y, size=1, color='blue'):
     box.SetFillColor(get_color(color))
     ROOT.SetOwnership(box, False)
     box.Draw()
+
 
 def draw_boxlegend(x, y, color, text):
 
@@ -57,10 +63,6 @@ def draw_boxpie(m3, mu, *brs):
         box.Draw()
 
 
-glmin = 1146
-glmax = 2100 #2400
-n1min = 147
-n1max = 2100 #2400
 
 def draw_grid_frame(xsize=800, ysize=600):
 
@@ -135,58 +137,42 @@ def grid_histogram(name):
 
     return hist
 
-def calc_poisson_cl_lower(q, obs):
-    """
-    Calculate lower confidence limit
-    e.g. to calculate the 68% lower limit for 2 observed events:
-    calcPoissonCLLower(0.68, 2.)
-    """
-    ll = 0.
-    if obs >= 0.:
-        a = (1. - q) / 2. # = 0.025 for 95% confidence interval
-        ll = ROOT.TMath.ChisquareQuantile(a, 2.*obs) / 2.
 
-    return ll
+def draw_ratio_lines(hist):
 
-def calc_poisson_cl_upper(q, obs):
-    """
-    Calculate upper confidence limit
-    e.g. to calculate the 68% upper limit for 2 observed events:
-    calcPoissonCLUpper(0.68, 2.)
-    """
-    ul = 0.
-    if obs >= 0. :
-        a = 1. - (1. - q) / 2. # = 0.025 for 95% confidence interval
-        ul = ROOT.TMath.ChisquareQuantile(a, 2.* (obs + 1.)) / 2.
+    firstbin = hist.GetXaxis().GetFirst()
+    lastbin  = hist.GetXaxis().GetLast()
+    xmax     = hist.GetXaxis().GetBinUpEdge(lastbin)
+    xmin     = hist.GetXaxis().GetBinLowEdge(firstbin)
 
-    return ul
+    line0 = ROOT.TLine(xmin, 1., xmax, 1.)
+    line1 = ROOT.TLine(xmin, 0.5,xmax, 0.5)
+    line2 = ROOT.TLine(xmin, 1.5,xmax, 1.5)
+    line3 = ROOT.TLine(xmin, 2.0,xmax, 2.0)
+    
+    ROOT.SetOwnership(line0, False)
+    ROOT.SetOwnership(line1, False)
+    ROOT.SetOwnership(line2, False)
+    ROOT.SetOwnership(line3, False)
 
-def make_poisson_cl_errors(hist):
+    line0.SetLineWidth(1)
+    line0.SetLineStyle(2)
+    line1.SetLineStyle(3)
+    line2.SetLineStyle(3)
+    line3.SetLineStyle(3)
 
-    x_val  = array('f')
-    y_val = array('f')
-    x_errU = array('f')
-    x_errL = array('f')
-    y_errU = array('f')
-    y_errL = array('f')
+    line0.Draw()
+    line1.Draw()
+    line2.Draw()
+    line3.Draw()
 
-    for b in xrange(1, hist.GetNbinsX()+1):
-        binEntries = hist.GetBinContent(b)
-        if binEntries > 0.:
-            binErrUp   = calc_poisson_cl_upper(0.68, binEntries) - binEntries
-            binErrLow  = binEntries - calc_poisson_cl_lower(0.68, binEntries)
-            x_val.append(hist.GetXaxis().GetBinCenter(b))
-            y_val.append(binEntries)
-            y_errU.append(binErrUp)
-            y_errL.append(binErrLow)
-            x_errU.append(hist.GetXaxis().GetBinWidth(b)/2.)
-            x_errL.append(hist.GetXaxis().GetBinWidth(b)/2.) 
+def save_with_mathtext(can, outname):
+    can.Print(plotname+'.eps')
+    cmd = 'eps2eps {plotname}.eps {plotname}_.eps && epstopdf {plotname}_.eps --outfile {plotname}.pdf && rm {plotname}.eps {plotname}_.eps'.format(plotname=outname)
+    os.system(cmd)
 
-    if len(x_val) > 0:
-        data_graph = ROOT.TGraphAsymmErrors(len(x_val), x_val, y_val, x_errL, x_errU, y_errL, y_errU)
-        return data_graph
-    else:
-        return ROOT.TGraph()
+def fix_output_name(name):
+    return name.replace(':', '_').replace('[','').replace(']', '')
 
 
 def do_plot(plotname, 
@@ -199,8 +185,7 @@ def do_plot(plotname,
             normalize=False,
             do_fit=False,
             logy=True,
-            publish=False,
-            ):
+            extensions=['pdf',]):
 
     if data is None:
         data = {}
@@ -208,7 +193,6 @@ def do_plot(plotname,
         signal = {}
     if bkg is None:
         bkg = {}
-
 
     labels_dict = style.labels_dict
     atlas_label = style.atlas_label
@@ -263,7 +247,7 @@ def do_plot(plotname,
         dn_size = calc_size(cdown)
 
     else:
-        if logy and conf.logy:
+        if logy: ## conf.logy:
             can.SetLogy()
 
         can.SetTicks(1, 1)
@@ -274,7 +258,6 @@ def do_plot(plotname,
         
         up_size = calc_size(can)
         dn_size = calc_size(can) 
-
 
     # configure histograms
     if data:
@@ -333,11 +316,13 @@ def do_plot(plotname,
             
 
     # add entries to legend
+    legxmin, legxmax = 0.6, 0.88
+    legymin, legymax = 0.6, 0.88
     if do_ratio:
         legymin = 0.64
         legymax = 0.88
 
-        if legpos == 'left':
+        if legpos == 'left' or legpos == 'top':
             legxmin = 0.20
             legxmax = 0.53
         elif legpos == 'right':
@@ -347,8 +332,8 @@ def do_plot(plotname,
         legymin = 0.80
         legymax = 0.94
 
-        if legpos == 'left':
-            legxmin = 0.20
+        if legpos == 'left' or legpos == 'top':
+            legxmin = 0.15
             legxmax = 0.53
         elif legpos == 'right':
             legxmin = 0.65
@@ -358,8 +343,13 @@ def do_plot(plotname,
     legend1.SetTextFont(42)
     legend1.SetTextSize(legend1.GetTextSize()*0.8)
     if signal:
-        legend2 = legend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
+        if legpos == 'top':
+            legend2 = legend(legxmax+0.05, legymin, legxmax+0.35, legymax)
+        else:
+            legend2 = legend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
+
         legend2.SetTextFont(42)
+        legend2.SetTextSize(legend1.GetTextSize())
 
     if bkg:
         for name, hist in bkg.iteritems():
@@ -407,19 +397,22 @@ def do_plot(plotname,
     else:
         can.RedrawAxis()
 
-    if logy and conf.logy:
-        chist.SetMinimum(0.01)
+    if logy:
+        # if chist.GetMinimum() > 1:
+        chist.SetMinimum(0.1)
+        # else:
+        #     chist.SetMinimum(0.01)
 
-    if logy and conf.logy:
-        if 'dphi' in variable: ## or 'phi' in variable or 'eta' or variable:
-            chist.SetMaximum(chist.GetMaximum()*100000)
-        else:
-            ymax = chist.GetMaximum()
-            # for hist in signal.itervalues():
-            #     if hist.GetMaximum() < ymax:
-            #         ymax = hist.GetMaximum()
-
-            chist.SetMaximum(ymax*1000)
+    if logy:
+        # if 'dphi' in variable: ## or 'phi' in variable or 'eta' or variable:
+        #     chist.SetMaximum(chist.GetMaximum()*100000)
+        # else:
+        ymax = chist.GetMaximum()
+        # for hist in signal.itervalues():
+        #     if hist.GetMaximum() < ymax:
+        #         ymax = hist.GetMaximum()
+        
+        chist.SetMaximum(ymax*100)
     else:
         chist.SetMaximum(chist.GetMaximum()*2)
 
@@ -485,68 +478,11 @@ def do_plot(plotname,
         t.SetTextColor(ROOT.kBlack)
 
         if legpos == 'right':
-            if publish:
-                t.DrawLatex(0.19, 0.84, atlas_label)
             t.DrawLatex(0.19, 0.76, data_label)
+        elif legpos == 'top':
+            t.DrawLatex(0.19, 0.56, data_label)
         else:
-            if publish:
-                t.DrawLatex(0.60, 0.84, atlas_label)
             t.DrawLatex(0.60, 0.76, data_label)
-
-    if 'SR' in region_name:
-        
-        li = ROOT.TLine()
-        li.SetLineStyle(2)
-        li.SetLineWidth(2)
-        li.SetLineColor(ROOT.kBlack)
-
-        ar = ROOT.TArrow(0, 0, 0, 0, 0.008, "|>")
-        ar.SetLineWidth(2)
-        ar.SetLineColor(ROOT.kBlack)
-
-        rl = ROOT.TLatex()
-        rl.SetTextSize(0.038)
-        rl.SetTextColor(ROOT.kBlack)
-
-        if variable == 'met_et' and region_name.endswith('L'):
-            li.DrawLine(200, 0, 200, 50)
-            ar.DrawArrow(200, 10, 225, 10)
-            rl.DrawLatex(240, 9, 'SR_{L}')
-        elif variable == 'met_et' and region_name.endswith('H'):
-            li.DrawLine(400, 0, 400, 100)
-            ar.DrawArrow(400, 4, 425, 4)
-            rl.DrawLatex(435, 3.5, 'SR_{H}')
-        
-        if variable == 'meff' and region_name.endswith('L'):
-            li.DrawLine(2000, 0, 2000, 70)
-            ar.DrawArrow(2000, 10, 2150, 10)
-            rl.DrawLatex(2080, 17, 'SR_{L}')
-        elif variable == 'meff' and region_name.endswith('H'):
-            li.DrawLine(2000, 0, 2000, 70)
-            ar.DrawArrow(2000, 6, 2075, 6)
-            rl.DrawLatex(2100, 5.5, 'SR_{H}')
-
-    elif 'VR' in region_name:
-
-        if '_L' in region_name:
-            text = region_name.split('_')[0] + ' (SR_{L})'
-        elif '_H' in region_name:
-            text = region_name.split('_')[0] + ' (SR_{H})'
-
-        if legpos == 'right':
-            t.DrawLatex(0.19, 0.68, text)
-        else:
-            t.DrawLatex(0.60, 0.68, text)
-    
-    # t = ROOT.TLatex(0, 0, text)
-    # t.SetNDC()
-    # t.SetTextColor(ROOT.kBlack)
-    # t.SetTextFont(42)
-    # t.SetTextSize(0.04)
-    # if legpos == 'right':
-    #     t.DrawLatex(0.20, 0.64, text)
-    # else:
-    #     t.DrawLatex(0.6, 0.64, text)
 
     ratio_ylabel_size = dn_size
     ratio_ytitle_size = dn_size
@@ -556,7 +492,7 @@ def do_plot(plotname,
     
     if do_ratio and data and bkg and ratio_type == 'significance':
 
-        ratio = histogram_equal_to(data)
+        ratio = data.Clone()
 
         cdown.cd()
         ratio.SetTitle('')
@@ -570,8 +506,8 @@ def do_plot(plotname,
 
         # x axis
         ratio.GetXaxis().SetTitle(xtitle)
-        if xmin is not None and xmax is not None:
-            ratio.GetXaxis().SetRangeUser(xmin, xmax)
+        if conf.xmin is not None and conf.xmax is not None:
+            ratio.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
         ratio.GetXaxis().SetLabelSize(ratio_xlabel_size)
         ratio.GetXaxis().SetTitleSize(ratio_xtitle_size)
         ratio.GetXaxis().SetTitleOffset(1.2)
@@ -743,30 +679,11 @@ def do_plot(plotname,
         err_band_stat.SetLineColor(sm_total_color)
         err_band_stat.SetFillColor(sm_total_color)
 
-        # ratio.Draw('P0Z')
+        draw_ratio_lines(chist)
         err_band_stat.Draw('P2same')
         ratio.Draw('P0Z')
 
-        firstbin = frame.GetXaxis().GetFirst()
-        lastbin  = frame.GetXaxis().GetLast()
-        xmax     = frame.GetXaxis().GetBinUpEdge(lastbin)
-        xmin     = frame.GetXaxis().GetBinLowEdge(firstbin)
 
-        lines = [
-            ROOT.TLine(xmin, 1., xmax, 1.),
-            ROOT.TLine(xmin, 0.5,xmax, 0.5),
-            ROOT.TLine(xmin, 1.5,xmax, 1.5),
-            ROOT.TLine(xmin, 2.0,xmax, 2.0),
-            ]
-
-        lines[0].SetLineWidth(1)
-        lines[0].SetLineStyle(2)
-        lines[1].SetLineStyle(3)
-        lines[2].SetLineStyle(3)
-        lines[3].SetLineStyle(3)
-
-        for line in lines:
-            line.Draw()
 
     elif do_ratio and signal and bkg:
 
@@ -811,7 +728,7 @@ def do_plot(plotname,
 
         # x axis
         ratio_z[0].GetXaxis().SetTitle(xtitle)
-        if xmin is not None and xmax is not None:
+        if conf.xmin is not None and conf.xmax is not None:
             ratio_z[0].GetXaxis().SetRangeUser(xmin, xmax)
         ratio_z[0].GetXaxis().SetLabelSize(ratio_xlabel_size)
         ratio_z[0].GetXaxis().SetTitleSize(ratio_xtitle_size)
@@ -902,16 +819,9 @@ def do_plot(plotname,
 
 
     # Save 
-    output_name = plotname.replace('[', '').replace(']', '')
-    # if publish:
-    #     can.Print(plotname+'.tex')
-    #     can.Print(plotname+'.eps')
-    #     cmd = 'eps2eps {plotname}.eps {plotname}_.eps && epstopdf {plotname}_.eps --outfile {plotname}.pdf && rm {plotname}.eps {plotname}_.eps'.format(plotname=plotname)
-    #     os.system(cmd)
-    #     print '->', plotname+'.pdf'
-
-    # else:
-    can.Print(output_name+'.pdf')
+    output_name = fix_output_name(plotname)
+    for ext in extensions:
+        can.SaveAs(output_name+'.'+ext)
 
 
 def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
@@ -925,20 +835,10 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
 
     varx, vary = variable.split(':')
 
-    if '[' in varx:
-        vartmp = varx[:varx.find('[')]
-        confx = style.plots_conf.get(vartmp)
-    else:
-        confx = style.plots_conf.get(varx)
+    confx, confy = style.get_plotconf(variable)
 
-    if '[' in vary:
-        vartmp = vary[:vary.find('[')]
-        confy = style.plots_conf.get(vartmp)
-    else:
-        confy = style.plots_conf.get(vary)
-
-    xtitle = confx[0]
-    ytitle = confy[0]
+    xtitle = confx.xtitle
+    ytitle = confy.xtitle
 
     hist.GetXaxis().SetTitle(xtitle)
     hist.GetYaxis().SetTitle(ytitle)
@@ -988,7 +888,7 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
         l.SetTextColor(ROOT.kBlack)
         l.DrawLatex(tx, ty, ttext)
 
-    outname = plotname.replace(':', '_').replace('[','').replace(']', '')
+    outname = fix_output_name(plotname)
     
     can.SaveAs(outname+'.pdf')
 
@@ -1025,11 +925,6 @@ def do_plot_cmp(plotname,
         conf = style.plots_conf.get(variable, style.plots_conf['default'])
 
     xtitle, ytitle, legpos = conf.xtitle, conf.ytitle, conf.legpos
-
-    # if len(conf) > 4:
-    #     xmin, xmax = conf[3], conf[4]
-    # else:
-    #     xmin, xmax = None, None
 
     can = canvas(plotname, plotname, 800, 800)
     can.cd()
@@ -1253,23 +1148,7 @@ def do_plot_cmp(plotname,
         for ratio in ratios[1:]:
             ratio.Draw('same')
 
-        firstbin = ratios[0].GetXaxis().GetFirst()
-        lastbin  = ratios[0].GetXaxis().GetLast()
-        xmax     = ratios[0].GetXaxis().GetBinUpEdge(lastbin)
-        xmin     = ratios[0].GetXaxis().GetBinLowEdge(firstbin)
-
-        lines = [None, None, None,]
-        lines[0] = ROOT.TLine(xmin, 1., xmax, 1.)
-        lines[1] = ROOT.TLine(xmin, 0.5,xmax, 0.5)
-        lines[2] = ROOT.TLine(xmin, 1.5,xmax, 1.5)
-
-        lines[0].SetLineWidth(1)
-        lines[0].SetLineStyle(2)
-        lines[1].SetLineStyle(3)
-        lines[2].SetLineStyle(3)
-
-        for line in lines:
-            line.Draw()
+        draw_ratio_lines(ratios[0])
 
 
     can.Print(plotname+'.pdf')
