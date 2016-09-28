@@ -4,63 +4,34 @@ import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gROOT.SetBatch(1)
 
-import sys, argparse
+import argparse
+import analysis
 from miniutils import get_events
 from rootutils import *
 from drawutils import draw_grid_frame
 import regions as regions_
-from mass_dict import mass_dict
+from signalgrid import grid_m3_mu
 
 
+parser = argparse.ArgumentParser(description='draw_signal_contamination')
+parser.add_argument('-r', dest='regions', help='regions')
+parser.add_argument('-o', dest='output_dir', default='.', help='Output dir')
+parser.add_argument('--ext', dest='extensions', default='pdf', help='')
 
-backgrounds = [
-    'photonjet',
-    'wgamma',
-    'zgamma',
-    'ttbarg',
-    'jfake',
-    'efake',
-    ]
+args = parser.parse_args()
 
-regions = [
-    # 'CRQ_L',
-    # 'CRW_L',
-    # 'CRT_L',
+backgrounds = analysis.backgrounds
 
-    # 'CRQ_H',
-    # 'CRW_H',
-    # 'CRT_H',
-    
-    # 'VRM1_L',
-    # 'VRM2_L',
-    # 'VRM3_L',
+if args.regions:
+    regions = args.regions.split(',')
+else:
+    regions = [ cr + '_L' for cr in analysis.cr_regions ] + \
+        [ cr + '_H' for cr in analysis.cr_regions ] + \
+        [ vr + '_L' for vr in analysis.vr_regions ] + \
+        [ vr + '_H' for vr in analysis.vr_regions ] 
 
-    # 'VRD1_L',
-    # 'VRD2_L',
-    # 'VRD3_L',
-
-    # 'VRM1_H',
-    # 'VRM2_H',
-    # 'VRM3_H',
-
-    # 'VRD1_H',
-    # 'VRD2_H',
-    # 'VRD3_H',
-
-    'VRL1_L',
-    'VRL2_L',
-    'VRL3_L',
-    'VRL4_L',
-
-    'VRL1_H',
-    'VRL2_H',
-    'VRL3_H',
-    'VRL4_H',
-
-    # 'VRH_L',
-    # 'VRH_H',
- ]
-
+set_atlas_style()
+set_palette()
 
 for region in regions:
 
@@ -84,9 +55,7 @@ for region in regions:
 
     largest_cont = 0
 
-    for (m3, mu) in mass_dict.iterkeys():
-
-        mgl, mn1 = mass_dict[(int(m3), int(mu))]
+    for (m3, mu), (mgl, mn1) in grid_m3_mu.iteritems():
 
         name = 'GGM_M3_mu_%i_%i' % (m3, mu)
 
@@ -99,15 +68,8 @@ for region in regions:
         hmap.Fill(mgl, mn1, contamination)
 
 
-
-    set_atlas_style()
-    set_palette()
-
     frame = draw_grid_frame() 
     frame.SetRightMargin(0.15)
-
-    # hmap.GetZaxis().SetTitle('Signal Contamination [%]')
-    # hmap.GetZaxis().SetTitleOffset(1.4)
 
     hmap.SetContour(999)
     hmap.GetZaxis().SetRangeUser(0, 100)
@@ -122,6 +84,8 @@ for region in regions:
     l.DrawLatex(0.17, 0.78, region.replace('_L', '_{L}').replace('_H', '_{H}'))
 
     frame.RedrawAxis()
-    frame.SaveAs('signal_contamination_'+region+'.pdf')
+
+    for ext in args.extensions.split(','):
+        frame.SaveAs(args.output_dir+"/signal_contamination_"+region+'.' + ext)
 
 

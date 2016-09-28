@@ -1,27 +1,23 @@
 #! /usr/bin/env python
 
-# single photon analysis
-# plots script
-
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gROOT.SetBatch(1)
 
 import os
 import sys
-import argparse
 import math
-import string, pickle, copy
-from rootutils import *
+import argparse
+import subprocess
+import pickle
 from collections import OrderedDict
 
+from rootutils import *
+import style
 from style import colors_dict, labels_dict
 from drawutils import calc_poisson_cl_upper, calc_poisson_cl_lower
-import subprocess
-
 from yieldstable import latexfitresults
-
-import style
+from analysis import 
 
 parser = argparse.ArgumentParser(description='plot regions pull')
     
@@ -29,10 +25,9 @@ parser.add_argument('--ws', dest='workspace', required=True, help='Input workspa
 parser.add_argument('-o', dest='output_dir', default='.', help='Output dir')
 parser.add_argument('-r', dest='regions', help='regions')
 parser.add_argument('-n', dest='region_type', help='L or H')
-parser.add_argument('--data', default='data', help='data15|data16|data')
+#parser.add_argument('--data', default='data', help='data15|data16|data')
 parser.add_argument('--unblind', action='store_true', help='Unblind! (use with caution)')
-parser.add_argument('--publish', action='store_true', help='')
-parser.add_argument('--ext', dest='extensions', default='pdf,', help='')
+parser.add_argument('--ext', dest='extensions', default='pdf', help='')
 
 args = parser.parse_args()
 
@@ -44,22 +39,7 @@ regions = args.regions.split(',')
 set_atlas_style()
 
 # Backgrounds
-backgrounds = [
-    'photonjet',
-    'wgamma',
-    'zllgamma', 
-    'znunugamma',
-    'ttbarg',
-    'diphoton',
-    'vgammagamma',
-    ]
-
-if args.data == 'data15':
-    backgrounds.extend(['jfake15', 'efake15'])
-elif args.data == 'data16':
-    backgrounds.extend(['jfake16', 'efake16'])
-else:
-    backgrounds.extend(['jfake', 'efake'])
+backgrounds = analysis.backgrounds
 
 
 def get_region_color(region):
@@ -356,15 +336,15 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     merged_bkgs['gamjet'] = to_merge['photonjet']
     merged_bkgs['tgamma'] = to_merge['ttbarg'] #+ to_merge['ttbarghad'] to_merge['topgamma'] + 
 
-    if args.data == 'data15':
-        merged_bkgs['efake'] = to_merge['efake15']
-        merged_bkgs['jfake'] = to_merge['jfake15']
-    elif args.data == 'data16':
-        merged_bkgs['efake'] = to_merge['efake16']
-        merged_bkgs['jfake'] = to_merge['jfake16']
-    else:
-        merged_bkgs['efake'] = to_merge['efake']
-        merged_bkgs['jfake'] = to_merge['jfake']
+    # if args.data == 'data15':
+    #     merged_bkgs['efake'] = to_merge['efake15']
+    #     merged_bkgs['jfake'] = to_merge['jfake15']
+    # elif args.data == 'data16':
+    #     merged_bkgs['efake'] = to_merge['efake16']
+    #     merged_bkgs['jfake'] = to_merge['jfake16']
+    # else:
+    merged_bkgs['efake'] = to_merge['efake']
+    merged_bkgs['jfake'] = to_merge['jfake']
 
     merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] 
 
@@ -416,12 +396,12 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     legend1.AddEntry(hbkg_total, "stat #oplus syst", 'f')
 
-    if args.data == 'data15':
-        legend1.AddEntry(graph_data, 'Data 2015', 'pl')
-    elif args.data == 'data16':
-        legend1.AddEntry(graph_data, 'Data 2016', 'pl')
-    else:
-        legend1.AddEntry(graph_data, 'Data', 'pl')
+    # if args.data == 'data15':
+    #     legend1.AddEntry(graph_data, 'Data 2015', 'pl')
+    # elif args.data == 'data16':
+    #     legend1.AddEntry(graph_data, 'Data 2016', 'pl')
+    # else:
+    legend1.AddEntry(graph_data, 'Data', 'pl')
 
     set_style(graph_data, msize=1, lwidth=2, color=ROOT.kBlack)
     set_style(hdata, msize=1, lwidth=2, color=ROOT.kBlack)
@@ -441,12 +421,12 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     hbkg_total.Draw("E2same][")
     graph_data.Draw("P0Z")
 
-    if args.data == 'data15':
-        text = style.data15_label
-    elif args.data == 'data16':
-        text = style.data16_label
-    else:
-        text = style.data_label
+    # if args.data == 'data15':
+    #     text = style.data15_label
+    # elif args.data == 'data16':
+    #     text = style.data16_label
+    # else:
+    text = style.data_label
 
     t = ROOT.TLatex(0, 0, text)
     t.SetNDC()
@@ -454,8 +434,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     t.SetTextSize(0.05)
     t.SetTextColor(ROOT.kBlack)
 
-    if args.publish:
-        t.DrawLatex(0.15, 0.80, style.atlas_label)
+    t.DrawLatex(0.15, 0.80, style.atlas_label)
     t.DrawLatex(0.15, 0.72, text)
     t.DrawLatex(0.15, 0.64, region_name.replace('L', '{L}').replace('H', '{H}'))
 
@@ -472,12 +451,11 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     frame.Draw()
 
-
     allp = []
     GetBoxes(allp, regions_pull, frame, True)
     
     for ext in args.extensions.split(','):
-        c.Print(args.output_dir+"/pull_regions_"+prefix+"_" + args.data + '.' + ext)
+        c.Print(args.output_dir+"/pull_regions_"+prefix+'.' + ext)
 
     return
 

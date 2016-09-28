@@ -50,6 +50,7 @@ backgrounds_mc_alt = [
     'multijet',
     ]
 
+backgrounds = backgrounds_mc + backgrounds_dd
 backgrounds_str = ','.join(backgrounds_mc+backgrounds_dd)
 
 # Regions

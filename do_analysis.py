@@ -5,16 +5,16 @@ import sys
 import subprocess
 import datetime
 
-from fitutils import get_normalization_factors
-from yieldstable import yieldstable, merge_tables
-from webpage import WebPage
 import analysis
 import regions
+from fitutils import get_normalization_factors
+from yieldstable import yieldstable, merge_tables
+from webpage import create_webpage
 
 today = datetime.datetime.today()
 
 daytag = today.strftime('%Y%b%d')
-extratag = 'ds2_v41_crw1jet'
+extratag = 'test' #ds2_v41_crt'
 
 tag = daytag + ('_'+extratag if extratag else '')
 
@@ -91,14 +91,21 @@ def run_cmd(*cmds):
 #------------------
 # Log configuration
 #------------------
-info = """
-Date: %s
-Mini version: %s
-Lumi: %.2f
-""" % (today.strftime('%d %b %Y'), ','.join(analysis.versions), (analysis.lumi_data15+analysis.lumi_data16))
+info_dict = {
+    'date': today.strftime('%d %b %Y'),
+    'version': ','.join(analysis.versions),
+    'lumi': (analysis.lumi_data15+analysis.lumi_data16), 
+    'syst': do_syst,
+    }
 
 with open(log_dir + '/info.txt', 'w+') as f:
-    f.write(info)
+    f.write("""
+Date: {date}
+Mini version: {version}
+Lumi: {lumi:.2f}
+Syst: {syst}
+""".format(**info_dict))
+
 
 
 #------------------
@@ -291,29 +298,13 @@ cmd_srh_all  = 'plot_region_pull.py --ws %s -r CRQ,CRW,CRT,VRM1,VRM2,VRM3,VRL1,V
 if do_plots:
     run_cmd(cmd_srl_all, cmd_srh_all)
 
+# Signal contamination
+if do_plots:
+    run_cmd('draw_signal_contamination.py -o %s --ext "pdf,png"' % plots_dir)
+
+
 #--------
 # Webpage
 #--------
-page = WebPage(web_dir, 'Photon + jets + MET analysis')
+create_webpage(results_dir, web_dir, info_dict, regions=['SRi',] + crs + vrs)
 
-# Info
-page.add('Date: %s' % today.strftime('%d %b %Y'))
-page.add('Mini version: %s' % ','.join(analysis.versions))
-page.add('Lumi: %.2f pb-1' % (analysis.lumi_data15+analysis.lumi_data16))
-page.add('Systematics: %s (theoretical syst always used)' % do_syst)
-
-
-# Tables
-page.add_section('Tables')
-page.add_yields_table(tables_dir+'/table_cr_srl_srh.html')
-page.add_yields_table(tables_dir+'/table_vrm_srl_srh.html')
-page.add_yields_table(tables_dir+'/table_vrl_srl_srh.html')
-page.add_yields_table(tables_dir+'/table_vrd_srl_srh.html')
-page.add_yields_table(tables_dir+'/table_sr_srl_srh.html')
-
-# Plots
-if do_plots:
-    page.add_section('Plots')
-    page.add_plots_table(['SRi',] + crs + vrs, plots_dir)
-
-page.save()

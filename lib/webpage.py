@@ -1,48 +1,76 @@
-# www utils
-
 import os
 import glob
 
-class WebPage:
+header = """<!DOCTYPE html>
+<html>
+<head>
+    <title> Photon + jets + MET analysis </title>
+    <meta charset=\"utf-8\" />
+    <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\" />
+    <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />
+    <script type="text/javascript" src="../yieldstable.js"> </script>
+</head>
 
-    def __init__(self, webdir, title):
-        self.path = os.path.join(webdir, 'index.html')
-        self.title = title
-        self.buffer = ''
-        self.webdir = webdir
+<body>
+    <header class=\"clearfix page\">
+        <span class=\"title\"> Photon + jets + MET analysis </span>
+    </header>
+""" 
 
+footer = """
+    </body>
+</html>
+"""
 
-    def add(self, text):
-        self.buffer += '<p>' + text + '</p>\n'
-        
-    def add_section(self, name):
-        self.buffer += '\n\n<p><h2> %s </h2></p>\n\n' % name
+def create_webpage(analysis_dir, webdir, info, regions=[]):
 
-    def add_file(self, fname, label):
-        name = os.path.basename(fname)
-        self.add('<a class=\"btn\" href=\"' + name + '\">' + label + '</a>\n')
+    
+    tables_dir = '%s/tables' % analysis_dir
+    plots_dir  = '%s/plots' % analysis_dir
 
-    def add_file_text(self, path):
-        self.add(open(path).read())
+    main_path = os.path.join(webdir, 'index.html')
 
-        # name = os.path.basename(fname)
-        # self.add('<a class=\"btn\" href=\"' + name + '\">' + label + '</a>\n')
+    main_html = header
 
-    def add_yields_table(self, path):
-        table = open(path).read()
-        table = table.replace('<table>', '<table class="yieldstable">')
-        self.buffer += '<center>\n'
-        self.buffer += table
-        self.buffer += '</center>\n<p></p>\n'
+    # Info
+    main_html += '<p> Date: %s </p>' % info['date']
+    main_html += '<p> Mini version: %s </p>' % info['version']
+    main_html += '<p> Lumi: %.2f pb-1 </p>' % info['lumi']
+    main_html += '<p> Systematics: %s (theoretical syst always used) </p>' % info['syst']
 
-    def add_plots_table(self, regions, plots_dir):
+    # Yield tables
+    main_html += '\n\n<p><h2> Yields tables </h2></p>\n\n'
 
-        if glob.glob(plots_dir+'/pull_regions*.png'):
+    tables = [
+        analysis_dir+'/tables/table_cr_srl_srh.html',
+        analysis_dir+'/tables/table_vrm_srl_srh.html',
+        analysis_dir+'/tables/table_vrl_srl_srh.html',
+        analysis_dir+'/tables/table_vrd_srl_srh.html',
+        analysis_dir+'/tables/table_sr_srl_srh.html',
+        ]
 
-            os.system('mv %s/pull_regions_SR_L_data.png %s/' % (plots_dir, self.webdir))
-            os.system('mv %s/pull_regions_SR_H_data.png %s/' % (plots_dir, self.webdir))
+    for table in tables:
+        if not os.path.isfile(table):
+            continue
 
-            self.buffer += """
+        table_content = open(table).read()
+        table_content = table_content.replace('<table>', '<table class="yieldstable">')
+
+        main_html += '<center>\n'
+        main_html += table_content
+        main_html += '</center>\n<p></p>\n'
+
+    
+    # Plots
+    main_html += '\n\n<p><h2> Plots </h2></p>\n\n'
+
+    ## Regions pull
+    if glob.glob(plots_dir+'/pull_regions*.png'):
+
+        os.system('mv %s/pull_regions_SR_L_data.png %s/' % (plots_dir, webdir))
+        os.system('mv %s/pull_regions_SR_H_data.png %s/' % (plots_dir, webdir))
+
+        main_html += """
 <center>
 <table class="plotstable">
 <tr>
@@ -54,19 +82,22 @@ class WebPage:
 </tr>
 """
 
-            self.buffer += '<tr>'
-            self.buffer += '<td><a href=\"pull_regions_SR_L_data.png\"><img src=\"pull_regions_SR_L_data.png\" width=\"540\" height=\"380\"></a></td>'
-            self.buffer += '<td><a href=\"pull_regions_SR_H_data.png\"><img src=\"pull_regions_SR_H_data.png\" width=\"540\" height=\"380\"></a></td>'
-            self.buffer += '</tr>\n</table>\n</center><p></p>\n'
-
+        main_html += '<tr>'
+        main_html += '<td><a href=\"pull_regions_SR_L_data.png\"><img src=\"pull_regions_SR_L_data.png\" width=\"540\" height=\"380\"></a></td>'
+        main_html += '<td><a href=\"pull_regions_SR_H_data.png\"><img src=\"pull_regions_SR_H_data.png\" width=\"540\" height=\"380\"></a></td>'
+        main_html += '</tr>\n</table>\n</center><p></p>\n'
+    
+    ## Regions distributions
+    for region in regions:
             
-        for region in regions:
-            
-            plot_list  = glob.glob(plots_dir+'/can_{0}_L_*.png'.format(region))
-            print plot_list
-            self.buffer += "<center>"
+        plot_list  = glob.glob(plots_dir+'/can_{0}_L_*.png'.format(region))
 
-            self.buffer += """
+        if not plot_list:
+            continue
+
+        main_html += "<center>"
+
+        main_html += """
 
 <table class="plotstable">
 <tr>
@@ -78,60 +109,37 @@ class WebPage:
 </tr>
 """.format(region)
 
-            for plot in sorted(plot_list):
+        for plot in sorted(plot_list):
 
-                self.buffer += '<tr>'
+            main_html += '<tr>'
 
-                plot_path = plot
-                plot_name = plot.split('/')[-1] 
+            plot_path = plot
+            plot_name = plot.split('/')[-1] 
 
-                os.system('mv %s %s/' % (plot_path, self.webdir))
+            os.system('mv %s %s/' % (plot_path, webdir))
         
-                self.buffer += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"480\" height=\"480\"></a></td>'
+            main_html += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"480\" height=\"480\"></a></td>'
 
-                plot_path = plot.replace('_L_', '_H_')
-                plot_name = plot_name.replace('_L_', '_H_')
+            plot_path = plot.replace('_L_', '_H_')
+            plot_name = plot_name.replace('_L_', '_H_')
 
-                os.system('mv %s %s/' % (plot_path, self.webdir))
+            os.system('mv %s %s/' % (plot_path, webdir))
         
-                self.buffer += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"480\" height=\"480\"></a></td>'
-                self.buffer += '</tr>'
+            main_html += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"480\" height=\"480\"></a></td>'
+            main_html += '</tr>'
                 
-            self.buffer += "</table>"
-            self.buffer += "</center>"
-        
+            main_html += "</table>"
+            main_html += "</center>"
 
 
-    def build_header(self):
-        header = """<!DOCTYPE html>
-<html>
-<head>
-    <title> %s </title>
-    <meta charset=\"utf-8\" />
-    <meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\" />
-    <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />
-    <script type="text/javascript" src="../yieldstable.js"> </script>
-</head>
+    ## More plots
+    #     page.add_section('More plots')
+    #     page.add('<ul> <li><a href="signal_contamination.html">Signal contamination</a></li></ul>')
 
-<body>
-    <header class=\"clearfix page\">
-        <span class=\"title\"> %s </span>
-    </header>
-""" % (self.title, self.title)
 
-        return header
-
-    def build_footer(self):
-        return """
-    </body>
-</html>
-"""
-
-    def save(self):
-        with open(self.path, 'w') as f:
-            f.write(self.build_header())
-            f.write(self.buffer)
-            f.write(self.build_footer())
+    # Save html files
+    with open(main_path, 'w') as f:
+        f.write(main_html)
 
 
 
