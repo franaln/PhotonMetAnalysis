@@ -2,7 +2,7 @@
 use_purw = False
 
 # Mini version
-versions = ['37', ]
+versions = ['41', ]
 
 ptags = ['2689', '2688', '2666', '2667', '2622', '2614']
 

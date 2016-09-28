@@ -51,9 +51,9 @@ def run_cmd(cmd, logfile=None, stdout=False):
 
     sc = os.system(cmd)
 
-    if sc != 0:
-        print 'command sc != 0. exiting...'
-        sys.exit(1)
+    # if sc != 0:
+    #     print 'command sc != 0. exiting...'
+    #     sys.exit(1)
             
     return sc
 

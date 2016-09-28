@@ -598,13 +598,17 @@ def do_plot(plotname,
             eyl = ratio.GetErrorYlow(b)
             eyh = ratio.GetErrorYhigh(b)
             
-            ratio_y   = y/sm_y
-            ratio_eyl = eyl/sm_y
-            ratio_eyh = eyh/sm_y
+            try:
+                ratio_y   = y/sm_y
+                ratio_eyl = eyl/sm_y
+                ratio_eyh = eyh/sm_y
+            except:
+                ratio_y   = 0.
+                ratio_eyl = 0.
+                ratio_eyh = 0.
 
             ratio.SetPoint(b, x, ratio_y)
             ratio.SetPointError(b, exl, exh, ratio_eyl, ratio_eyh)
-
 
         # remove the point from the plot if zero
         # for b in xrange(ratio.GetNbinsX()):

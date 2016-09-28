@@ -53,6 +53,7 @@ signal_region = args.signal_region
 do_validation = args.val 
 use_mc_bkgs   = args.mc 
 do_syst       = args.syst 
+do_theo_syst  = True
 
 data_name = args.data
 
@@ -156,7 +157,7 @@ ttbarg_sample.setNormFactor("mu_t", 1., 0., 2.)
 wgamma_sample     = Sample('wgamma', color("wgamma"))
 zllgamma_sample   = Sample('zllgamma', color("zllgamma"))
 znunugamma_sample = Sample('znunugamma', color("znunugamma"))
-#vqqgamma_sample   = Sample("vqqgamma", color('vqqgamma'))
+vqqgamma_sample   = Sample("vqqgamma", color('vqqgamma'))
 
 zllgamma_sample.setNormByTheory()
 znunugamma_sample.setNormByTheory()
@@ -168,6 +169,7 @@ multijet_sample  = Sample('multijet', color("multijet"))
 
 multijet_sample.setNormByTheory()
 photonjet_sample.setNormFactor("mu_q", 1., 0., 2.)
+#vqqgamma_sample.setNormFactor("mu_q", 1., 0., 2.)
 
 
 # Diphoton backgrounds
@@ -204,7 +206,7 @@ photonjet_sample.setStatConfig(useStat)
 multijet_sample.setStatConfig(useStat)
 diphoton_sample.setStatConfig(useStat)
 vgammagamma_sample.setStatConfig(useStat)
-#vqqgamma_sample.setStatConfig(useStat)
+vqqgamma_sample.setStatConfig(useStat)
 
 if use_mc_bkgs:
     bkg_samples = [
@@ -294,11 +296,6 @@ syst_weight = [
     Sys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
     Sys('EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR'),
 
-    # Sys('FT_EFF_B_systematics'),
-    # Sys('FT_EFF_C_systematics'),
-    # Sys('FT_EFF_Light_systematics'),
-    # # Sys('FT_EFF_extrapolation'),
-
     Sys('JvtEfficiency'),
 
     Sys('MUON_EFF_STAT'),
@@ -318,6 +315,11 @@ syst_weight = [
 syst_to_all = syst_jets +syst_met + syst_egamma + syst_muon + syst_weight
 
 ## Theory Uncertainties
+
+# Zgamma
+sigma_zgamma = 1.
+
+syst_zgamma_theo = Systematic("theoSysZG", 1 , 1+sigma_zgamma, 1-sigma_zgamma, "user", "userOverallSys")
 
 ## gamjet
 sigma_gamjet_srl = 0.57
@@ -362,21 +364,18 @@ else:
     syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crqh,  1-sigma_ttgamma_crqh,  "user", "userOverallSys")
     syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crwth, 1-sigma_ttgamma_crwth, "user", "userOverallSys")
 
-theoSysZG    = Sys('theoSysZG') 
+# signal
 sigXsec      = Sys('SigXSec')
 
 
 
 # Add Sample Specific Systematics (apparently it's needed to add these systs to the samples *BEFORE* adding them to the FitConfig
-if do_syst: 
-
-    #-- sample specific systematics
-    zllgamma_sample.addSystematic(theoSysZG)
-    znunugamma_sample.addSystematic(theoSysZG)
-    # ttbarg_sample.addSystematic(theoSysTopG)
-    # wgamma_sample.addSystematic(theoSysWG)
+if do_theo_syst:
+    zllgamma_sample.addSystematic(syst_zgamma_theo)
+    znunugamma_sample.addSystematic(syst_zgamma_theo)
     photonjet_sample.addSystematic(syst_gamjet_theo)
 
+if do_syst: 
     efake_sample.addSystematic(syst_feg)
     jfake_sample.addSystematic(syst_fjg)
     
@@ -464,7 +463,7 @@ ttbarg_sample.setNormRegions(["CRT",variable])
 photonjet_sample.setNormRegions(["CRQ",variable])
 
 # Add theoretical systematics region specific
-if do_syst:
+if do_theo_syst:
     SR. getSample("wgamma").addSystematic(syst_wgamma_theo_sr)
     CRQ.getSample("wgamma").addSystematic(syst_wgamma_theo_crq)
     CRW.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
@@ -491,14 +490,14 @@ if do_validation:
     validation_channels.append(VRM2)
     validation_channels.append(VRM3)
 
-    if sr_type == 'L':
-        VRD1  = fitconfig.addChannel(variable, ["VRD1"], *binning)
-        VRD2  = fitconfig.addChannel(variable, ["VRD2"], *binning)
-        VRD3  = fitconfig.addChannel(variable, ["VRD3"], *binning)
+    #if sr_type == 'L':
+    VRD1  = fitconfig.addChannel(variable, ["VRD1"], *binning)
+    VRD2  = fitconfig.addChannel(variable, ["VRD2"], *binning)
+    VRD3  = fitconfig.addChannel(variable, ["VRD3"], *binning)
 
-        validation_channels.append(VRD1)
-        validation_channels.append(VRD2)
-        validation_channels.append(VRD3)
+    validation_channels.append(VRD1)
+    validation_channels.append(VRD2)
+    validation_channels.append(VRD3)
 
     VRL1  = fitconfig.addChannel(variable, ["VRL1"], *binning)
     VRL2  = fitconfig.addChannel(variable, ["VRL2"], *binning)

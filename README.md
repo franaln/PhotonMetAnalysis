@@ -3,7 +3,7 @@ PhotonMetAnalysis
 
 ## Code
 
-* lib:     python libraries used by scripts. Most of the "magic" is in "miniutils.py"
+* lib:     python libraries used by scripts and to configure analysis
 * scripts: get_yields.py, get_cutflow.py, draw.py, sphistograms.py and HistFitter scripts
 
 
@@ -23,8 +23,12 @@ PhotonMetAnalysis
 
 ## Run Analysis
 
-* Setup ROOT/HistFitter...
+* Install rootutils 
 
+* Setup ROOT/HistFitter...
+    ```
     source setup.sh
+    ```
+
 
 
