@@ -1,0 +1,11 @@
+*.pyc
+trash/
+tmp/
+output/
+HistFitter*/
+batch/
+run*
+plots*
+results*
+*.pdf
+*.root
