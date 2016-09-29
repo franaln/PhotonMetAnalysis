@@ -172,7 +172,7 @@ def save_with_mathtext(can, outname):
     os.system(cmd)
 
 def fix_output_name(name):
-    return name.replace(':', '_').replace('[','').replace(']', '')
+    return name.replace(':', '_').replace('[','').replace(']', '').replace('(', '').replace(')','')
 
 
 def do_plot(plotname, 

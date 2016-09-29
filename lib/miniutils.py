@@ -290,6 +290,9 @@ def get_sample_datasets(name, version=None, ptag=None):
 #---------------
 # get_histogram
 #---------------
+def get_escaped_variable(variable):
+    return variable.replace(':', '_').replace('/', '').replace('(', '').replace(')', '')
+
 def _get_histogram(ds, **kwargs):
 
     variable   = kwargs.get('variable', 'cuts')
@@ -331,16 +334,11 @@ def _get_histogram(ds, **kwargs):
     if binning is None:
         binning = get_binning(variable)
 
-    # try: FIX
-    #     name = sample.name.split('.')[1]
-    # except:
-    #     name = sample.name
-
     if fs is not None:
-        hname = 'h%s_%s%s_%s_obs_%s' % (ds['did'], fs, systname, region, variable.replace(':', '_'))
+        hname = 'h%s_%s%s_%s_obs_%s' % (ds['did'], fs, systname, region, get_escaped_variable(variable))
     else:
         # to avoid the ROOT warning, not using this name anyway
-        hname = 'h%s%s_%s_obs_%s' % (ds['did'], systname, region, variable.replace(':', '_')) 
+        hname = 'h%s%s_%s_obs_%s' % (ds['did'], systname, region, get_escaped_variable(variable))
 
     if ':' in variable:
         htemp = ROOT.TH2D(hname, hname, *binning)
@@ -365,9 +363,6 @@ def _get_histogram(ds, **kwargs):
             selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == varx ])
         if vary in selection:
             selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == vary ])
-
-    if 'v3c' in ds['name'] and 'meff' in selection:
-        selection = selection.replace('meff', 'ht+ph_pt[0]')
 
     if fs is not None:
         if selection:
