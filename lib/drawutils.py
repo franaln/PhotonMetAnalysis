@@ -206,6 +206,11 @@ def do_plot(plotname,
 
     xtitle, ytitle, legpos = conf.xtitle, conf.ytitle, conf.legpos
 
+    if not logy:
+        logy = False
+    else:
+        logy = conf.logy
+
     can = canvas(plotname, plotname, 800, 800)
     can.cd()
 
@@ -414,7 +419,8 @@ def do_plot(plotname,
         
         chist.SetMaximum(ymax*100)
     else:
-        chist.SetMaximum(chist.GetMaximum()*2)
+        ymax = max(chist.GetMaximum(), data.GetMaximum())
+        chist.SetMaximum(ymax*2)
 
     if do_ratio:
         chist.GetXaxis().SetLabelSize(0.)

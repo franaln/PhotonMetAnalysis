@@ -10,13 +10,13 @@ ROOT.gROOT.SetBatch(1)
 import os
 import sys
 import argparse
-import math
 from functools import partial
 from rootutils import *
 from collections import OrderedDict
 import miniutils
 import regions as regions_
 from drawutils import *
+from fitutils import get_normalization_factors
 
 def get_histogram_from_file(file_, sample, variable, region, syst='Nom'):
     
@@ -50,11 +50,7 @@ def main():
     parser.add_argument('--mc', action='store_true', help='use all backgrounds from MC')
  
     # normalization
-    parser.add_argument('--after', dest='after_fit', action='store_true')
-    parser.add_argument('--ws',  help='Workspace')
-    parser.add_argument('--muq', help='Normalization factor for gam+jet')
-    parser.add_argument('--muw', help='Normalization factor for W gamma')
-    parser.add_argument('--mut', help='Normalization factor for ttbar gamma')
+    parser.add_argument('--ws',  help='Bkg-only fit workspace to extract normalization factors')
 
     # other
     parser.add_argument('-l', dest='lumi')
@@ -63,14 +59,11 @@ def main():
     parser.add_argument('--sel', dest='selection', default='', help='Custom selection')
     parser.add_argument('--outname', help='If custom selection use this output_name')
     parser.add_argument('--n1', action='store_true', help='N-1 plot')
-    parser.add_argument('--comp', action='store_true', dest='region_composition',
-                        help='create region composition plot')
     parser.add_argument('--signal', action='store_true', help='Add signal samples (separated with ,)')
-    parser.add_argument('--blind', help='Add this selection only to data')
+    parser.add_argument('--blind', help='Plot SR but with met_et<200')
     parser.add_argument('--prw', action='store_true', help='Use pile-up reweighting')
     parser.add_argument('--pl', action='store_true', help='publink')
     parser.add_argument('--www', action='store_true', help='create webpage')
-    parser.add_argument('--debug', action='store_true', help='print debug messages')
     parser.add_argument('--ext', dest='extensions', help='')
 
     global args
@@ -119,6 +112,7 @@ def main():
             ]
 
 
+    # Plot from histograms file
     if args.input_file:
 
         ifile = ROOT.TFile.Open(args.input_file)
@@ -156,7 +150,6 @@ def main():
                 outname = os.path.join(args.output, 'can_{}_{}_afterFit'.format(region, variable))
             
                 do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region)
-                
 
         ifile.Close()
         sys.exit(0)
@@ -188,42 +181,25 @@ def main():
             for name in backgrounds:
                 h_bkg[name] = get_histogram(name, variable=variable, region=region_name, selection=selection, syst=syst) 
 
-            # Scale backgrounds according to bkg-only fit
-            if args.after_fit:
+            # If fit workspace given -> scale backgrounds according to normalization factos
+            if args.ws is not None and os.path.isfile(args.ws):
 
-                if args.muq is not None:
-                    
-                    if ',' in args.muq:
-                        mu = ( float(n) for n in args.muq.split(',') )
-                        histogram_scale(h_bkg['photonjet'], *mu)
+                mus = get_normalization_factors(args.ws)
 
-                    else:
-                        h_bkg['photonjet'].Scale(float(args.muq))
-
-                if args.muw is not None:
-                    
-                    if ',' in args.muw:
-                        mu = ( float(n) for n in args.muw.split(',') )
-                        histogram_scale(h_bkg['wgamma'], *mu)
-                        if 'vqqgamma' in h_bkg:
-                            histogram_scale(h_bkg['vqqgamma'], *mu)
-                    else:
-                        h_bkg['wgamma'].Scale(float(args.muw))
-                        if 'vqqgamma' in h_bkg:
-                            histogram_scale(h_bkg['vqqgamma'], *mu)
-
-                if args.mut is not None:
-                    
-                    if ',' in args.mut:
-                        mu = ( float(n) for n in args.mut.split(',') )
-                        histogram_scale(h_bkg['ttbarg'], *mu)
-
-                    else:
-                        h_bkg['ttbarg'].Scale(float(args.mut))
+                if 'CRQ' in mus:
+                    mu = mus['CRQ']
+                    histogram_scale(h_bkg['photonjet'], *mu)
+                if 'CRW' in mus:
+                    mu = mus['CRW']
+                    histogram_scale(h_bkg['wgamma'], *mu)
+                    if 'vqqgamma' in h_bkg:
+                        histogram_scale(h_bkg['vqqgamma'], *mu)
+                if 'CRT' in mus:
+                    mu = mus['CRT']
+                    histogram_scale(h_bkg['ttbarg'], *mu)
 
                         
             # Merge backgrounds to plot
-                        
             ## V + jets
             if args.mc:
                 h_bkg['vjets'] = h_bkg['wjets'].Clone()
@@ -265,13 +241,11 @@ def main():
 
 
             ## data
-            if args.opt:
-                h_data = None
-            elif args.blind is not None:
-                selection += '&& %s' % args.blind
-                h_data = miniutils.get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst, remove_var=False, lumi=args.lumi)
-            else:
-                h_data = get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst)
+            if args.blind:
+                selection = selection.replace('&& met_et>200', '&& met_et<200').replace('&& met_et>400', '&& met_et<200')
+
+            h_data = get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst)
+
 
             ## add overflow bins to the last bin
             for hist in h_bkg.itervalues():
@@ -316,14 +290,11 @@ def main():
             else:
                 tag = region
 
-            if args.opt:
-                outname = os.path.join(args.output, 'can_{}_{}_opt'.format(tag, varname))
-            elif args.after_fit:
+            if args.ws is not None:
                 outname = os.path.join(args.output, 'can_{}_{}_afterFit'.format(tag, varname))
             else:
                 outname = os.path.join(args.output, 'can_{}_{}_beforeFit'.format(tag, varname))
             
-
             do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, extensions=args.extensions.split(','))
                 
             if args.pl:
@@ -331,13 +302,14 @@ def main():
 
             # save
             if args.save is not None:
-                file_name = os.path.join(args.output, args.save)
+                file_name = args.save
                 with RootFile(file_name, 'update') as f:
                     f.write(h_data)
                     for hist in h_bkg.itervalues():
                         f.write(hist)
-                    for hist in h_signal.itervalues():
-                        f.write(hist)
+                    if h_signal is not None:
+                        for hist in h_signal.itervalues():
+                            f.write(hist)
 
 
 

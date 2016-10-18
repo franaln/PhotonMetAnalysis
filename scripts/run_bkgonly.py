@@ -8,6 +8,7 @@ import datetime
 import ROOT
 
 from utils import mkdirp, run_cmd
+import analysis
 
 def main():
 
@@ -31,9 +32,9 @@ def main():
     
     args = parser.parse_args()
     
-    configfile = os.path.abspath(args.configfile)
+    configfile      = os.path.abspath(args.configfile)
     histograms_file = os.path.abspath(args.input)
-    output_dir = os.path.abspath(args.output)
+    output_dir      = os.path.abspath(args.output)
     region = args.signal_region
     
     if not os.path.exists(output_dir):
@@ -56,7 +57,7 @@ def main():
     else:
         results_dir = 'results/PhotonMetAnalysis_bkgonly_%s' % region
 
-    options = '-i %s --sr %s --rm' % (histograms_file, region)
+    options = '-i %s --sr %s --rm --lumi %.2f' % (histograms_file, region, analysis.lumi_data)
     if args.do_validation:
         options += ' --val'
     if args.mc:
