@@ -60,11 +60,11 @@ def main():
     parser.add_argument('--outname', help='If custom selection use this output_name')
     parser.add_argument('--n1', action='store_true', help='N-1 plot')
     parser.add_argument('--signal', action='store_true', help='Add signal samples (separated with ,)')
-    parser.add_argument('--blind', help='Plot SR but with met_et<200')
+    parser.add_argument('--blind', action='store_true')
     parser.add_argument('--prw', action='store_true', help='Use pile-up reweighting')
     parser.add_argument('--pl', action='store_true', help='publink')
     parser.add_argument('--www', action='store_true', help='create webpage')
-    parser.add_argument('--ext', dest='extensions', help='')
+    parser.add_argument('--ext', dest='extensions', default='pdf', help='')
 
     global args
     args = parser.parse_args()
@@ -241,10 +241,7 @@ def main():
 
 
             ## data
-            if args.blind:
-                selection = selection.replace('&& met_et>200', '&& met_et<200').replace('&& met_et>400', '&& met_et<200')
-
-            h_data = get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst)
+            h_data = get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst, revert_cut=args.blind)
 
 
             ## add overflow bins to the last bin
