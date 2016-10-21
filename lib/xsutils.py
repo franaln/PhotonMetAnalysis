@@ -6,30 +6,37 @@ from samples import samples_dict
 gg_xs_file  = os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu.txt'
 ewk_xs_file = os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu.txt'
 
+bkg_xs_file = os.environ['SUSY_ANALYSIS'] + '/data/susy_crosssections_13TeV.txt'
 
 def get_did(name):
     sample = samples_dict[name]
     return sample.split('.')[1]
-    
-
-relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
 
 def get_xs_did(did, fs=None):
 
-    xs_file = ewk_xs_file if int(did) in range(373162, 373173) else gg_xs_file
-    
+    if did > 373000 and did < 373999:
+        xs_file = ewk_xs_file if int(did) in range(373162, 373173) else gg_xs_file
+    else:
+        xs_file = bkg_xs_file
+
     with open(xs_file) as f:
         for line in f:
             line = line.replace('\n', '')
             if not line or line.startswith('#'):
                 continue
 
-            did_, fs_, xs_, _, _, unc_ = line.split()
+            try:
+                did_, fs_, xs_, kfac_, eff_, unc_ = line.split()
+            except:
+                continue
 
             if int(did_) == int(did) and (fs is None or int(fs) == int(fs_)):
-                return (float(xs_), float(unc_))
+                
+                xseff = float(xs_) * float(kfac_) * float(eff_)
+
+                return (xseff, float(unc_))
             
-    raise Exception('XS not found for DID=%s, FS=%s' % (did, fs))
+    raise Exception('XS not found for DID=%s (FS=%s)' % (did, fs))
 
 
 def get_xs(par1, par2=None, fs=None):
@@ -46,6 +53,10 @@ def get_xs(par1, par2=None, fs=None):
     return get_xs_did(did, fs)
 
 
+
+# Electroweak signal 
+relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
+
 def get_ewk_totalxs(did):
 
     total_xs = 0.
@@ -58,7 +69,6 @@ def get_ewk_totalxs(did):
     total_unc /= len(relevant_fs) # avg between diff fs. FIX?
 
     return (total_xs, total_unc)
-
 
 ewk_sumw = {
 
