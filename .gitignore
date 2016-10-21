@@ -4,6 +4,7 @@ tmp/
 output/
 HistFitter*/
 batch/
+histograms/
 run*
 plots*
 results*

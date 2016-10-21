@@ -12,7 +12,6 @@ from configWriter import fitConfig, Measurement, Channel, Sample
 from systematic import Systematic
 
 #from style import colors_dict
-
 def color(sample):
     return ROOT.kBlack #ROOT.TColor.GetColor(colors_dict[sample])
 
@@ -43,6 +42,7 @@ parser.add_argument("--asimov", action='store_true')
 parser.add_argument("--ntoys", type=int, default=5000)
 parser.add_argument("--npoints", type=int, default=1)
 parser.add_argument("--sigxs", action='store_true')
+parser.add_argument("--lumi", type=float)
 
 userArg = [ i.replace('"', '') for i in configMgr.userArg.split() ]
 args = parser.parse_args(userArg)
@@ -114,8 +114,8 @@ if args.rm and configMgr.analysisName:
 inputFileNames = [configMgr.histCacheFile, ]
     
 ## Scaling calculated by outputLumi / inputLumi
-configMgr.inputLumi  = 13.3 # Luminosity of input TTree after weighting
-configMgr.outputLumi = 13.3 # Luminosity required for output histograms
+configMgr.inputLumi  = args.lumi # Luminosity of input TTree after weighting
+configMgr.outputLumi = args.lumi # Luminosity required for output histograms
 configMgr.setLumiUnits("fb-1")
 
 ## Regions
@@ -317,18 +317,23 @@ syst_to_all = syst_jets +syst_met + syst_egamma + syst_muon + syst_weight
 ## Theory Uncertainties
 
 # Zgamma
-sigma_zgamma = 1.
+sigma_zgamma = 0.99
 
-syst_zgamma_theo = Systematic("theoSysZG", 1 , 1+sigma_zgamma, 1-sigma_zgamma, "user", "userOverallSys")
+syst_zgamma_theo = Systematic("theoSysZG", 1, 1+sigma_zgamma, 1-sigma_zgamma, "user", "userOverallSys")
 
 ## gamjet
 sigma_gamjet_srl = 0.57
 sigma_gamjet_srh = 0.43
 
+sigma_gamjet_crql = 0.20
+sigma_gamjet_crqh = 0.20
+
 if sr_type == 'L':
-    syst_gamjet_theo = Systematic("theoSysGJ", 1 , 1+sigma_gamjet_srl, 1-sigma_gamjet_srl, "user", "userOverallSys")
+    syst_gamjet_theo_sr  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_srl,  1-sigma_gamjet_srl,  "user", "userOverallSys")
+    syst_gamjet_theo_crq = Systematic("theoSysGJ", 1, 1+sigma_gamjet_crql, 1-sigma_gamjet_crql, "user", "userOverallSys")
 else:
-    syst_gamjet_theo = Systematic("theoSysGJ", 1 , 1+sigma_gamjet_srh, 1-sigma_gamjet_srh, "user", "userOverallSys")
+    syst_gamjet_theo_sr  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_srh,  1-sigma_gamjet_srh,  "user", "userOverallSys")
+    syst_gamjet_theo_crq = Systematic("theoSysGJ", 1, 1+sigma_gamjet_crqh, 1-sigma_gamjet_crqh, "user", "userOverallSys")
 
 ## wgamma
 sigma_wgamma_srl   = 0.065
@@ -339,13 +344,13 @@ sigma_wgamma_crwtl = 0.044
 sigma_wgamma_crwth = 0.044
 
 if sr_type == 'L':
-    syst_wgamma_theo_sr   = Systematic("theoSysWG", 1 , 1+sigma_wgamma_srl,   1-sigma_wgamma_srl,   "user", "userOverallSys")
-    syst_wgamma_theo_crq  = Systematic("theoSysWG", 1 , 1+sigma_wgamma_crql,  1-sigma_wgamma_crql,  "user", "userOverallSys")
-    syst_wgamma_theo_crwt = Systematic("theoSysWG", 1 , 1+sigma_wgamma_crwtl, 1-sigma_wgamma_crwtl, "user", "userOverallSys")
+    syst_wgamma_theo_sr   = Systematic("theoSysWG", 1, 1+sigma_wgamma_srl,   1-sigma_wgamma_srl,   "user", "userOverallSys")
+    syst_wgamma_theo_crq  = Systematic("theoSysWG", 1, 1+sigma_wgamma_crql,  1-sigma_wgamma_crql,  "user", "userOverallSys")
+    syst_wgamma_theo_crwt = Systematic("theoSysWG", 1, 1+sigma_wgamma_crwtl, 1-sigma_wgamma_crwtl, "user", "userOverallSys")
 else:
-    syst_wgamma_theo_sr   = Systematic("theoSysWG", 1 , 1+sigma_wgamma_srh,   1-sigma_wgamma_srh,   "user", "userOverallSys")
-    syst_wgamma_theo_crq  = Systematic("theoSysWG", 1 , 1+sigma_wgamma_crqh,  1-sigma_wgamma_crqh,  "user", "userOverallSys")
-    syst_wgamma_theo_crwt = Systematic("theoSysWG", 1 , 1+sigma_wgamma_crwth, 1-sigma_wgamma_crwth, "user", "userOverallSys")
+    syst_wgamma_theo_sr   = Systematic("theoSysWG", 1, 1+sigma_wgamma_srh,   1-sigma_wgamma_srh,   "user", "userOverallSys")
+    syst_wgamma_theo_crq  = Systematic("theoSysWG", 1, 1+sigma_wgamma_crqh,  1-sigma_wgamma_crqh,  "user", "userOverallSys")
+    syst_wgamma_theo_crwt = Systematic("theoSysWG", 1, 1+sigma_wgamma_crwth, 1-sigma_wgamma_crwth, "user", "userOverallSys")
 
 ## ttgamma
 sigma_ttgamma_srl   = 0.133
@@ -356,13 +361,13 @@ sigma_ttgamma_crwtl = 0.085
 sigma_ttgamma_crwth = 0.085
 
 if sr_type == 'L':
-    syst_ttgamma_theo_sr   = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_srl,   1-sigma_ttgamma_srl,   "user", "userOverallSys")
-    syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crql,  1-sigma_ttgamma_crql,  "user", "userOverallSys")
-    syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crwtl, 1-sigma_ttgamma_crwtl, "user", "userOverallSys")
+    syst_ttgamma_theo_sr   = Systematic("theoSysTG", 1, 1+sigma_ttgamma_srl,   1-sigma_ttgamma_srl,   "user", "userOverallSys")
+    syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crql,  1-sigma_ttgamma_crql,  "user", "userOverallSys")
+    syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crwtl, 1-sigma_ttgamma_crwtl, "user", "userOverallSys")
 else:
-    syst_ttgamma_theo_sr   = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_srh,   1-sigma_ttgamma_srh,   "user", "userOverallSys")
-    syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crqh,  1-sigma_ttgamma_crqh,  "user", "userOverallSys")
-    syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1 , 1+sigma_ttgamma_crwth, 1-sigma_ttgamma_crwth, "user", "userOverallSys")
+    syst_ttgamma_theo_sr   = Systematic("theoSysTG", 1, 1+sigma_ttgamma_srh,   1-sigma_ttgamma_srh,   "user", "userOverallSys")
+    syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crqh,  1-sigma_ttgamma_crqh,  "user", "userOverallSys")
+    syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crwth, 1-sigma_ttgamma_crwth, "user", "userOverallSys")
 
 # signal
 sigXsec      = Sys('SigXSec')
@@ -371,9 +376,8 @@ sigXsec      = Sys('SigXSec')
 
 # Add Sample Specific Systematics (apparently it's needed to add these systs to the samples *BEFORE* adding them to the FitConfig
 if do_theo_syst:
-    zllgamma_sample.addSystematic(syst_zgamma_theo)
+    zllgamma_sample.  addSystematic(syst_zgamma_theo)
     znunugamma_sample.addSystematic(syst_zgamma_theo)
-    photonjet_sample.addSystematic(syst_gamjet_theo)
 
 if do_syst: 
     efake_sample.addSystematic(syst_feg)
@@ -451,31 +455,16 @@ signal_channels.append(SR)
 #  Control regions 
 # -----------------
 CRQ = fitconfig.addChannel(variable, ['CRQ'], *binning)
-CRW = fitconfig.addChannel(variable, ["CRW"], *binning)
-CRT = fitconfig.addChannel(variable, ["CRT"], *binning)
+CRW = fitconfig.addChannel(variable, ['CRW'], *binning)
+CRT = fitconfig.addChannel(variable, ['CRT'], *binning)
 
 constraint_channels.append(CRQ)
 constraint_channels.append(CRW)
 constraint_channels.append(CRT)
 
-wgamma_sample.setNormRegions(["CRW", variable])
-ttbarg_sample.setNormRegions(["CRT",variable])
-photonjet_sample.setNormRegions(["CRQ",variable])
-
-# Add theoretical systematics region specific
-if do_theo_syst:
-    SR. getSample("wgamma").addSystematic(syst_wgamma_theo_sr)
-    CRQ.getSample("wgamma").addSystematic(syst_wgamma_theo_crq)
-    CRW.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
-    CRT.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
-
-    SR. getSample("ttbarg").addSystematic(syst_ttgamma_theo_sr)
-    CRQ.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crq)
-    CRW.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
-    CRT.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
-
-
-
+wgamma_sample.   setNormRegions(['CRW', variable])
+ttbarg_sample.   setNormRegions(['CRT', variable])
+photonjet_sample.setNormRegions(['CRQ', variable])
 
 # -------------------
 # Validation regions 
@@ -509,7 +498,59 @@ if do_validation:
     validation_channels.append(VRL3)
     validation_channels.append(VRL4)
 
-   
+
+
+# Add theoretical systematics region specific
+if do_theo_syst:
+
+    SR.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    CRQ.getSample('photonjet').addSystematic(syst_gamjet_theo_crq)
+    CRW.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    CRT.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+
+    SR. getSample("wgamma").addSystematic(syst_wgamma_theo_sr)
+    CRQ.getSample("wgamma").addSystematic(syst_wgamma_theo_crq)
+    CRW.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
+    CRT.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
+
+    SR. getSample("ttbarg").addSystematic(syst_ttgamma_theo_sr)
+    CRQ.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crq)
+    CRW.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
+    CRT.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
+
+    VRM1.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    VRM2.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    VRM3.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    VRD1.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    VRD2.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    VRD3.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    VRL1.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    VRL2.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    VRL3.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    VRL4.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+
+    VRM1.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+    VRM2.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+    VRM3.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+    VRD1.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+    VRD2.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+    VRD3.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+    VRL1.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+    VRL2.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+    VRL3.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+    VRL4.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
+
+    VRM1.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+    VRM2.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+    VRM3.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+    VRD1.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+    VRD2.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+    VRD3.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+    VRL1.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+    VRL2.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+    VRL3.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+    VRL4.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
+
 
 
 # Add CR/VR/SR 

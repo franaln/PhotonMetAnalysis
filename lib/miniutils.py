@@ -7,7 +7,8 @@ import ROOT
 from array import array
 
 from rootutils import RootFile, Value, histogram, histogram_equal_to
-from xs_dict import xs_dict
+
+import xsutils
 import systematics
 
 # config
@@ -91,7 +92,7 @@ def split_cut(s):
 
     return (var.strip(), op, value.strip())
 
-def invert_cut(s):
+def revert_cut(s):
     (var, op, value) = split_cut(s)
     
     if op == '>' or op == '>=':
@@ -123,7 +124,7 @@ def check_cut(value, op, cut):
 #----------------------------
 def get_xs(ds):
 
-    xs = xs_dict.get(int(ds['did']), None)
+    xs = xsutils.get_xs_did(int(ds['did']))[0]
 
     if xs is None:
         print 'missing XS for this ID:', did
@@ -134,17 +135,15 @@ def get_xs(ds):
 
 def get_signal_xs(ds, fs=0):
 
-    from signalxs import get_xs_did
-
     if 'GGM_M3' in ds['short_name']:
 
-        xs, unc = get_xs_did(ds['did'])
+        xs, unc = xsutils.get_xs_did(ds['did'])
 
         return xs
 
     elif 'GGM_mu' in ds['short_name']:
 
-        xs, unc = get_xs_did(ds['did'], fs=fs)
+        xs, unc = xsutils.get_xs_did(ds['did'], fs=fs)
 
         return xs
 
@@ -164,8 +163,6 @@ def get_sumw(ds):
 
 def get_lumi_weight(ds, lumi, fs=None):
 
-    from signalxs import get_ewk_sumw
-
     lumi = float(lumi)
 
     weight = 1.
@@ -173,14 +170,11 @@ def get_lumi_weight(ds, lumi, fs=None):
 
         if 'GGM_mu' in ds['short_name'] and fs is not None:
             mu = int(re.findall(ur'GGM_mu_(\d*)', ds['short_name'])[0])
-            sumw = get_ewk_sumw(mu, fs)
+            sumw = xsutils.get_ewk_sumw(mu, fs)
         else:
             sumw = get_sumw(ds)
     
-        if 'GGM_M3_mu' in ds['short_name'] or 'GGM_mu' in ds['short_name']:
-            xs = get_signal_xs(ds, fs)
-        else:
-            xs = get_xs(ds)
+        xs = xsutils.get_xs_did(int(ds['did']), fs)[0]
 
         try:
             weight = (lumi * xs) / sumw
@@ -300,8 +294,6 @@ def _get_histogram(ds, **kwargs):
     selection  = kwargs.get('selection', '')
     syst       = kwargs.get('syst', 'Nom')
     scale      = kwargs.get('scale', True)
-    remove_var = kwargs.get('remove_var', False)
-    invert_var = kwargs.get('invert_var', False)
     truth      = kwargs.get('truth', False)
     lumi       = kwargs.get('lumi', None)
     binning    = kwargs.get('binning', None)
@@ -309,6 +301,9 @@ def _get_histogram(ds, **kwargs):
     version    = kwargs.get('version', None)
     fs         = kwargs.get('fs', None)
     year       = kwargs.get('year', None)
+
+    do_remove_var = kwargs.get('remove_var', False)
+    do_revert_cut = kwargs.get('revert_cut', False)
 
     use_lumiw   = kwargs.get('use_lumiw', True)
     use_sfw     = kwargs.get('use_sfw', True)
@@ -353,12 +348,23 @@ def _get_histogram(ds, **kwargs):
     #-----------
     # Selection
     #-----------
-    # remove variable from selection if n-1
-    if remove_var and variable in selection and not variable == 'cuts':
-        
-        selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
+    # reverse variable cut to blind region
+    if do_revert_cut and variable in selection and not variable == 'cuts':
+        new_cuts = []
 
-    if remove_var and (':' in variable):
+        for cut in selection.split('&&'):
+            if split_cut(cut)[0] == variable:
+                new_cuts.append(revert_cut(cut))
+            else:
+                new_cuts.append(cut)
+
+        selection = '&&'.join(new_cuts)
+
+    # remove variable from selection if n-1
+    elif do_remove_var and variable in selection and not variable == 'cuts':
+        selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
+    
+    if do_remove_var and (':' in variable):
         if varx in selection:
             selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == varx ])
         if vary in selection:
