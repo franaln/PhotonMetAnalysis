@@ -6,9 +6,11 @@ from signalgrid import grid_m3_mu, grid_mu
 # Labels
 atlas_label = '' ##bf{#it{ATLAS}} Preliminary'
 
-data_label   = '#sqrt{s} = 13 TeV, 13.3 fb^{-1}'
+#data_label   = '#sqrt{s} = 13 TeV, 13.3 fb^{-1}'
+data_label   = '#sqrt{s} = 13 TeV, 28 fb^{-1}'
 data15_label = '#sqrt{s} = 13 TeV, ~3.2 fb^{-1}'
-data16_label = '#sqrt{s} = 13 TeV, ~10.1 fb^{-1}'
+#data16_label = '#sqrt{s} = 13 TeV, ~10.1 fb^{-1}'
+data16_label = '#sqrt{s} = 13 TeV, ~24.8.1 fb^{-1}'
 
 
 # Legend labels
@@ -18,6 +20,8 @@ labels_dict['photonjet']    = '#gamma + jets'
 labels_dict['gamjet']       = '#gamma + jets'
 labels_dict['tgamma']       = 't#bar{t}#gamma' # /single-t \\gamma'
 labels_dict['vgamma']       = 'W#gamma/Z#gamma'
+labels_dict['zgamma']       = 'Z#gamma'
+labels_dict['wgamma']       = 'W#gamma'
 labels_dict['znngam']       = 'Z(#nu#nu)#gamma'
 labels_dict['efake']        = 'e#rightarrow#gamma fake'
 labels_dict['jfake']        = 'jet#rightarrow#gamma fake'
@@ -54,7 +58,7 @@ colors_dict = dict()
 colors_dict['data']        = ROOT.kBlack
 colors_dict['photonjet']   = '#e55e49' 
 colors_dict['gamjet']      = '#e55e49' 
-colors_dict['wgamma']      = '#f7fab3'
+colors_dict['wgamma']      = '#fab9b5'
 colors_dict['zllgamma']    = '#f7fab4'
 colors_dict['znunugamma']  = '#f7fab5'
 colors_dict['zgamma']      = '#f7fab5'
@@ -90,9 +94,9 @@ colors_dict['GGM_M3_mu_2000_450'] = '#e44e5d' ##f90876'
 colors_dict['GGM_M3_mu_2000_1650']  = '#4e5de4' ###f90876'
 colors_dict['GGM_M3_mu_2000_1850']  = '#e44e5d' ##6021fa'
 
-colors_dict['GGM_mu_200'] = '#4e5de4'
-colors_dict['GGM_mu_450'] = '#e44e5d'
-colors_dict['GGM_mu_850'] = '#6021fa'
+colors_dict['GGM_mu_150'] = '#059bfd' ##4e5de4'
+colors_dict['GGM_mu_450'] = '#fd059b' #e44e5d'
+colors_dict['GGM_mu_650'] = '#fd6705' #6021fa'
 
 # Plot config
 class PlotConf():
@@ -135,19 +139,17 @@ plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet, E_{T}^{miss})', 'Events',
 plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'top')
 plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'top')
 plots_conf['avgmu']        = PlotConf('<#mu>', 'Events', 'right', logy=False)
-
-plots_conf['ht+met_et'] = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
-plots_conf['meff']      = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['tst_et']       = PlotConf('E_{T}^{miss} Soft Term (TST) [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['ht+met_et']    = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['meff']         = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['ph_pt[0]+met_et'] = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['stgam']        = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['mt']           = PlotConf('M_{T}', 'Events / BIN', 'right')
 
 plots_conf['mgj']    = PlotConf('m_{#gammaj} [GeV]', 'Events / (BIN GeV)', 'right')
 plots_conf['mgjj']   = PlotConf('m_{#gammajj} [GeV]', 'Events / (BIN GeV)', 'right')
 plots_conf['mgjjj']  = PlotConf('m_{#gammajjj} [GeV]', 'Events / (BIN GeV)', 'right')
 
-plots_conf['ph_pt[0]+met_et'] = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
-plots_conf['stgam'] = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
-
-plots_conf['mt']  = PlotConf('M_{T}', 'Events / BIN', 'right')
-plots_conf['mt2'] = PlotConf('M_{T}^{2}', 'Events / BIN', 'right')
 
 plots_conf['default']  = PlotConf()
 

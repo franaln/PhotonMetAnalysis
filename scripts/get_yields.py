@@ -16,8 +16,9 @@ import regions as regions_
 import miniutils
 from rootutils import Value
 from statutils import get_significance
-from mass_dict import mass_dict
+from signalgrid import grid_m3_mu
 
+import analysis
 
 def main():
 
@@ -55,23 +56,15 @@ def main():
     args = parser.parse_args()
     
     ## samples
-    bkgs = [
-        'photonjet',
-        'wgamma',
-        'zgamma',
-        'ttbarg',
-        
-        'diphoton',
-        'vgammagamma',
-
-#        'vqqgamma',
-        ]
+    bkgs = analysis.backgrounds_mc
 
     dd_scale = 1.
-    if args.data is None and args.samples is None:
-        sys.exit(1)
+    if args.data is None and args.samples is None and args.lumi is not None:
         bkgs.append('jfake')
         bkgs.append('efake')
+
+        dd_scale = float(args.lumi) * 1000. / analysis.lumi_data
+
 
     elif args.data == 'data15':
         args.lumi = 'data15'
@@ -98,7 +91,7 @@ def main():
             ]
        
     signal = []
-    for (m3, mu) in sorted(mass_dict.iterkeys()):
+    for (m3, mu) in sorted(grid_m3_mu.iterkeys()):
         if int(args.m3) == m3:
             signal.append('GGM_M3_mu_%d_%d' % (m3, mu))
 
@@ -155,7 +148,9 @@ def main():
         else:
             
             # Data
-            if 'SR' in region and not args.unblind:
+            if args.data is None:
+                pass
+            elif 'SR' in region and not args.unblind:
                 cols['data'] = '-1'
             else:
                 cols['data'] = get_events(args.data, region=region, selection=selection)
@@ -199,7 +194,6 @@ def main():
                     purity = cols['wgamma'] / total_bkg
 
                     cols['wgamma'] = '%s (%.2f%%, mu=%.2f)' % (cols['wgamma'], purity.mean, mu.mean)
-
 
 
             # Signals
