@@ -2123,3 +2123,16 @@
 410087  MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma_allhad        2.2290         1.47   1.       1.
 410088  MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma4080_allhad    2.2290         1.47   0.30381  1.
 410089  MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma80_allhad      2.2290         1.47   0.12457  1.
+
+
+# V(qq)+gamma (from AMI)
+305435 XXX 1.6606     1. 1. 1.
+305436 XXX 2.4311E-01 1. 1. 1.
+305437 XXX 3.7897E-02 1. 1. 1.
+305438 XXX 1.8156E-03 1. 1. 1.
+305439 XXX 1.6968E-05 1. 1. 1.
+305440 XXX 6.5757E-01 1. 1. 1.
+305441 XXX 7.7020E-02 1. 1. 1.
+305442 XXX 1.0438E-02 1. 1. 1.
+305443 XXX 4.6266E-04 1. 1. 1.
+305444 XXX 4.2910E-06 1. 1. 1.
