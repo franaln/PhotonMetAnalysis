@@ -147,6 +147,7 @@ def main():
                     h_signal['GGM_M3_mu_1600_1450'] = get_histogram_from_file(ifile, 'GGM_M3_mu_1600_1450', variable, region_name, syst)
                 
             
+                variable = variable.replace('/', '_over_')
                 outname = os.path.join(args.output, 'can_{}_{}_afterFit'.format(region, variable))
             
                 do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region)
@@ -271,17 +272,16 @@ def main():
                     histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_1250'])
                     histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_1450'])
                 else:
-                    h_signal['GGM_M3_mu_1700_650'] = get_histogram('GGM_M3_mu_1700_650', variable=variable, region=region_name, selection=selection, syst=syst)
-                    h_signal['GGM_M3_mu_1700_1050'] = get_histogram('GGM_M3_mu_1700_1050', variable=variable, region=region_name, selection=selection, syst=syst)
+                    h_signal['GGM_M3_mu_1600_650'] = get_histogram('GGM_M3_mu_1600_650', variable=variable, region=region_name, selection=selection, syst=syst)
+                    h_signal['GGM_M3_mu_1600_1250'] = get_histogram('GGM_M3_mu_1600_1250', variable=variable, region=region_name, selection=selection, syst=syst)
 
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1700_650'])
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1700_1050'])
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_650'])
+                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_1250'])
                     
                 
             
-            varname = variable.replace('[', '').replace(']', '')
+            varname = variable.replace('[', '').replace(']', '').replace('/', '_over_')
                 
-            
             if args.selection and args.outname:
                 tag = args.outname
             else:

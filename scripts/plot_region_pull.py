@@ -17,7 +17,7 @@ import style
 from style import colors_dict, labels_dict
 from drawutils import calc_poisson_cl_upper, calc_poisson_cl_lower
 from yieldstable import latexfitresults
-from analysis import 
+import analysis
 
 parser = argparse.ArgumentParser(description='plot regions pull')
     
@@ -41,6 +41,7 @@ set_atlas_style()
 # Backgrounds
 backgrounds = analysis.backgrounds
 
+max_pull = 3.0
 
 def get_region_color(region):
 
@@ -68,7 +69,13 @@ def MakeBox(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
         miny = -0.02
     else:
         miny = 0.02
-            
+
+    if pull > max_pull:
+        pull = max_pull-0.05
+    elif pull < -max_pull:
+        pull = -max_pull+0.05
+
+
     box = ROOT.TBox(0.1+offset, miny, 0.9+offset, pull)
 
     box.SetFillColor(color)
@@ -85,7 +92,7 @@ def GetFrame(prefix, npar, horizontal=False):
         frame.GetYaxis().SetTitleSize(0.1)
         frame.GetYaxis().CenterTitle()
         frame.GetYaxis().SetTitleOffset(0.4)
-        frame.GetYaxis().SetRangeUser(-2.2, 2.2)
+        frame.GetYaxis().SetRangeUser(-max_pull, max_pull)
         frame.GetXaxis().SetLabelOffset(0.03)
         frame.GetXaxis().SetLabelSize(0.12)
         frame.GetYaxis().SetLabelSize(0.12)

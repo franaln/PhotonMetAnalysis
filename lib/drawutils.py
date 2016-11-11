@@ -138,12 +138,7 @@ def grid_histogram(name):
     return hist
 
 
-def draw_ratio_lines(hist):
-
-    firstbin = hist.GetXaxis().GetFirst()
-    lastbin  = hist.GetXaxis().GetLast()
-    xmax     = hist.GetXaxis().GetBinUpEdge(lastbin)
-    xmin     = hist.GetXaxis().GetBinLowEdge(firstbin)
+def draw_ratio_lines(xmin, xmax):
 
     line0 = ROOT.TLine(xmin, 1., xmax, 1.)
     line1 = ROOT.TLine(xmin, 0.5,xmax, 0.5)
@@ -172,7 +167,8 @@ def save_with_mathtext(can, outname):
     os.system(cmd)
 
 def fix_output_name(name):
-    return name.replace(':', '_').replace('[','').replace(']', '').replace('(', '').replace(')','')
+    name = name.replace(':', '_').replace('[','').replace(']', '').replace('(', '').replace(')','')
+    return name 
 
 
 def do_plot(plotname, 
@@ -420,7 +416,7 @@ def do_plot(plotname,
         chist.SetMaximum(ymax*100)
     else:
         ymax = max(chist.GetMaximum(), data.GetMaximum())
-        chist.SetMaximum(ymax*2)
+        chist.SetMaximum(ymax*1.4)
 
     if do_ratio:
         chist.GetXaxis().SetLabelSize(0.)
@@ -483,12 +479,13 @@ def do_plot(plotname,
         t.SetTextSize(0.045)
         t.SetTextColor(ROOT.kBlack)
 
-        if legpos == 'right':
-            t.DrawLatex(0.19, 0.76, data_label)
-        elif legpos == 'top':
+        if legpos == 'top' and signal:
             t.DrawLatex(0.19, 0.56, data_label)
         else:
-            t.DrawLatex(0.60, 0.76, data_label)
+            if legpos == 'right':
+                t.DrawLatex(0.19, 0.76, data_label)
+            else:
+                t.DrawLatex(0.60, 0.76, data_label)
 
     ratio_ylabel_size = dn_size
     ratio_ytitle_size = dn_size
@@ -625,7 +622,10 @@ def do_plot(plotname,
         set_style(ratio, msize=1, lwidth=2, color=ROOT.kBlack)
 
         cdown.cd()
-        frame = cdown.DrawFrame(chist.GetXaxis().GetXmin(), 0., chist.GetXaxis().GetXmax(), 2.2)
+        if conf.xmin is not None and conf.xmax is not None:
+            frame = cdown.DrawFrame(conf.xmin, 0., conf.xmax, 2.2)
+        else:
+            frame = cdown.DrawFrame(chist.GetXaxis().GetXmin(), 0., chist.GetXaxis().GetXmax(), 2.2)
 
         ratio.SetTitle('')
         ratio.SetMarkerStyle(20)
@@ -641,6 +641,9 @@ def do_plot(plotname,
         frame.GetXaxis().SetTitleOffset(1.)
         frame.GetXaxis().SetLabelOffset(0.03)
         frame.GetXaxis().SetTickLength(0.06)
+
+        if conf.xmin is not None and conf.xmax is not None:
+            ratio.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
 
         if frame.GetXaxis().GetXmax() < 5.:
             frame.GetXaxis().SetNdivisions(512)
@@ -689,7 +692,15 @@ def do_plot(plotname,
         err_band_stat.SetLineColor(sm_total_color)
         err_band_stat.SetFillColor(sm_total_color)
 
-        draw_ratio_lines(chist)
+        if conf.xmin is not None and conf.xmax is not None:
+            xmin, xmax = conf.xmin, conf.xmax
+        else:
+            firstbin = hist.GetXaxis().GetFirst()
+            lastbin  = hist.GetXaxis().GetLast()
+            xmax     = hist.GetXaxis().GetBinUpEdge(lastbin)
+            xmin     = hist.GetXaxis().GetBinLowEdge(firstbin)
+
+        draw_ratio_lines(xmin, xmax)
         err_band_stat.Draw('P2same')
         ratio.Draw('P0Z')
 
