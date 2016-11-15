@@ -415,7 +415,10 @@ def do_plot(plotname,
         
         chist.SetMaximum(ymax*100)
     else:
-        ymax = max(chist.GetMaximum(), data.GetMaximum())
+        if data:
+            ymax = max(chist.GetMaximum(), data.GetMaximum())
+        else:
+            ymax = chist.GetMaximum()
         chist.SetMaximum(ymax*1.4)
 
     if do_ratio:

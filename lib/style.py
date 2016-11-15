@@ -58,7 +58,7 @@ colors_dict = dict()
 colors_dict['data']        = ROOT.kBlack
 colors_dict['photonjet']   = '#e55e49' 
 colors_dict['gamjet']      = '#e55e49' 
-colors_dict['wgamma']      = '#fab9b5'
+colors_dict['wgamma']      = '#b5d3fa'
 colors_dict['zllgamma']    = '#f7fab4'
 colors_dict['znunugamma']  = '#f7fab5'
 colors_dict['zgamma']      = '#f7fab5'
@@ -95,8 +95,8 @@ colors_dict['GGM_M3_mu_2000_1650']  = '#4e5de4' ###f90876'
 colors_dict['GGM_M3_mu_2000_1850']  = '#e44e5d' ##6021fa'
 
 colors_dict['GGM_mu_150'] = '#059bfd' ##4e5de4'
-colors_dict['GGM_mu_450'] = '#fd059b' #e44e5d'
-colors_dict['GGM_mu_650'] = '#fd6705' #6021fa'
+colors_dict['GGM_mu_200'] = '#fd059b' #e44e5d'
+colors_dict['GGM_mu_250'] = '#fd6705' #6021fa'
 
 # Plot config
 class PlotConf():
@@ -115,6 +115,7 @@ plots_conf['cuts']         = PlotConf('', 'Events', 'right')
 plots_conf['ph_n']         = PlotConf('Number of photons', 'Events', 'right')
 plots_conf['el_n']         = PlotConf('Number of electrons', 'Events', 'right')
 plots_conf['jet_n']        = PlotConf('Number of jets', 'Events', 'right')
+plots_conf['bjet_n']       = PlotConf('Number of b-jets', 'Events', 'right')
 plots_conf['ph_pt']        = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['ph_eta']       = PlotConf('Photon #eta', 'Events / BIN GeV', 'right')
 plots_conf['ph_phi']       = PlotConf('Photon #phi', 'Events / BIN GeV', 'right')
