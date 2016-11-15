@@ -305,12 +305,15 @@ def _get_histogram(ds, **kwargs):
     do_remove_var = kwargs.get('remove_var', False)
     do_revert_cut = kwargs.get('revert_cut', False)
 
-    use_lumiw   = kwargs.get('use_lumiw', True)
-    use_sfw     = kwargs.get('use_sfw', True)
-    use_mcw     = kwargs.get('use_mcw', True)
-    use_prw     = kwargs.get('use_prw', False)
+    use_lumiw   = kwargs.get('use_lumiw',   True)
+    use_sfw     = kwargs.get('use_sfw',     True)
+    use_mcw     = kwargs.get('use_mcw',     True)
+    use_prw     = kwargs.get('use_prw',     False)
+    use_mcveto  = kwargs.get('user_mcveto', True)
 
     debug      = kwargs.get('debug', False)
+
+    is_mc = (ds['project'] == 'mc15_13TeV')
 
     #-----------
     # File/Chain
@@ -370,7 +373,7 @@ def _get_histogram(ds, **kwargs):
         if vary in selection:
             selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == vary ])
 
-    if fs is not None:
+    if is_mc and fs is not None:
         if selection:
             selection = selection + ' && fs==%s' % fs
         else:
@@ -381,6 +384,13 @@ def _get_histogram(ds, **kwargs):
             selection = selection + ' && year==%s' % year
         else:
             selection = 'year==%s' % year
+
+    if is_mc and use_mcveto:
+        if selection:
+            selection = '%s && mcveto==0' % selection
+        else:
+            selection = 'mcveto==0'
+
 
     # change selection and variable for systematics
     if syst != 'Nom' and systematics.affects_kinematics(syst):
@@ -407,13 +417,14 @@ def _get_histogram(ds, **kwargs):
     elif lumi == 'data16':
         lumi = analysis.lumi_data16
     elif lumi == 'data':
-        lumi = analysis.lumi_data15 + analysis.lumi_data16
+        lumi = analysis.lumi_data
         
+    # by default normalize to 1 ifb
     if lumi is None:
         lumi = 1000.
 
     w_list = []
-    if ds['project'] == 'mc15_13TeV' and scale:
+    if is_mc and scale:
 
         # lumi weight
         if use_lumiw:
@@ -424,7 +435,7 @@ def _get_histogram(ds, **kwargs):
         if use_mcw:
             w_list.append('weight_mc')
 
-        # scale factors
+        # scale factors (btag SF is already included (?))
         if use_sfw:
             if syst != 'Nom' and systematics.affects_weight(syst) and not 'PRW_DATASF' in syst:
                 w_list.append('weight_sf_%s' % syst)
@@ -433,12 +444,12 @@ def _get_histogram(ds, **kwargs):
 
         # pile-up
         if use_prw:
-            if 'PRW_DATASF__1down' == syst:
+            if syst == 'Nom':
+                w_list.append('weight_pu')
+            elif 'PRW_DATASF__1down' == syst:
                 w_list.append('weight_pu_down')
             elif 'PRW_DATASF__1up' == syst:
                 w_list.append('weight_pu_up')
-            else:
-                w_list.append('weight_pu')
 
         
     if 'efake' in ds['name']:
@@ -462,6 +473,9 @@ def _get_histogram(ds, **kwargs):
     else:
         w_str = '*'.join(w_list)
 
+    #-----------------
+    # Create histogram
+    #-----------------
     varexp = ''
     if selection and w_str:
         varexp = '(%s)*(%s)' % (selection, w_str)
@@ -483,6 +497,7 @@ def _get_histogram(ds, **kwargs):
     elif ':' in variable:
         tree.Project(hname, '%s:%s' % (vary, varx), varexp)
         hist = htemp.Clone()
+
     else:
         tree.Project(hname, variable, varexp)
         hist = htemp.Clone()
