@@ -65,7 +65,7 @@ for region_number in ['L', 'H']:
 
             print region
             for idx, ver in enumerate(versions):
-                evts = get_events(sample, selection=sel, version=ver)
+                evts = get_events(sample, selection=sel, version=ver, scale=False)
                 print ver, evts
                 histograms[idx].SetBinContent(iregion+1, evts.mean)
 

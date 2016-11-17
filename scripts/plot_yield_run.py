@@ -3,11 +3,14 @@ Plot analysis selection efficiency and lumi-normalized yield (new!) in VRs, SRs 
 """
 
 import os
+import sys
+import glob
 import ROOT
 
 from rootutils import set_atlas_style, set_style
 from regions import CRQ_L
 
+sys.path.append(os.getenv('SUSY_ANALYSIS')+'/data')
 from run_lumi_dict_2015 import run_lumi_dict as run_lumi_dict_2015
 from run_lumi_dict_2016 import run_lumi_dict as run_lumi_dict_2016
 
@@ -19,8 +22,6 @@ run_lumi_dict = dict(run_lumi_dict_2015, **run_lumi_dict_2016)
 selection = 'ph_n>0 && ph_pt[0]>145  && el_n+mu_n==0 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4'
 seltext   = '>0 photons, p^{#gamma}_{T}>145 GeV, no lep, >2 jets, #Delta#phi cleaning'
 outname   = 'yields_lumi_presel'
-
-
 
 
 h_yields = ROOT.TH1D('yields', 'yields', nruns, 0.5, nruns+0.5)
@@ -42,12 +43,14 @@ for run, lumi in sorted(run_lumi_dict.iteritems()):
     else:
         data = 'data15'
 
-    path = '/raid/falonso/mini2/v37/%s_13TeV.00%i.physics_Main.mini.p2667.v37_output.root' % (data, run)
-    if not os.path.exists(path):
-        path = '/raid/falonso/mini2/v37/%s_13TeV.00%i.physics_Main.mini.p2689.v37_output.root' % (data, run)
+    path = '/raid/falonso/mini2/v45/%s_13TeV.00%i.physics_Main.mini.*.v45_output.root' % (data, run)
+
+    gpaths = glob.glob(path)
+    # if not os.path.exists(path):
+    #     path = '/raid/falonso/mini2/v37/%s_13TeV.00%i.physics_Main.mini.p2689.v37_output.root' % (data, run)
 
     tree = ROOT.TChain('mini')
-    tree.Add(path)
+    tree.Add(gpaths[0])
 
     # yield
     htemp  = ROOT.TH1D('tmp_%i' % run, 'tmp', 1, 0.5, 1.5)
@@ -83,7 +86,7 @@ set_atlas_style()
 set_style(h_yields_norm, color=ROOT.kBlack, lwidth=1)
 set_style(h_avgmu,   color='pink', lwidth=1, alpha=0.5)
 
-c = ROOT.TCanvas('', '', 1800, 600)
+c = ROOT.TCanvas('', '', 2400, 600)
 
 c.SetFillColor(0)
 c.SetBorderMode(0)
