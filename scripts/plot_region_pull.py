@@ -24,16 +24,12 @@ parser = argparse.ArgumentParser(description='plot regions pull')
 parser.add_argument('--ws', dest='workspace', required=True, help='Input workspace')
 parser.add_argument('-o', dest='output_dir', default='.', help='Output dir')
 parser.add_argument('-r', dest='regions', help='regions')
-parser.add_argument('-n', dest='region_type', help='L or H')
-#parser.add_argument('--data', default='data', help='data15|data16|data')
 parser.add_argument('--unblind', action='store_true', help='Unblind! (use with caution)')
 parser.add_argument('--ext', dest='extensions', default='pdf', help='')
 
 args = parser.parse_args()
 
 workspace = args.workspace
-region_name = 'SR_' + args.region_type
-region_type = args.region_type
 regions = args.regions.split(',')
 
 set_atlas_style()
@@ -44,17 +40,8 @@ backgrounds = analysis.backgrounds
 max_pull = 3.0
 
 def get_region_color(region):
-
-    # if 'SR' in region:
-    #     return get_color('#00ef6a')
-    # elif 'CR' in region:
-    #     return get_color('#ef000e')
-    # else:
-    #     return get_color('#0086ef')
-
     return get_color('#80807a')
 
-    return 1
 
 def get_poisson_error(obs):
 
@@ -63,7 +50,8 @@ def get_poisson_error(obs):
 
     return (posError, negError)
 
-def MakeBox(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
+
+def make_box(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
 
     if pull > 0.:
         miny = -0.02
@@ -84,14 +72,14 @@ def MakeBox(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
     return box
 
 
-def GetFrame(prefix, npar, horizontal=False):
+def get_frame(npar, horizontal=False):
 
     offset = 0.;
     if horizontal:
-        frame = ROOT.TH2F("frame"+prefix, "", npar, 0., npar, 8, -4., 4.);
-        frame.GetYaxis().SetTitleSize(0.1)
+        frame = ROOT.TH2F("frame", "", npar, 0., npar, 8, -4., 4.);
+        frame.GetYaxis().SetTitleSize(0.10)
         frame.GetYaxis().CenterTitle()
-        frame.GetYaxis().SetTitleOffset(0.4)
+        frame.GetYaxis().SetTitleOffset(0.35)
         frame.GetYaxis().SetRangeUser(-max_pull, max_pull)
         frame.GetXaxis().SetLabelOffset(0.03)
         frame.GetXaxis().SetLabelSize(0.12)
@@ -99,7 +87,7 @@ def GetFrame(prefix, npar, horizontal=False):
         frame.GetYaxis().SetNdivisions(4)
         frame.SetYTitle("(n_{#lower[-0.3]{obs}} - n_{exp}) / #sigma_{tot}")
     else:
-        frame = ROOT.TH2F("frame"+prefix, prefix, 1, -3.5, 3.5, npar, -offset, npar+offset)
+        frame = ROOT.TH2F("frame", '', 1, -3.5, 3.5, npar, -offset, npar+offset)
 
         scale=1.0
         frame.SetLabelOffset( 0.012, "Y" );# label offset on x axis
@@ -128,7 +116,10 @@ def GetFrame(prefix, npar, horizontal=False):
 
     return copy.deepcopy(frame)
 
-def GetBoxes(allp, regions_pull, frame, horizontal=False):
+
+def get_boxes(regions_pull, frame, horizontal=False):
+
+    allp = []
 
     counter = 0
     myr = reversed(regions_pull)
@@ -153,17 +144,17 @@ def GetBoxes(allp, regions_pull, frame, horizontal=False):
 
         color = get_region_color(name)
 
-        box = MakeBox(offset=counter, pull=pull, color=color, horizontal=horizontal)
+        box = make_box(offset=counter, pull=pull, color=color, horizontal=horizontal)
         box.Draw()
 
         counter += 1
         allp.append(box) 
 
-    return
+    return allp
 
 
 
-def make_hist_pull_plot(samples, regions, prefix, hresults):
+def make_hist_pull_plot(samples, regions, results):
 
     ROOT.gStyle.SetOptStat(0000)
 
@@ -173,7 +164,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     ymax = 0
     ymin = 99999999999.
 
-    hdata = ROOT.TH1F(prefix, prefix, npar, 0, npar)
+    hdata = ROOT.TH1F('data', 'data', npar, 0, npar)
     hbkg  = ROOT.TH1F("hbkg", "hbkg", npar,0, npar)
 
     hbkg_components = []
@@ -193,7 +184,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
             if info[0] == region:
                 break
 
-        name = region.replace(" ","").replace('SRincl', 'SR') #^{incl}')
+        name = region.replace(" ","") #.replace('SRi', 'SR')
 
         n_obs = info[1]
         n_exp = info[2]
@@ -294,7 +285,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     hdata.SetMinimum(0.05)
 
     # Plot
-    c = ROOT.TCanvas("c"+prefix,prefix,800,600);
+    c = ROOT.TCanvas("c",'',800,600);
 
     c.SetFrameFillColor(ROOT.kWhite)
 
@@ -323,16 +314,16 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     cdown.SetBorderSize(2)
     cdown.SetTickx(1)
     cdown.SetTicky(1)
-    cdown.SetTopMargin   ( 0.003 )
-    cdown.SetRightMargin ( 0.05 )
-    cdown.SetBottomMargin( 0.3 )
-    cdown.SetLeftMargin( 0.10 )
+    cdown.SetTopMargin   (0.003)
+    cdown.SetRightMargin (0.05)
+    cdown.SetBottomMargin(0.20)
+    cdown.SetLeftMargin  (0.10)
     cdown.Draw()
 
     cup.cd()
 
     ## bkg stack
-    stack = ROOT.THStack("stack","stack")
+    stack = ROOT.THStack("stack", "stack")
 
     to_merge = {}
     merged_bkgs = OrderedDict()
@@ -343,17 +334,13 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     merged_bkgs['gamjet'] = to_merge['photonjet']
     merged_bkgs['tgamma'] = to_merge['ttbarg'] #+ to_merge['ttbarghad'] to_merge['topgamma'] + 
 
-    # if args.data == 'data15':
-    #     merged_bkgs['efake'] = to_merge['efake15']
-    #     merged_bkgs['jfake'] = to_merge['jfake15']
-    # elif args.data == 'data16':
-    #     merged_bkgs['efake'] = to_merge['efake16']
-    #     merged_bkgs['jfake'] = to_merge['jfake16']
-    # else:
-    merged_bkgs['efake'] = to_merge['efake']
-    merged_bkgs['jfake'] = to_merge['jfake']
+    # merged_bkgs['efake'] = to_merge['efake']
+    # merged_bkgs['jfake'] = to_merge['jfake']
+    merged_bkgs['fakes'] = to_merge['efake'] + to_merge['jfake']
 
-    merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] 
+    # merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] 
+    merged_bkgs['wgamma'] = to_merge['wgamma']
+    merged_bkgs['zgamma'] = to_merge['zllgamma'] + to_merge['znunugamma']
 
     if 'vqqgamma' in merged_bkgs:
         merged_bkgs['vgamma'] += to_merge['vqqgamma']
@@ -402,20 +389,14 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
         legend1.AddEntry(hist, labels_dict[name], 'f')
 
     legend1.AddEntry(hbkg_total, "stat #oplus syst", 'f')
-
-    # if args.data == 'data15':
-    #     legend1.AddEntry(graph_data, 'Data 2015', 'pl')
-    # elif args.data == 'data16':
-    #     legend1.AddEntry(graph_data, 'Data 2016', 'pl')
-    # else:
     legend1.AddEntry(graph_data, 'Data', 'pl')
 
     set_style(graph_data, msize=1, lwidth=2, color=ROOT.kBlack)
     set_style(hdata, msize=1, lwidth=2, color=ROOT.kBlack)
 
     hdata.GetYaxis().SetTitle("Number of events")
-    hdata.GetYaxis().SetTitleSize(0.05)
-    hdata.GetYaxis().SetTitleOffset(0.9)
+    hdata.GetYaxis().SetTitleSize(0.06)
+    hdata.GetYaxis().SetTitleOffset(0.75)
     hdata.GetXaxis().SetLabelSize(0.00)
     hdata.GetYaxis().SetLabelSize(0.05)
 
@@ -428,13 +409,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     hbkg_total.Draw("E2same][")
     graph_data.Draw("P0Z")
 
-    # if args.data == 'data15':
-    #     text = style.data15_label
-    # elif args.data == 'data16':
-    #     text = style.data16_label
-    # else:
     text = style.data_label
-
     t = ROOT.TLatex(0, 0, text)
     t.SetNDC()
     t.SetTextFont(42)
@@ -443,7 +418,7 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
     t.DrawLatex(0.15, 0.80, style.atlas_label)
     t.DrawLatex(0.15, 0.72, text)
-    t.DrawLatex(0.15, 0.64, region_name.replace('L', '{L}').replace('H', '{H}'))
+    #t.DrawLatex(0.15, 0.64, region_name) #.replace('L', '{L}').replace('H', '{H}'))
 
     legend1.Draw()
 
@@ -452,17 +427,17 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
     cdown.cd()
 
     # Draw frame with pulls
-    frame = GetFrame(prefix, npar, horizontal=True)
-    for b in xrange(1,hdata.GetNbinsX()+1):
+    frame = get_frame(npar, horizontal=True)
+    for b in xrange(1, hdata.GetNbinsX()+1):
         frame.GetXaxis().SetBinLabel(b ,hdata.GetXaxis().GetBinLabel(b))
 
+    frame.GetXaxis().SetLabelSize(0.15)
     frame.Draw()
 
-    allp = []
-    GetBoxes(allp, regions_pull, frame, True)
+    allp = get_boxes(regions_pull, frame, True)
     
     for ext in args.extensions.split(','):
-        c.Print(args.output_dir+"/pull_regions_"+prefix+'.' + ext)
+        c.Print(args.output_dir+'/pull_regions.' + ext)
 
     return
 
@@ -470,22 +445,16 @@ def make_hist_pull_plot(samples, regions, prefix, hresults):
 
 
 # Run YieldsTable.py with all regions and samples requested
-pickleFilename = "yield_%s_all.pickle" % (region_name)
+pickle_filename = "yield_all.pickle"
 
 samples = ','.join(backgrounds)
 
-#if not os.path.isfile(pickleFilename):
-cmd = "YieldsTable.py -c %s -s %s -w %s -o yield_%s_all.tex -t %s" % (",".join(regions), samples, workspace, region_name, region_name)
+cmd = "YieldsTable.py -c %s -s %s -w %s -o yield_all.tex" % (",".join(regions), samples, workspace)
 print cmd
 subprocess.call(cmd, shell=True)
-
-try:
-    picklefile = open(pickleFilename,'rb')
-except IOError:
-    print "Cannot open pickle %s, continuing to next" % pickleFilename
+picklefile = open(pickle_filename,'rb')
 
 mydict = pickle.load(picklefile)
-#mydict = latexfitresults(workspace, ','.join(regions), samples)
 
 results = []
 
@@ -498,11 +467,6 @@ for region in mydict["names"]:
 
     exp_syst = mydict["TOTAL_FITTED_bkg_events_err"][index]
 
-    # exp_stat_dn, exp_stat_up = get_poisson_error(n_exp)
-
-    # exp_tot_up = ROOT.TMath.Sqrt(exp_syst*exp_syst + pEr[2]*pEr[2])                
-    # exp_tot_dn = ROOT.TMath.Sqrt(exp_syst*exp_syst + pEr[1]*pEr[1])
-
     n_exp_components = []
     for sam in samples.split(","):
         if "Fitted_events_"+sam in mydict:
@@ -514,4 +478,4 @@ for region in mydict["names"]:
 
 
 #pull
-make_hist_pull_plot(samples, regions, region_name, results)
+make_hist_pull_plot(samples, regions, results)
