@@ -16,7 +16,7 @@ from functools import partial
 from rootutils import RootFile
 import miniutils
 import regions as regions_
-from signalxs import get_xs
+from xsutils import get_xs
 import systematics
 
 import analysis 
@@ -60,7 +60,6 @@ def sphistograms():
     parser.add_argument('-v', dest='variables', default='cuts', help='variables (comma separated)')
     parser.add_argument('-r', dest='regions', help='regions (comma separated)')
     parser.add_argument('-s', dest='samples', help='samples (comma separated)')
-    parser.add_argument('-n', help='"L" or "H"')
 
     parser.add_argument('--year', help='Select only MC event corresponding to this year')
 
@@ -69,7 +68,6 @@ def sphistograms():
     parser.add_argument('--syst', action='store_true')
     parser.add_argument('--unblind', action='store_true')
     parser.add_argument('--version', help='Use this version')
-    parser.add_argument('--prw', action='store_true', help='Use pile-up reweighting')
 
     # scale to lumi?
     parser.add_argument('-i', '--input')
@@ -160,15 +158,11 @@ def sphistograms():
     # Create histograms
     variables = args.variables.split(',')
 
-    region_type = args.n
-    if region_type is None:
-        print 'error: indicate the region type: L or H'
-        return 1
-
     if args.regions is None or args.regions == 'all':
         args.regions = ','.join(analysis.sr_regions + analysis.cr_regions + analysis.vr_regions)
     
-    regions = [ '%s_%s' % (r, region_type) for r in args.regions.split(',') ]
+    #regions = [ '%s_%s' % (r, region_type) for r in args.regions.split(',') ]
+    regions = args.regions.split(',')
    
     data = ['data15', 'data16', 'data',]
 
@@ -204,8 +198,9 @@ def sphistograms():
 
         for region in regions:
 
-            region_name, region_type = region.split('_')
-            
+            # region_name, region_type = region.split('_')
+            region_name = region
+
             # don't need signal in VR
             if 'GGM' in sample:
                 if region_name not in analysis.sr_regions + analysis.cr_regions:
@@ -236,7 +231,7 @@ def sphistograms():
                 # nominal histogram
                 get_histogram = partial(miniutils.get_histogram, sample, variable=variable, 
                                         region=region_name, selection=selection, 
-                                        lumi=args.lumi, version=args.version, year=args.year, use_prw=args.prw)
+                                        lumi=args.lumi, version=args.version, year=args.year)
 
                 h_nom = get_histogram(syst='Nom')
 
@@ -245,11 +240,11 @@ def sphistograms():
                     h_nom.SetBinContent(1, 0.0)
 
                 # jet fakes in SR (from extrapolation)
-                if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
-                    if region_type == 'L':
-                        h_nom.SetBinContent(1, 0.04)
-                    elif region_type == 'H':
-                        h_nom.SetBinContent(1, 0.0001)
+                # if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
+                #     if region_type == 'L':
+                #         h_nom.SetBinContent(1, 0.04)
+                #     elif region_type == 'H':
+                #         h_nom.SetBinContent(1, 0.0001)
 
                 histograms.add(h_nom)
 
@@ -315,14 +310,14 @@ def sphistograms():
                         h_dn = get_histogram(syst='FjgLow')
                         h_up = get_histogram(syst='FjgHigh')
 
-                        # in SR (from extrapolation)
-                        if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
-                            if region_type == 'L':
-                                h_dn.SetBinContent(1, 0.03)
-                                h_up.SetBinContent(1, 0.05)
-                            elif region_type == 'H':
-                                h_dn.SetBinContent(1, 0.0001)
-                                h_up.SetBinContent(1, 0.0001)
+                        # # in SR (from extrapolation)
+                        # if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
+                        #     if region_name[-1] == 'L':
+                        #         h_dn.SetBinContent(1, 0.03)
+                        #         h_up.SetBinContent(1, 0.05)
+                        #     elif region_name[-1] == 'H':
+                        #         h_dn.SetBinContent(1, 0.0001)
+                        #         h_up.SetBinContent(1, 0.0001)
                             
                         histograms.add(h_dn)
                         histograms.add(h_up)
