@@ -11,9 +11,8 @@ from configManager import configMgr
 from configWriter import fitConfig, Measurement, Channel, Sample
 from systematic import Systematic
 
-#from style import colors_dict
 def color(sample):
-    return ROOT.kBlack #ROOT.TColor.GetColor(colors_dict[sample])
+    return ROOT.kBlack
 
 def rmdir(dir_):
     try:
@@ -25,24 +24,22 @@ def rmdir(dir_):
 # Options
 base_analysis  = "PhotonMet"
 
-print "Found user args %s" % configMgr.userArg
-
 # Options
 parser = argparse.ArgumentParser('PhotonMet_HistFitter_config')
 
-parser.add_argument("-i", dest='hist_file')
-parser.add_argument("--sr", dest='signal_region')
-parser.add_argument("--data", default='data')
+parser.add_argument('-i', dest='hist_file')
+parser.add_argument('--sr', dest='signal_region')
+parser.add_argument('--data', default='data')
 
-parser.add_argument("--val", action='store_true')
-parser.add_argument("--mc", action='store_true')
-parser.add_argument("--syst", action='store_true')
-parser.add_argument("--rm", action='store_true')
-parser.add_argument("--asimov", action='store_true')
-parser.add_argument("--ntoys", type=int, default=5000)
-parser.add_argument("--npoints", type=int, default=1)
-parser.add_argument("--sigxs", action='store_true')
-parser.add_argument("--lumi", type=float)
+parser.add_argument('--val', action='store_true')
+parser.add_argument('--mc', action='store_true')
+parser.add_argument('--syst', action='store_true')
+parser.add_argument('--rm', action='store_true')
+parser.add_argument('--asimov', action='store_true')
+parser.add_argument('--ntoys', type=int, default=5000)
+parser.add_argument('--npoints', type=int, default=1)
+parser.add_argument('--sigxs', action='store_true')
+parser.add_argument('--lumi', type=float)
 
 userArg = [ i.replace('"', '') for i in configMgr.userArg.split() ]
 args = parser.parse_args(userArg)
@@ -101,6 +98,10 @@ if opttag:
 else:
     configMgr.analysisName = "%sAnalysis_%s_%s" % (base_analysis, fittag, signal_region)
 
+if myFitType == FitType.Background:
+    configMgr.analysisName = configMgr.analysisName.replace('_'+signal_region, '')
+
+
 configMgr.histCacheFile  = hist_file
 configMgr.outputFileName = 'results/%s/Output.root' % configMgr.analysisName
 
@@ -119,20 +120,24 @@ configMgr.outputLumi = args.lumi # Luminosity required for output histograms
 configMgr.setLumiUnits("fb-1")
 
 ## Regions
-sr_name = signal_region[:-1] # could be SR or SRincl
-sr_type = signal_region[-1].upper()
+# sr_name = signal_region[:-1] # could be SR or SRi
+# sr_type = signal_region[-1].upper()
+srs = signal_region.split(',')
 
 regions = [
-    'SR', 
-    'SRi',
     'CRQ', 'CRW', 'CRT',
-    'VRM1', 'VRM2', 'VRM3', 
-    'VRD1', 'VRD2', 'VRD3',
-    'VRL1', 'VRL2', 'VRL3', 'VRL4',
-  ]
+    
+    'VRM1L', 'VRM2L', 'VRM3L', 
+    'VRM1H', 'VRM2H', 'VRM3H', 
+    
+    'VRL1', 'VRL2', 'VRL3', 'VRL4', 'VRZ',
+    'VRLW1', 'VRLT1', 'VRLW3', 'VRLT3',
+    ]
+
+regions += srs
 
 for r in regions:
-    configMgr.cutsDict[r] = '' # not used anyway
+    configMgr.cutsDict[r] = '' # need by HF but not used anyway o.O
 
 
 #-----------------
@@ -245,8 +250,7 @@ configMgr.nomName = 'Nom'
 def Sys(name='', kind='overallSys'):
     return Systematic(name, nom_name, '_'+name+'Up', '_'+name+'Down', 'tree', kind)
 
-
-## Detector uncertainties
+# Detector uncertainties
 syst_jets = [
     Sys('JET_EtaIntercalibration_NonClosure'),
     Sys('JET_GroupedNP_1'),
@@ -314,9 +318,9 @@ syst_weight = [
 
 syst_to_all = syst_jets +syst_met + syst_egamma + syst_muon + syst_weight
 
-## Theory Uncertainties
+# Theory Uncertainties
 
-# Zgamma
+## Zgamma
 sigma_zgamma = 0.99
 
 syst_zgamma_theo = Systematic("theoSysZG", 1, 1+sigma_zgamma, 1-sigma_zgamma, "user", "userOverallSys")
@@ -324,54 +328,36 @@ syst_zgamma_theo = Systematic("theoSysZG", 1, 1+sigma_zgamma, 1-sigma_zgamma, "u
 ## gamjet
 sigma_gamjet_srl = 0.57
 sigma_gamjet_srh = 0.43
+sigma_gamjet_crq = 0.20
 
-sigma_gamjet_crql = 0.20
-sigma_gamjet_crqh = 0.20
-
-if sr_type == 'L':
-    syst_gamjet_theo_sr  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_srl,  1-sigma_gamjet_srl,  "user", "userOverallSys")
-    syst_gamjet_theo_crq = Systematic("theoSysGJ", 1, 1+sigma_gamjet_crql, 1-sigma_gamjet_crql, "user", "userOverallSys")
-else:
-    syst_gamjet_theo_sr  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_srh,  1-sigma_gamjet_srh,  "user", "userOverallSys")
-    syst_gamjet_theo_crq = Systematic("theoSysGJ", 1, 1+sigma_gamjet_crqh, 1-sigma_gamjet_crqh, "user", "userOverallSys")
+syst_gamjet_theo_srl  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_srl, 1-sigma_gamjet_srl, "user", "userOverallSys")
+syst_gamjet_theo_srh  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_srh, 1-sigma_gamjet_srh, "user", "userOverallSys")
+syst_gamjet_theo_crq  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_crq, 1-sigma_gamjet_crq, "user", "userOverallSys")
 
 ## wgamma
 sigma_wgamma_srl   = 0.065
 sigma_wgamma_srh   = 0.083
-sigma_wgamma_crql  = 0.056
-sigma_wgamma_crqh  = 0.070
-sigma_wgamma_crwtl = 0.044
-sigma_wgamma_crwth = 0.044
+sigma_wgamma_crq   = 0.070
+sigma_wgamma_crwt  = 0.044
 
-if sr_type == 'L':
-    syst_wgamma_theo_sr   = Systematic("theoSysWG", 1, 1+sigma_wgamma_srl,   1-sigma_wgamma_srl,   "user", "userOverallSys")
-    syst_wgamma_theo_crq  = Systematic("theoSysWG", 1, 1+sigma_wgamma_crql,  1-sigma_wgamma_crql,  "user", "userOverallSys")
-    syst_wgamma_theo_crwt = Systematic("theoSysWG", 1, 1+sigma_wgamma_crwtl, 1-sigma_wgamma_crwtl, "user", "userOverallSys")
-else:
-    syst_wgamma_theo_sr   = Systematic("theoSysWG", 1, 1+sigma_wgamma_srh,   1-sigma_wgamma_srh,   "user", "userOverallSys")
-    syst_wgamma_theo_crq  = Systematic("theoSysWG", 1, 1+sigma_wgamma_crqh,  1-sigma_wgamma_crqh,  "user", "userOverallSys")
-    syst_wgamma_theo_crwt = Systematic("theoSysWG", 1, 1+sigma_wgamma_crwth, 1-sigma_wgamma_crwth, "user", "userOverallSys")
+syst_wgamma_theo_srl  = Systematic("theoSysWG", 1, 1+sigma_wgamma_srl, 1-sigma_wgamma_srl,   "user", "userOverallSys")
+syst_wgamma_theo_srh  = Systematic("theoSysWG", 1, 1+sigma_wgamma_srh, 1-sigma_wgamma_srh,   "user", "userOverallSys")
+syst_wgamma_theo_crq  = Systematic("theoSysWG", 1, 1+sigma_wgamma_crq,  1-sigma_wgamma_crq,  "user", "userOverallSys")
+syst_wgamma_theo_crwt = Systematic("theoSysWG", 1, 1+sigma_wgamma_crwt, 1-sigma_wgamma_crwt, "user", "userOverallSys")
 
 ## ttgamma
-sigma_ttgamma_srl   = 0.133
-sigma_ttgamma_srh   = 0.372
-sigma_ttgamma_crql  = 0.136
-sigma_ttgamma_crqh  = 0.177
-sigma_ttgamma_crwtl = 0.085
-sigma_ttgamma_crwth = 0.085
+sigma_ttgamma_srl  = 0.133
+sigma_ttgamma_srh  = 0.372
+sigma_ttgamma_crq  = 0.177
+sigma_ttgamma_crwt = 0.085
 
-if sr_type == 'L':
-    syst_ttgamma_theo_sr   = Systematic("theoSysTG", 1, 1+sigma_ttgamma_srl,   1-sigma_ttgamma_srl,   "user", "userOverallSys")
-    syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crql,  1-sigma_ttgamma_crql,  "user", "userOverallSys")
-    syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crwtl, 1-sigma_ttgamma_crwtl, "user", "userOverallSys")
-else:
-    syst_ttgamma_theo_sr   = Systematic("theoSysTG", 1, 1+sigma_ttgamma_srh,   1-sigma_ttgamma_srh,   "user", "userOverallSys")
-    syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crqh,  1-sigma_ttgamma_crqh,  "user", "userOverallSys")
-    syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crwth, 1-sigma_ttgamma_crwth, "user", "userOverallSys")
+syst_ttgamma_theo_srl  = Systematic("theoSysTG", 1, 1+sigma_ttgamma_srl,  1-sigma_ttgamma_srl,   "user", "userOverallSys")
+syst_ttgamma_theo_srh  = Systematic("theoSysTG", 1, 1+sigma_ttgamma_srh,  1-sigma_ttgamma_srh,   "user", "userOverallSys")
+syst_ttgamma_theo_crq  = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crq,  1-sigma_ttgamma_crq,  "user", "userOverallSys")
+syst_ttgamma_theo_crwt = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crwt, 1-sigma_ttgamma_crwt, "user", "userOverallSys")
 
-# signal
+## signal
 sigXsec      = Sys('SigXSec')
-
 
 
 # Add Sample Specific Systematics (apparently it's needed to add these systs to the samples *BEFORE* adding them to the FitConfig
@@ -391,12 +377,6 @@ if do_syst:
                 continue
 
             sample.addSystematic(gsyst)
-
-    #-- channel specific systematics (still *before* adding them to FitConfig)
-    # for bsyst in syst_bjet:
-    #     CRW.addSystematic(bsyst)
-    #     CRT.addSystematic(bsyst)
-
 
 
 #---------
@@ -437,19 +417,26 @@ if useStat:
 else:
     fitconfig.statErrThreshold = None
 
-meas.addPOI("mu_SIG")
-meas.addParamSetting("Lumi", True)
+meas.addPOI('mu_SIG')
+meas.addParamSetting('Lumi', True)
 
 constraint_channels = []
 validation_channels = []
-signal_channels = []
+signal_channels     = []
 
 
 # ---------------
-# Signal region 
+# Signal regions 
 # ---------------
-SR = fitconfig.addChannel(variable, [sr_name], *binning)
-signal_channels.append(SR)
+
+# if not bkg-only only allow ONE SR.
+if myFitType != FitType.Background and len(srs) > 1:
+    raise Exception('For discovery/exclusion fit only one SR allowed')
+
+# create SR channel and add them to signal_channels
+for sr in srs:
+    SR = fitconfig.addChannel(variable, [sr], *binning)
+    signal_channels.append(SR)
 
 # -----------------
 #  Control regions 
@@ -462,8 +449,8 @@ constraint_channels.append(CRQ)
 constraint_channels.append(CRW)
 constraint_channels.append(CRT)
 
-wgamma_sample.   setNormRegions(['CRW', variable])
-ttbarg_sample.   setNormRegions(['CRT', variable])
+wgamma_sample   .setNormRegions(['CRW', variable])
+ttbarg_sample   .setNormRegions(['CRT', variable])
 photonjet_sample.setNormRegions(['CRQ', variable])
 
 # -------------------
@@ -471,99 +458,91 @@ photonjet_sample.setNormRegions(['CRQ', variable])
 # -------------------
 if do_validation:
 
-    VRM1  = fitconfig.addChannel(variable, ["VRM1"], *binning)
-    VRM2  = fitconfig.addChannel(variable, ["VRM2"], *binning)
-    VRM3  = fitconfig.addChannel(variable, ["VRM3"], *binning)
+    VRM1L  = fitconfig.addChannel(variable, ['VRM1L'], *binning)
+    VRM2L  = fitconfig.addChannel(variable, ['VRM2L'], *binning)
+    VRM3L  = fitconfig.addChannel(variable, ['VRM3L'], *binning)
 
-    validation_channels.append(VRM1)
-    validation_channels.append(VRM2)
-    validation_channels.append(VRM3)
+    VRM1H  = fitconfig.addChannel(variable, ['VRM1H'], *binning)
+    VRM2H  = fitconfig.addChannel(variable, ['VRM2H'], *binning)
+    VRM3H  = fitconfig.addChannel(variable, ['VRM3H'], *binning)
 
-    #if sr_type == 'L':
-    VRD1  = fitconfig.addChannel(variable, ["VRD1"], *binning)
-    VRD2  = fitconfig.addChannel(variable, ["VRD2"], *binning)
-    VRD3  = fitconfig.addChannel(variable, ["VRD3"], *binning)
+    validation_channels.append(VRM1H)
+    validation_channels.append(VRM2H)
+    validation_channels.append(VRM3H)
 
-    validation_channels.append(VRD1)
-    validation_channels.append(VRD2)
-    validation_channels.append(VRD3)
+    validation_channels.append(VRM1L)
+    validation_channels.append(VRM2L)
+    validation_channels.append(VRM3L)
 
-    VRL1  = fitconfig.addChannel(variable, ["VRL1"], *binning)
-    VRL2  = fitconfig.addChannel(variable, ["VRL2"], *binning)
-    VRL3  = fitconfig.addChannel(variable, ["VRL3"], *binning)
-    VRL4  = fitconfig.addChannel(variable, ["VRL4"], *binning)
+    VRL1  = fitconfig.addChannel(variable, ['VRL1'], *binning)
+    VRL2  = fitconfig.addChannel(variable, ['VRL2'], *binning)
+    VRL3  = fitconfig.addChannel(variable, ['VRL3'], *binning)
+    VRL4  = fitconfig.addChannel(variable, ['VRL4'], *binning)
+    VRZ   = fitconfig.addChannel(variable, ['VRZ'], *binning)
+
+    VRLW1  = fitconfig.addChannel(variable, ['VRLW1'], *binning)
+    VRLT1  = fitconfig.addChannel(variable, ['VRLT1'], *binning)
+    VRLW3  = fitconfig.addChannel(variable, ['VRLW3'], *binning)
+    VRLT3  = fitconfig.addChannel(variable, ['VRLT3'], *binning)
 
     validation_channels.append(VRL1)
     validation_channels.append(VRL2)
     validation_channels.append(VRL3)
     validation_channels.append(VRL4)
+    validation_channels.append(VRZ)
+
+    validation_channels.append(VRLW1)
+    validation_channels.append(VRLT1)
+    validation_channels.append(VRLW3)
+    validation_channels.append(VRLT3)
 
 
 
 # Add theoretical systematics region specific
 if do_theo_syst:
 
-    SR.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    # SR
+    for sc in signal_channels:
+        if sc.name.endswith('L'):
+            gj_syst  = syst_gamjet_theo_srl
+            wg_syst  = syst_wgamma_theo_srl
+            tg_syst  = syst_ttgamma_theo_srl
+        elif sc.name.endswith('H'):
+            gj_syst  = syst_gamjet_theo_srh
+            wg_syst  = syst_wgamma_theo_srh
+            tg_syst  = syst_ttgamma_theo_srh
+
+        sc.getSample('photonjet').addSystematic(gj_syst)
+        sc.getSample('wgamma')   .addSystematic(wg_syst)
+        sc.getSample('ttbarg')   .addSystematic(tg_syst)
+
+    # CR
     CRQ.getSample('photonjet').addSystematic(syst_gamjet_theo_crq)
-    CRW.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    CRT.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
+    CRW.getSample('photonjet').addSystematic(syst_gamjet_theo_srl)
+    CRT.getSample('photonjet').addSystematic(syst_gamjet_theo_srl)
 
-    SR. getSample("wgamma").addSystematic(syst_wgamma_theo_sr)
-    CRQ.getSample("wgamma").addSystematic(syst_wgamma_theo_crq)
-    CRW.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
-    CRT.getSample("wgamma").addSystematic(syst_wgamma_theo_crwt)
+    CRQ.getSample('wgamma').addSystematic(syst_wgamma_theo_crq)
+    CRW.getSample('wgamma').addSystematic(syst_wgamma_theo_crwt)
+    CRT.getSample('wgamma').addSystematic(syst_wgamma_theo_crwt)
 
-    SR. getSample("ttbarg").addSystematic(syst_ttgamma_theo_sr)
-    CRQ.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crq)
-    CRW.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
-    CRT.getSample("ttbarg").addSystematic(syst_ttgamma_theo_crwt)
+    CRQ.getSample('ttbarg').addSystematic(syst_ttgamma_theo_crq)
+    CRW.getSample('ttbarg').addSystematic(syst_ttgamma_theo_crwt)
+    CRT.getSample('ttbarg').addSystematic(syst_ttgamma_theo_crwt)
 
-    VRM1.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    VRM2.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    VRM3.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    VRD1.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    VRD2.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    VRD3.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    VRL1.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    VRL2.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    VRL3.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-    VRL4.getSample('photonjet').addSystematic(syst_gamjet_theo_sr)
-
-    VRM1.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-    VRM2.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-    VRM3.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-    VRD1.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-    VRD2.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-    VRD3.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-    VRL1.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-    VRL2.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-    VRL3.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-    VRL4.getSample('wgamma').addSystematic(syst_wgamma_theo_sr)
-
-    VRM1.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-    VRM2.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-    VRM3.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-    VRD1.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-    VRD2.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-    VRD3.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-    VRL1.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-    VRL2.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-    VRL3.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-    VRL4.getSample('ttbarg').addSystematic(syst_ttgamma_theo_sr)
-
+    # VR
+    for vr in validation_channels:
+        vr.getSample('photonjet').addSystematic(syst_gamjet_theo_srl)
+        vr.getSample('wgamma') .addSystematic(syst_gamjet_theo_srl)
+        vr.getSample('ttbarg') .addSystematic(syst_gamjet_theo_srl)
+        # FIX: vr.getSample('zgamma').addSystematic(syst_gamjet_theo_sr) 
 
 
 # Add CR/VR/SR 
 fitconfig.setBkgConstrainChannels(constraint_channels)
 
 if myFitType == FitType.Background: 
-    validation_channels.append(SR) #--- Define SR as validation region.
-
-    # For now as a validation region. FIX!
-    if sr_name == 'SR': 
-        SRi  = fitconfig.addChannel(variable, ["SRi"], *binning)
-        validation_channels.append(SRi)
-
+    for sr in signal_channels:
+        validation_channels.append(sr) #--- Define SR as validation region.
 else:
     fitconfig.setSignalChannels(signal_channels) #--- Define SR as signal region.
 

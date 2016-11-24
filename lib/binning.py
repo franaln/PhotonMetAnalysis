@@ -16,17 +16,19 @@ bins['ph_phi'] = (17, -3.4, 3.4)
 ## jets
 bins['jet_n']   = (20, 0, 20)
 bins['bjet_n']  = (10, 0, 10)
-bins['jet_pt']  = (15, 0., 1500.)
+bins['jet_pt']  = (60, 0., 1500.)
 bins['jet_eta'] = (15, -3., 3.)
 bins['jet_phi'] = (34, -3.4, 3.4)
 
 ## met
 bins['met_et']  = (20, 0., 1000.)
-#bins['met_et']  = [0, 50, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-
 bins['met_phi'] = (17, -3.4, 3.4)
-bins['tst_et']  = (20, 0., 1000.)
-bins['tst_phi'] = (17, -3.4, 3.4)
+bins['met_soft_et']  = (20, 0., 1000.)
+bins['met_soft_phi'] = (17, -3.4, 3.4)
+bins['met_gam_et']  = (20, 0., 1000.)
+bins['met_gam_phi'] = (17, -3.4, 3.4)
+bins['met_jet_et']  = (20, 0., 1000.)
+bins['met_jet_phi'] = (17, -3.4, 3.4)
 bins['met_sig'] = (50, 0., 50.)
 bins['met_sumet']  = (40, 0., 8000.)
 bins['met_truth_et']  = (20, 0., 1000.)
@@ -74,5 +76,11 @@ bins['avgmu'] = (50, 0, 50)
 bins['deta_gamjet'] = (60, 0., 6.)
 bins['dr_gamjet'] = (60, 0., 6.)
 
-bins['jet_pt[0]']  = (20, 0., 2000.)
-bins['jet_pt[1]']  = (20, 0., 2000.)
+bins['jet_pt[0]']  = (80, 0., 2000.)
+bins['jet_pt[1]']  = (80, 0., 2000.)
+bins['jet_pt[2]']  = (80, 0., 2000.)
+bins['jet_pt[3]']  = (80, 0., 2000.)
+
+bins['met_et/sqrt(ht)']  = (100, 0., 50.)
+bins['met_et/meff']  = (20, 0., 1.)
+bins['met_et/ht']  = (40, 0., 2.)

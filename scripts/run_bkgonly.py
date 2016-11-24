@@ -53,9 +53,9 @@ def main():
         opttag += '_nosys'
 
     if opttag:
-        results_dir = 'results/PhotonMetAnalysis_bkgonly%s_%s' % (opttag, region)
+        results_dir = 'results/PhotonMetAnalysis_bkgonly%s' % opttag
     else:
-        results_dir = 'results/PhotonMetAnalysis_bkgonly_%s' % region
+        results_dir = 'results/PhotonMetAnalysis_bkgonly'
 
     options = '-i %s --sr %s --rm --lumi %.2f' % (histograms_file, region, analysis.lumi_data)
     if args.do_validation:

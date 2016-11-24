@@ -64,7 +64,7 @@ def draw_boxpie(m3, mu, *brs):
 
 
 
-def draw_grid_frame(xsize=800, ysize=600):
+def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ymax=n1max):
 
     canvas = ROOT.TCanvas('', '', xsize, ysize)
     canvas.SetTickx(0)
@@ -73,13 +73,13 @@ def draw_grid_frame(xsize=800, ysize=600):
     ROOT.SetOwnership(canvas, False)
 
 
-    nx = (glmax - glmin) / 25
-    ny = (n1max - n1min) / 25
+    nx = (xmax - xmin) / 25
+    ny = (ymax - ymin) / 25
 
     dx = 25
     dy = 25
 
-    frame = ROOT.TH2F('h2', 'h2', nx, glmin, glmax, ny, n1min, n1max)
+    frame = ROOT.TH2F('h2', 'h2', nx, xmin, xmax, ny, ymin, ymax)
     ROOT.SetOwnership(frame, False)
     frame.SetTitle('')
 
@@ -106,13 +106,13 @@ def draw_grid_frame(xsize=800, ysize=600):
     frame.Draw("hist")
     ROOT.gROOT.ForceStyle()
 
-    fl = ROOT.TLine(glmin, glmin, glmax, glmax)
+    fl = ROOT.TLine(xmin, xmin, xmax, xmax)
     ROOT.SetOwnership(fl, False)
     fl.SetLineStyle(2)
     fl.SetLineColor(ROOT.kGray+2)
     fl.Draw()
 
-    flabel = ROOT.TLatex(glmax-250, n1max-200, '%s > m_{#tilde{g}}' % mn1_text)
+    flabel = ROOT.TLatex(xmax-250, ymax-200, '%s > m_{#tilde{g}}' % mn1_text)
     ROOT.SetOwnership(flabel, False)
     flabel.SetTextSize(0.02)
     flabel.SetTextColor(ROOT.kGray+2)
@@ -242,7 +242,7 @@ def do_plot(plotname,
             cup.SetLogy()
 
         cup.SetTopMargin(0.08)
-        cdown.SetBottomMargin(0.3)
+        cdown.SetBottomMargin(0.35)
 
         up_size = calc_size(cup)
         dn_size = calc_size(cdown)
@@ -259,6 +259,9 @@ def do_plot(plotname,
         
         up_size = calc_size(can)
         dn_size = calc_size(can) 
+
+    up_size *= 1.2
+    dn_size *= 1.2 
 
     # configure histograms
     if data:
@@ -345,7 +348,7 @@ def do_plot(plotname,
     legend1.SetTextSize(legend1.GetTextSize()*0.8)
     if signal:
         if legpos == 'top':
-            legend2 = legend(legxmax+0.05, legymin, legxmax+0.35, legymax)
+            legend2 = legend(legxmax+0.05, legymin+0.1, legxmax+0.39, legymax)
         else:
             legend2 = legend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
 
@@ -400,7 +403,7 @@ def do_plot(plotname,
 
     if logy:
         # if chist.GetMinimum() > 1:
-        chist.SetMinimum(0.1)
+        chist.SetMinimum(0.01)
         # else:
         #     chist.SetMinimum(0.01)
 
@@ -417,8 +420,14 @@ def do_plot(plotname,
     else:
         if data:
             ymax = max(chist.GetMaximum(), data.GetMaximum())
+        elif signal:
+            tmpmax = chist.GetMaximum()
+            for hsig in signal.itervalues():
+                tmpmax = max(tmpmax, hsig.GetMaximum())
+            ymax = tmpmax
         else:
             ymax = chist.GetMaximum()
+
         chist.SetMaximum(ymax*1.4)
 
     if do_ratio:

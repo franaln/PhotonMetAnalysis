@@ -266,7 +266,7 @@ def get_sample_datasets(name, version=None, ptag=None):
         path = find_path(project, did, short_name, versions, ptags)
 
         if not path:
-            raise Exception('File not found for ds %s' % (ds))
+            raise Exception('File not found for ds %s with version %s and ptag %s. (Available ptags: %s)' % (ds, version, ptag, ','.join(ptags)))
 
         dataset = {
             'name': name,
@@ -297,7 +297,6 @@ def _get_histogram(ds, **kwargs):
     truth      = kwargs.get('truth', False)
     lumi       = kwargs.get('lumi', None)
     binning    = kwargs.get('binning', None)
-    prw        = kwargs.get('prw', False)
     version    = kwargs.get('version', None)
     fs         = kwargs.get('fs', None)
     year       = kwargs.get('year', None)
@@ -308,7 +307,7 @@ def _get_histogram(ds, **kwargs):
     use_lumiw   = kwargs.get('use_lumiw',   True)
     use_sfw     = kwargs.get('use_sfw',     True)
     use_mcw     = kwargs.get('use_mcw',     True)
-    use_prw     = kwargs.get('use_prw',     False)
+    use_purw    = kwargs.get('use_purw',    False) #True)
     use_mcveto  = kwargs.get('user_mcveto', True)
 
     debug      = kwargs.get('debug', False)
@@ -363,6 +362,9 @@ def _get_histogram(ds, **kwargs):
 
         selection = '&&'.join(new_cuts)
 
+    elif do_revert_cut and variable not in selection and variable != 'cuts':
+        return None
+
     # remove variable from selection if n-1
     elif do_remove_var and variable in selection and not variable == 'cuts':
         selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
@@ -390,7 +392,6 @@ def _get_histogram(ds, **kwargs):
             selection = '%s && mcveto==0' % selection
         else:
             selection = 'mcveto==0'
-
 
     # change selection and variable for systematics
     if syst != 'Nom' and systematics.affects_kinematics(syst):
@@ -443,7 +444,7 @@ def _get_histogram(ds, **kwargs):
                 w_list.append('weight_sf')
 
         # pile-up
-        if use_prw:
+        if use_purw:
             if syst == 'Nom':
                 w_list.append('weight_pu')
             elif 'PRW_DATASF__1down' == syst:
@@ -473,6 +474,7 @@ def _get_histogram(ds, **kwargs):
     else:
         w_str = '*'.join(w_list)
 
+
     #-----------------
     # Create histogram
     #-----------------
@@ -483,6 +485,9 @@ def _get_histogram(ds, **kwargs):
         varexp = selection
     elif scale:
         varexp = w_str
+
+    if debug:
+        print 'get_histogram', hname, variable, varexp
 
     if variable == 'cuts':
         tree.Project(hname, '1', varexp)
@@ -574,6 +579,10 @@ def get_histogram(name, **kwargs):
         for ds in datasets:
 
             h = _get_histogram(ds, **kwargs)
+
+            if h is None:
+                return None
+
             if hist is None:
                 hist = h.Clone()
             else:

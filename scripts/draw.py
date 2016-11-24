@@ -61,15 +61,19 @@ def main():
     parser.add_argument('--n1', action='store_true', help='N-1 plot')
     parser.add_argument('--signal', action='store_true', help='Add signal samples (separated with ,)')
     parser.add_argument('--blind', action='store_true')
-    parser.add_argument('--prw', action='store_true', help='Use pile-up reweighting')
     parser.add_argument('--pl', action='store_true', help='publink')
     parser.add_argument('--www', action='store_true', help='create webpage')
     parser.add_argument('--ext', dest='extensions', default='pdf', help='')
+    parser.add_argument('--ratio', default='default', help='ratio type: none,default')
 
     global args
     args = parser.parse_args()
 
-    get_histogram = partial(miniutils.get_histogram, remove_var=args.n1, lumi=args.lumi, use_prw=args.prw)
+    do_scale = True
+    if args.lumi == '0':
+        do_scale = False
+        
+    get_histogram = partial(miniutils.get_histogram, remove_var=args.n1, lumi=args.lumi, scale=do_scale)
 
     # regions
     if args.regions is not None:
@@ -85,7 +89,6 @@ def main():
 
     ## plots style
     set_atlas_style()
-    # set_default_style()
 
     # Backgrounds
     if args.mc:
@@ -119,7 +122,7 @@ def main():
 
         for region in regions:
 
-            region_name = region.split('_')[0]
+            region_name = region #.split('_')[0]
 
             for variable in variables:
                 
@@ -174,7 +177,7 @@ def main():
             if args.selection:
                 region_name = region
             else:
-                region_name = region[:-2]
+                region_name = region #[:-2]
 
             ## backgrounds
             h_bkg = OrderedDict()
@@ -210,17 +213,17 @@ def main():
                 del h_bkg['zjets']
 
             ## V + gamma
-            h_bkg['vgamma'] = h_bkg['wgamma'].Clone()
-            h_bkg['vgamma'].Add(h_bkg['zgamma'], 1)
+            # h_bkg['vgamma'] = h_bkg['wgamma'].Clone()
+            # h_bkg['vgamma'].Add(h_bkg['zgamma'], 1)
 
-            del h_bkg['wgamma']
-            del h_bkg['zgamma']
+            # del h_bkg['wgamma']
+            # del h_bkg['zgamma']
             
-            if 'vqqgamma' in h_bkg:
-                h_bkg['vgamma'].Add(h_bkg['vqqgamma'], 1)
-                del h_bkg['vqqgamma']
+            # if 'vqqgamma' in h_bkg:
+            #     h_bkg['vgamma'].Add(h_bkg['vqqgamma'], 1)
+            #     del h_bkg['vqqgamma']
 
-            h_bkg['vgamma'].SetName(h_bkg['vgamma'].GetName().replace('wgamma', 'vgamma'))
+            # h_bkg['vgamma'].SetName(h_bkg['vgamma'].GetName().replace('wgamma', 'vgamma'))
 
             ## tt + gamma
             if args.mc:
@@ -240,9 +243,19 @@ def main():
                 h_bkg['diphoton'].Add(h_bkg['vgammagamma'], 1)
                 del h_bkg['vgammagamma']
 
+            ## fakes
+            h_bkg['fakes'] = h_bkg['efake'].Clone()
+            h_bkg['fakes'].Add(h_bkg['jfake'], 1)
+            h_bkg['fakes'].SetName(h_bkg['efake'].GetName().replace('efake', 'fakes'))
+            
+            del h_bkg['efake']
+            del h_bkg['jfake']
+
 
             ## data
-            h_data = get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst, revert_cut=args.blind)
+            h_data = None
+            if args.data:
+                h_data = get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst, revert_cut=args.blind)
 
 
             ## add overflow bins to the last bin
@@ -257,28 +270,20 @@ def main():
             h_signal = None
             if args.signal:
                 h_signal = OrderedDict()
-                    
+
                 if region.endswith('_L'):
-                    h_signal['GGM_M3_mu_1600_250'] = get_histogram('GGM_M3_mu_1600_250', variable=variable, region=region_name, selection=selection, syst=syst)
-                    h_signal['GGM_M3_mu_1600_650'] = get_histogram('GGM_M3_mu_1600_650', variable=variable, region=region_name, selection=selection, syst=syst)
-
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_250'])
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_650'])
-
+                    signal1 = 'GGM_M3_mu_1900_250'
+                    signal2 = 'GGM_M3_mu_1900_650'
                 elif region.endswith('_H'):
-                    h_signal['GGM_M3_mu_1600_1250'] = get_histogram('GGM_M3_mu_1600_1250', variable=variable, region=region_name, selection=selection, syst=syst)
-                    h_signal['GGM_M3_mu_1600_1450'] = get_histogram('GGM_M3_mu_1600_1450', variable=variable, region=region_name, selection=selection, syst=syst)
+                    signal1 = 'GGM_M3_mu_1900_1650'
+                    signal2 = 'GGM_M3_mu_1900_1850'
                     
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_1250'])
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_1450'])
-                else:
-                    h_signal['GGM_M3_mu_1600_650'] = get_histogram('GGM_M3_mu_1600_650', variable=variable, region=region_name, selection=selection, syst=syst)
-                    h_signal['GGM_M3_mu_1600_1250'] = get_histogram('GGM_M3_mu_1600_1250', variable=variable, region=region_name, selection=selection, syst=syst)
+                h_signal[signal1] = get_histogram(signal1, variable=variable, region=region_name, selection=selection, syst=syst)
+                h_signal[signal2] = get_histogram(signal2, variable=variable, region=region_name, selection=selection, syst=syst)
 
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_650'])
-                    histogram_add_overflow_bin(h_signal['GGM_M3_mu_1600_1250'])
-                    
-                
+                histogram_add_overflow_bin(h_signal[signal1])
+                histogram_add_overflow_bin(h_signal[signal2])
+
             
             varname = variable.replace('[', '').replace(']', '').replace('/', '_over_')
                 
@@ -292,10 +297,10 @@ def main():
             else:
                 outname = os.path.join(args.output, 'can_{}_{}_beforeFit'.format(tag, varname))
             
-            do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, extensions=args.extensions.split(','))
+            do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, extensions=args.extensions.split(','), do_ratio=(args.ratio!='none'))
                 
             if args.pl:
-                os.system('publink %s.pdf' % outname)
+                os.system('pl %s.pdf' % outname)
 
             # save
             if args.save is not None:

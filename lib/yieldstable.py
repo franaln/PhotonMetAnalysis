@@ -18,18 +18,18 @@ from cmdLineUtils import getPdfInRegions, getName, getPdfInRegionsWithRangeName
 from fitutils import get_normalization_factors
 
 labels_latex_dict = {
-    'wgamma': '$W + \gamma$',
-    'ttbarg': '$t\\bar{t}$ + $\gamma$',
+    'wgamma': '$W\gamma$',
+    'ttbarg': '$t\\bar{t}\gamma$',
     'topgamma': 'single-$t$ + $\gamma$',
     'diboson': 'Dibosons',
     'wjets': 'W + jets',
     'ttbar': '$t\\bar{t}$',
     'zjets': 'Z + jets',
-    'zllgamma': 'Z($\\rightarrow\ell\ell$) + $\gamma$',
-    'znunugamma': 'Z($\\rightarrow\\nu\\nu$) + $\gamma$',
-    'photonjet': '$\\gamma$ + jet',
+    'zllgamma': '$Z(\\rightarrow\ell\ell)\gamma$',
+    'znunugamma': '$Z(\\rightarrow\\nu\\nu)\gamma$',
+    'photonjet': '$\\gamma$ + jets',
     'vqqgamma': 'V($\\to$ qq)$+\\gamma$',
-    'group_zllgamma_znunugamma': '$Z + \gamma$',
+    'group_zllgamma_znunugamma': '$Z\gamma$',
     'group_diphoton_vgammagamma': '$\gamma\gamma / W\gamma\gamma / Z\gamma\gamma$',
 
     'efake15': '$e\\rightarrow\\gamma$ fakes',
@@ -491,7 +491,6 @@ def merge_tables(table_srl, table_srh, output_name):
 
     if not os.path.isfile(table_srl) or not os.path.isfile(table_srh):
         return None
-
     
     file1 = open(table_srl).read().split('\n')
     file2 = open(table_srh).read().split('\n')
@@ -516,8 +515,8 @@ def merge_tables(table_srl, table_srh, output_name):
 
         new_list = sline1 + sline2[1:]
 
-        if 'for' in new_list[0]:
-            new_list[0] = ''
+        # if 'for' in new_list[0]:
+        #     new_list[0] = ''
 
         new_line = ' & '.join(new_list)
 

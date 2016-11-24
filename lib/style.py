@@ -5,13 +5,7 @@ from signalgrid import grid_m3_mu, grid_mu
 
 # Labels
 atlas_label = '' ##bf{#it{ATLAS}} Preliminary'
-
-#data_label   = '#sqrt{s} = 13 TeV, 13.3 fb^{-1}'
-data_label   = '#sqrt{s} = 13 TeV, 28 fb^{-1}'
-data15_label = '#sqrt{s} = 13 TeV, ~3.2 fb^{-1}'
-#data16_label = '#sqrt{s} = 13 TeV, ~10.1 fb^{-1}'
-data16_label = '#sqrt{s} = 13 TeV, ~24.8.1 fb^{-1}'
-
+data_label   = '#sqrt{s} = 13 TeV, 36.5 fb^{-1}'
 
 # Legend labels
 labels_dict = dict()
@@ -56,14 +50,14 @@ for mu, mn1 in grid_mu.iteritems():
 # Colours
 colors_dict = dict()
 colors_dict['data']        = ROOT.kBlack
-colors_dict['photonjet']   = '#e55e49' 
-colors_dict['gamjet']      = '#e55e49' 
-colors_dict['wgamma']      = '#b5d3fa'
+colors_dict['photonjet']   = '#E24A33' # '#e34f38' #'#E24A33' #'#e55e49' 
+colors_dict['gamjet']      = '#e34f38' #'#E24A33' #'#e55e49' 
+colors_dict['wgamma']      = '#fcdd5d' #'#f7fab5'
 colors_dict['zllgamma']    = '#f7fab4'
 colors_dict['znunugamma']  = '#f7fab5'
-colors_dict['zgamma']      = '#f7fab5'
-colors_dict['tgamma']      = '#5fe872' 
-colors_dict['ttbarg']      = '#5fe872' 
+colors_dict['zgamma']      = '#b599cc'  #'#c485f8'
+colors_dict['tgamma']      = '#32b43c' 
+colors_dict['ttbarg']      = '#32b43c' 
 colors_dict['vgamma']      = '#f8f59b' 
 colors_dict['efake']       = '#a4cee6'
 colors_dict['jfake']       = '#348ABD'
@@ -72,20 +66,20 @@ colors_dict['wjets']       = '#BCBC93'
 colors_dict['zjets']       = '#36BDBD'
 colors_dict['vjets']       = '#a4cee6'
 colors_dict['ttbar']       = '#32b422'
-colors_dict['diphoton']    = '#e5ac49'
+colors_dict['diphoton']    = '#ffa04d' ##'#e5ac49'
 colors_dict['vgammagamma'] = '#e5ac49'
 colors_dict['others']      = '#676363'
-colors_dict['fakes']       = '#676363'
+colors_dict['fakes']       = '#348ABD'
 
 colors_dict['GGM_M3_mu_1400_250']  = '#85ea7a' 
 colors_dict['GGM_M3_mu_1400_650']  = '#fa3a92'
 colors_dict['GGM_M3_mu_1400_1050'] = '#8453fb'
 colors_dict['GGM_M3_mu_1400_1375'] = '#53fb84'
 
-colors_dict['GGM_M3_mu_1600_250']  = '#4e5de4' #'#7a85ea' 
-colors_dict['GGM_M3_mu_1600_650']  = '#e44e5d' #'#ea7a85'
-colors_dict['GGM_M3_mu_1600_1250'] = '#a77aea'
-colors_dict['GGM_M3_mu_1600_1450'] = '#7abdea'
+colors_dict['GGM_M3_mu_1900_250']  = '#4e5de4' #'#7a85ea' 
+colors_dict['GGM_M3_mu_1900_650']  = '#e44e5d' #'#ea7a85'
+colors_dict['GGM_M3_mu_1900_1650'] = '#a77aea'
+colors_dict['GGM_M3_mu_1900_1850'] = '#7abdea'
 
 # 2015+2016 (35 ifb) benchmark points 
 colors_dict['GGM_M3_mu_2000_250'] = '#4e5de4' ###7a85ea'
@@ -136,11 +130,11 @@ plots_conf['jet_pt[1]']    = PlotConf('Jet2 p_{T} [GeV]', 'Events / BIN GeV', 'r
 plots_conf['jet_eta']      = PlotConf('Jet #eta', 'Events', 'right')
 plots_conf['rt2']          = PlotConf('R_{T}^{2}', 'Events', 'left', 0.3, 1.1)
 plots_conf['rt4']          = PlotConf('R_{T}^{4}', 'Events / BIN', 'left', 0.3, 1.1)
-plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet, E_{T}^{miss})', 'Events', 'top')
-plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'top')
-plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'top')
+plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet, E_{T}^{miss})', 'Events', 'top', logy=True)
+plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'top', logy=True)
+plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'top', logy=True)
 plots_conf['avgmu']        = PlotConf('<#mu>', 'Events', 'right', logy=False)
-plots_conf['tst_et']       = PlotConf('E_{T}^{miss} Soft Term (TST) [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['met_soft_et']  = PlotConf('E_{T}^{miss} Soft Term (TST) [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['ht+met_et']    = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['meff']         = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['ph_pt[0]+met_et'] = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')

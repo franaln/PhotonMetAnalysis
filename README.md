@@ -16,7 +16,7 @@ PhotonMetAnalysis
 
     cd src
     make 
-    cd -
+    cd ../..
 
     mkdir -p run/data run/config run/results
     cp HistFitter/config/HistFactorySchema.dtd run/config
