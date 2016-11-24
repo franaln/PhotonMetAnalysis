@@ -1,12 +1,6 @@
 PhotonMetAnalysis
 =================
 
-## Code
-
-* lib:     python libraries used by scripts and to configure analysis
-* scripts: get_yields.py, get_cutflow.py, draw.py, sphistograms.py and HistFitter scripts
-
-
 ## Install HistFitter
 
     svn co svn+ssh://svn.cern.ch/reps/atlasphys-susy/Physics/SUSY/Analyses/HistFitter/tags/HistFitter-00-00-53 HistFitter
@@ -21,7 +15,7 @@ PhotonMetAnalysis
     mkdir -p run/data run/config run/results
     cp HistFitter/config/HistFactorySchema.dtd run/config
 
-## Run Analysis
+## Setup
 
 * Install rootutils 
 
@@ -30,5 +24,20 @@ PhotonMetAnalysis
     source setup.sh
     ```
 
+## Analysis: bkg-only fit
+
+    ```
+    do_analsys.py
+    ```
 
 
+
+## Limits
+
+* Using batch
+
+
+* Exclusion plot
+    ```
+    plot_exclusion.py --list --cont --plot <PATH>
+    ```
