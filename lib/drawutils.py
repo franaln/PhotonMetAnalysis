@@ -1027,7 +1027,7 @@ def do_plot_cmp(plotname,
         if legpos == 'left':
             legxmin = 0.20
             legxmax = 0.53
-        elif legpos == 'right':
+        elif legpos == 'right' or legpos == 'top':
             legxmin = 0.55
             legxmax = 0.88
     else:
@@ -1037,7 +1037,7 @@ def do_plot_cmp(plotname,
         if legpos == 'left':
             legxmin = 0.20
             legxmax = 0.53
-        elif legpos == 'right':
+        elif legpos == 'right' or legpos == 'top':
             legxmin = 0.65
             legxmax = 0.92
 
@@ -1180,8 +1180,13 @@ def do_plot_cmp(plotname,
         ratios[0].Draw()
         for ratio in ratios[1:]:
             ratio.Draw('same')
+            
+        firstbin = ratios[0].GetXaxis().GetFirst()
+        lastbin  = ratios[0].GetXaxis().GetLast()
+        xmax     = ratios[0].GetXaxis().GetBinUpEdge(lastbin)
+        xmin     = ratios[0].GetXaxis().GetBinLowEdge(firstbin)
 
-        draw_ratio_lines(ratios[0])
+        draw_ratio_lines(xmin, xmax)
 
 
     can.Print(plotname+'.pdf')
