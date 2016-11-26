@@ -16,7 +16,7 @@ import regions
 from utils import mkdirp
 from rootutils import set_default_style, set_atlas_style, get_color
 from drawutils import draw_grid_frame
-from mass_dict import mass_dict
+from signalgrid import grid_m3_mu
 
 ROOT.gROOT.SetBatch(1)
 ROOT.gSystem.Load('%s/lib/libSusyFitter.so' % os.getenv('HISTFITTER'))
@@ -161,7 +161,7 @@ def convert_hist_to_graph(hist):
 
 
 
-def plot_exclusion(path, region, outdir, sig_xs_syst):
+def plot_exclusion(path, region, outdir):
 
     #set_default_style()
     set_atlas_style()
@@ -208,41 +208,39 @@ def plot_exclusion(path, region, outdir, sig_xs_syst):
     c_blue   = ROOT.TColor.GetColor('#28373c')
 
 
-    frame = draw_grid_frame() 
+    frame = draw_grid_frame(xmin=1146, xmax=2550, ymin=147, ymax=2550) 
 
     # Create the text in the plot
     # DATA info
     leg1 = ROOT.TLatex()
+    leg1.SetNDC()
     leg1.SetTextSize(0.035)
     leg1.SetTextColor(1)
-    leg1.DrawLatex(1200, 1550, style.data_label)
+    if args.datalabel is not None:
+        leg1.DrawLatex(0.15, 0.7, args.datalabel)
+    else:
+        leg1.DrawLatex(0.15, 0.7, style.data_label)
 
-    leg1.SetTextSize(0.04)
-    leg1.DrawLatex(1810, 230, style.atlas_label)
+    # if style.atlas_label:
+    #     leg1.SetTextSize(0.04)
+    #     leg1.DrawLatex(1810, 230, style.atlas_label)
 
-    # Region
+    # Signal Regions label
     leg3 = ROOT.TLatex()
-    leg3.SetTextAlign(11)
+    leg3.SetNDC()
     leg3.SetTextSize(0.035)
     leg3.SetTextColor(1)
     leg3.SetTextFont(42)
 
     region_text = region
-
-    if 'SRL,SRH' in region_text:
+    if 'SRL,SRH' in region_text or 'SRiL,SRiH' in region_text:
         region_text = region_text = 'SR_{L} and SR_{H}'
-    elif 'SRL' in region_text:
+    elif 'SRL' in region_text or 'SRiL' in region_text:
         region_text = 'SR_{L}'
-    elif 'SRH' in region_text:
-        region_text = 'SR_{H}'
-    elif 'SRiL,SRiH' in region_text:
-        region_text = region_text = 'SR_{L} and SR_{H}'
-    elif 'SRiL' in region_text:
-        region_text = 'SR_{L}'
-    elif 'SRiH' in region_text:
+    elif 'SRH' in region_text or 'SRiH' in region_text:
         region_text = 'SR_{H}'
 
-    leg3.DrawLatex(1200, 1400, region_text)
+    leg3.DrawLatex(0.15, 0.63, region_text)
 
     # Legend
     leg  = ROOT.TLegend(0.15, 0.77, 0.49, 0.92)
@@ -310,18 +308,19 @@ def plot_exclusion(path, region, outdir, sig_xs_syst):
     graph_sigp1expclsf.SetLineWidth(2)
 
     # Load run 1 limit
-    if ',' in region:
-        f = ROOT.TFile.Open(os.environ['SUSY_ANALYSIS'] + '/results/limit_run1_gln1.root')
-        limit_run1    = f.Get('clsf_obs')
-        leg.AddEntry(limit_run1, 'ATLAS 8 TeV, 20.3 fb^{-1}', 'F')
+    # if ',' in region:
+    #     f = ROOT.TFile.Open(os.environ['SUSY_ANALYSIS'] + '/results/limit_run1_gln1.root')
+    #     limit_run1    = f.Get('clsf_obs')
+    #     leg.AddEntry(limit_run1, 'ATLAS 8 TeV, 20.3 fb^{-1}', 'F')
 
 
-    obs_entry = leg.AddEntry(graph_sigp1clsf, "Observed limit (#pm1 #sigma^{SUSY}_{theory})", "LF")
+    if not args.onlyexp:
+        obs_entry = leg.AddEntry(graph_sigp1clsf, "Observed limit (#pm1 #sigma^{SUSY}_{theory})", "LF")
     leg.AddEntry(graph_sigp1expclsf, "Expected limit (#pm1 #sigma_{exp})", "LF")
     
     leg.Draw()
 
-    if sig_xs_syst:
+    if not args.onlyexp and sig_xs_syst:
         ROOT.gPad.Update()
     
         n_rows = leg.GetNRows()
@@ -352,18 +351,20 @@ def plot_exclusion(path, region, outdir, sig_xs_syst):
     sigclsu1s.Draw("same cont0")
 
     graph_sigp1expclsf.Draw("same l")
-    graph_sigp1clsf.Draw('same l')
-    if sig_xs_syst:
-        graph_sigp1clsfHigh.Draw("same l")
-        graph_sigp1clsfLow.Draw("same l")
+
+    if not args.onlyexp:
+        graph_sigp1clsf.Draw('same l')
+        if sig_xs_syst:
+            graph_sigp1clsfHigh.Draw("same l")
+            graph_sigp1clsfLow.Draw("same l")
 
     # plot Run 1 limit
-    if ',' in region:
-        limit_run1.SetLineWidth(2)
-        limit_run1.SetLineColor(get_color('#b9b7b7'))
-        limit_run1.SetFillColor(get_color('#c6c4c4'))
-        limit_run1.Draw('f same')
-        limit_run1.Draw('l same')
+    # if ',' in region:
+    #     limit_run1.SetLineWidth(2)
+    #     limit_run1.SetLineColor(get_color('#b9b7b7'))
+    #     limit_run1.SetFillColor(get_color('#c6c4c4'))
+    #     limit_run1.Draw('f same')
+    #     limit_run1.Draw('l same')
 
 
     # Redraw axis and update frame
@@ -431,45 +432,46 @@ def plot_exclusion(path, region, outdir, sig_xs_syst):
             l_tot.DrawLatex(mgl, mn1, "%s" % best_region_string[-1])
 
 
-    # elif args.points:
+    elif args.points:
 
-    #     lp = ROOT.TLatex()
-    #     lp.SetTextSize(0.016)
-    #     lp.SetTextColor(ROOT.kGray+3)
+        lp = ROOT.TLatex()
+        lp.SetTextSize(0.016)
+        lp.SetTextColor(ROOT.kGray+3)
 
-    #     for (m3, mu) in mass_dict.iterkeys():
-            
-    #         mgl, mn1 = mass_dict[(m3, mu)]
-    #         lp.DrawLatex(mgl, mn1, "#times")
+        for (m3, mu), (mgl, mn1) in grid_m3_mu.iteritems():
+            if m3 > 2000:
+                lp.SetTextColor(ROOT.kRed-4)
+                lp.DrawLatex(mgl, mn1, "#times")
+            else:
+                lp.SetTextColor(ROOT.kGray+3)
+                lp.DrawLatex(mgl, mn1, "#bullet")
 
 
     frame.SaveAs(path+'/limitPlot_%s%s.pdf' % (region.replace(',', '_'), output_tag))
 
-    del obs_entry
 
-    if args.save is not None:
-        outfile = ROOT.TFile(args.save, 'recreate')
-        outfile.cd()
+    # Save contours
+    outname = path + '/limit_contour_%s' % region.replace(',', '_') + '.root'
 
-        # observed
-        graph_sigp1clsf.Write('clsf_obs')
+    outfile = ROOT.TFile(outname, 'recreate')
+    outfile.cd()
 
-        if sig_xs_syst:
-            graph_sigp1clsfHigh.Write("clsf_obs_up")
-            graph_sigp1clsfLow.Write("clsf_obs_dn")
+    ## observed
+    graph_sigp1clsf.Write('clsf_obs')
+    if sig_xs_syst:
+        graph_sigp1clsfHigh.Write("clsf_obs_up")
+        graph_sigp1clsfLow.Write("clsf_obs_dn")
 
-        # expected
-        graph_sigp1expclsf.Write('clsf_exp')
-    
-        if sig_xs_syst:
-            graph_sigclsd1s = convert_hist_to_graph(sigclsd1s)
-            graph_sigclsu1s = convert_hist_to_graph(sigclsu1s)
+    ## expected
+    graph_sigp1expclsf.Write('clsf_exp')
+    if sig_xs_syst:
+        graph_sigclsd1s = convert_hist_to_graph(sigclsd1s)
+        graph_sigclsu1s = convert_hist_to_graph(sigclsu1s)
 
-            graph_sigclsd1s.Write('clsf_exp_dn')
-            graph_sigclsu1s.Write('clsf_exp_up')
+        graph_sigclsd1s.Write('clsf_exp_dn')
+        graph_sigclsu1s.Write('clsf_exp_up')
 
-        outfile.Close()
-
+    outfile.Close()
 
 
 def get_cls_values(file_name, exp):
@@ -491,8 +493,7 @@ def get_cls_values(file_name, exp):
     return cls_dict
 
 
-
-def combine_hypotest_files_new(inpaths, outpath, sig_xs_syst):
+def combine_hypotest_files(inpaths, outpath):
 
     regions = args.region.split(',')
 
@@ -512,8 +513,9 @@ def combine_hypotest_files_new(inpaths, outpath, sig_xs_syst):
 
         region = regions[i]
 
-        lines_nom = open(path+'/Output_fixSigXSecNominal_hypotest__1_harvest_list').read().split('\n')
+        lines_nom = open(path+'/Output_hypotest__1_harvest_list').read().split('\n')
         if sig_xs_syst:
+            lines_nom = open(path+'/Output_fixSigXSecNominal_hypotest__1_harvest_list').read().split('\n')
             lines_dn = open(path+'/Output_fixSigXSecDown_hypotest__1_harvest_list').read().split('\n')
             lines_up = open(path+'/Output_fixSigXSecUp_hypotest__1_harvest_list').read().split('\n')
 
@@ -526,7 +528,7 @@ def combine_hypotest_files_new(inpaths, outpath, sig_xs_syst):
 
             m3 = int(float(vals[14]))
             mu = int(float(vals[33]))
-            #cls = float(vals[-1])
+            #cls = float(vals[-1]) # observed CLs
             cls = float(vals[6]) # expected CLs
 
             if (m3, mu) not in cls_dict:
@@ -555,148 +557,25 @@ def combine_hypotest_files_new(inpaths, outpath, sig_xs_syst):
 
 
     # Save new list
-    with open(outpath+'/Output_fixSigXSecNominal_hypotest__1_harvest_list', 'w') as f:
-        for line in new_lines_nom.itervalues():
-            f.write(line+'\n')
-
-    with open(outpath+'/Output_fixSigXSecDown_hypotest__1_harvest_list', 'w') as f:
-        for line in new_lines_dn.itervalues():
-            f.write(line+'\n')
-
-    with open(outpath+'/Output_fixSigXSecUp_hypotest__1_harvest_list', 'w') as f:
-        for line in new_lines_up.itervalues():
-            f.write(line+'\n')
-
-
-
-def combine_hypotest_files(inpaths, outpath, sig_xs_syst):
-
-    print 'Combine the following path into this:', outpath
-    for i in inpaths:
-        print i
-
-    #create new files (best expected)
-    mkdirp(outpath)
-
     if sig_xs_syst:
-        new_rootfile_nom = ROOT.TFile(outpath + '/Output_fixSigXSecNominal_hypotest.root', 'recreate')
-        new_rootfile_up  = ROOT.TFile(outpath + '/Output_fixSigXSecUp_hypotest.root', 'recreate')
-        new_rootfile_dn  = ROOT.TFile(outpath + '/Output_fixSigXSecDown_hypotest.root', 'recreate')
+        with open(outpath+'/Output_fixSigXSecNominal_hypotest__1_harvest_list', 'w') as f:
+            for line in new_lines_nom.itervalues():
+                f.write(line+'\n')
+
+        with open(outpath+'/Output_fixSigXSecDown_hypotest__1_harvest_list', 'w') as f:
+            for line in new_lines_dn.itervalues():
+                f.write(line+'\n')
+
+        with open(outpath+'/Output_fixSigXSecUp_hypotest__1_harvest_list', 'w') as f:
+            for line in new_lines_up.itervalues():
+                f.write(line+'\n')
     else:
-        new_rootfile_nom = ROOT.TFile(outpath + '/Output_hypotest.root', 'recreate')
+        with open(outpath+'/Output_hypotest__1_harvest_list', 'w') as f:
+            for line in new_lines_nom.itervalues():
+                f.write(line+'\n')
 
-    kovw = ROOT.TObject.kOverwrite
 
-    regions = args.region.split(',')
-
-    counter = 1
-    for i, path in enumerate(inpaths):
-
-        region = regions[i]
-
-        print 'opening %s corresponfig to %s' % (path, region)
-
-        if sig_xs_syst:
-            os.system('ln -s %s/Output_fixSigXSecNominal_hypotest.root %s/Output_%s_fixSigXSecNominal_hypotest.root' % (os.path.abspath(path), os.path.abspath(outpath), region))
-            os.system('ln -s %s/Output_fixSigXSecUp_hypotest.root      %s/Output_%s_fixSigXSecUp_hypotest.root'      % (os.path.abspath(path), os.path.abspath(outpath), region))
-            os.system('ln -s %s/Output_fixSigXSecDown_hypotest.root    %s/Output_%s_fixSigXSecDown_hypotest.root'    % (os.path.abspath(path), os.path.abspath(outpath), region))
-
-            old_rootfile_nom = ROOT.TFile(path+'/Output_fixSigXSecNominal_hypotest.root')
-            old_rootfile_up  = ROOT.TFile(path+'/Output_fixSigXSecUp_hypotest.root')
-            old_rootfile_dn  = ROOT.TFile(path+'/Output_fixSigXSecDown_hypotest.root')
-
-        else:
-            os.system('ln -s %s/Output_hypotest.root %s/Output_%s_hypotest.root' % (os.path.abspath(path), os.path.abspath(outpath), region))
-
-            old_rootfile_nom = ROOT.TFile(path+'/Output_hypotest.root')
-
-        for keyold in old_rootfile_nom.GetListOfKeys():
-
-            if not 'hypo' in keyold.GetName():
-                continue
-
-            old_rootfile_nom.cd()
-            hypo_obj_nom = old_rootfile_nom.Get(keyold.GetName()).Clone()
-            fit_obj_nom  = old_rootfile_nom.Get(keyold.GetName().replace('hypo','fitTo')).Clone()
-
-            if sig_xs_syst:
-                old_rootfile_up.cd()
-                hypo_obj_up = old_rootfile_up.Get(keyold.GetName()).Clone()
-                fit_obj_up  = old_rootfile_up.Get(keyold.GetName().replace('hypo','fitTo')).Clone()
-
-                old_rootfile_dn.cd()
-                hypo_obj_dn = old_rootfile_dn.Get(keyold.GetName()).Clone()
-                fit_obj_dn  = old_rootfile_dn.Get(keyold.GetName().replace('hypo','fitTo')).Clone()
-
-            if counter == 1:
-                print 'Copying the first time %s: %.4f' % (hypo_obj_nom.GetName(), hypo_obj_nom.CLs(0))
-                new_rootfile_nom.cd()
-                hypo_obj_nom.Write(keyold.GetName(), kovw)
-                fit_obj_nom.Write(keyold.GetName().replace('hypo','fitTo'), kovw)
-
-                if sig_xs_syst:
-                    new_rootfile_up.cd()
-                    hypo_obj_up.Write(keyold.GetName(), kovw)
-                    fit_obj_up.Write(keyold.GetName().replace('hypo','fitTo'), kovw)
-
-                    new_rootfile_dn.cd()
-                    hypo_obj_dn.Write(keyold.GetName(), kovw)
-                    fit_obj_dn.Write(keyold.GetName().replace('hypo','fitTo'), kovw)
-            else:
-                hypo_obj_nom_new = new_rootfile_nom.Get(keyold.GetName()).Clone()
-                fit_obj_nom_new  = new_rootfile_nom.Get(keyold.GetName().replace('hypo','fitTo')).Clone()
-
-                if sig_xs_syst:
-                    hypo_obj_up_new = new_rootfile_up.Get(keyold.GetName()).Clone()
-                    fit_obj_up_new  = new_rootfile_up.Get(keyold.GetName().replace('hypo','fitTo')).Clone()
-
-                    hypo_obj_dn_new = new_rootfile_dn.Get(keyold.GetName()).Clone()
-                    fit_obj_dn_new  = new_rootfile_dn.Get(keyold.GetName().replace('hypo','fitTo')).Clone()
-
-                if (hypo_obj_nom_new.CLs(0) > hypo_obj_nom.CLs(0)):
-                    print 'Substitution %s -- Old: %.4f New: %.4f' % (hypo_obj_nom.GetName(), hypo_obj_nom_new.CLs(0), hypo_obj_nom.CLs(0))
-                    new_rootfile_nom.cd()
-                    hypo_obj_nom.Write(keyold.GetName(), kovw)
-                    fit_obj_nom.Write(keyold.GetName().replace('hypo','fitTo'), kovw)
-
-                    if sig_xs_syst:
-                        new_rootfile_up.cd()
-                        hypo_obj_up.Write(keyold.GetName(), kovw)
-                        fit_obj_up.Write(keyold.GetName().replace('hypo','fitTo'), kovw)
-
-                        new_rootfile_dn.cd()
-                        hypo_obj_dn.Write(keyold.GetName(), kovw)
-                        fit_obj_dn.Write(keyold.GetName().replace('hypo','fitTo'), kovw)
-
-                hypo_obj_nom_new.Delete()
-                fit_obj_nom_new.Delete()
-                if sig_xs_syst:
-                    hypo_obj_up_new.Delete()
-                    fit_obj_up_new.Delete()
-                    hypo_obj_dn_new.Delete()
-                    fit_obj_dn_new.Delete()
-
-            hypo_obj_nom.Delete()
-            fit_obj_nom.Delete()
-            if sig_xs_syst:
-                hypo_obj_up.Delete()
-                fit_obj_up.Delete()
-                hypo_obj_dn.Delete()
-                fit_obj_dn.Delete()
-
-        counter += 1
-        old_rootfile_nom.Close()
-        if sig_xs_syst:
-            old_rootfile_up.Close()
-            old_rootfile_dn.Close()
-
-    new_rootfile_nom.Close()
-    if sig_xs_syst:
-        new_rootfile_up.Close()
-        new_rootfile_dn.Close()
-        
-
-def create_listfiles(path, region, sig_xs_syst):
+def create_listfiles(path, region):
 
     print 'creating lists for %s' % path
 
@@ -732,7 +611,7 @@ def create_listfiles(path, region, sig_xs_syst):
             os.system('GenerateTreeDescriptionFromJSON.py -f %s -o %s' % (jsonfile,listfile))
 
 
-def create_contourhists(path, region, sig_xs_syst):
+def create_contourhists(path, region):
 
     print 'creating contours for %s' % path
 
@@ -777,7 +656,10 @@ def hack_tree(textfile, tree):
         # if row.CLs == 0 or row.CLsexp == 0:
         #     print 'weird point: (%s, %s), %.2f, %.2f, %.2f' % (row.m3, row.mu, row.CLs, row.CLsexp, row.clsu1s)
         #     #continue
-        mgl[0], mn1[0] = mass_dict[(int(row.m3), int(row.mu))]
+        try:
+            mgl[0], mn1[0] = mass_dict[(int(row.m3), int(row.mu))]
+        except:
+            continue
 
         newtree.Fill()
     
@@ -956,15 +838,18 @@ if __name__ == '__main__':
     parser.add_argument("--sr", dest='region', help="Signal Region(s)")
     parser.add_argument('-o', '--output', default='.', help='Output directory for the plots')
     parser.add_argument('--combine', action='store_true', help='Combine hypotest files')
-    parser.add_argument('--list', action="store_true", help='Produce the inputs for the plots')
-    parser.add_argument('--cont', action="store_true", help='Produce the inputs for the plots')
-    parser.add_argument('--plot', action="store_true", dest='plot', help='Make the plot')
-    parser.add_argument('--save', help='Save limit contours graphs to rootfile')
+    parser.add_argument('--list', action="store_true", help='Produce lists')
+    parser.add_argument('--cont', action="store_true", help='Produce contours')
+    parser.add_argument('--plot', action="store_true", dest='plot', help='Produce plot')
+
+    parser.add_argument('--onlyexp', action="store_true", help='only expected')
+    parser.add_argument('--datalabel', help='only expected')
 
     # extra text
     parser.add_argument('--bestsr', action='store_true')
     parser.add_argument('--obscls', action='store_true')
     parser.add_argument('--expcls', action='store_true')
+    parser.add_argument('--points', action='store_true')
     #parser.add_argument('--nEvts', action='store_true')
     #parser.add_argument('--xsUL', action='store_true')
 
@@ -979,28 +864,29 @@ if __name__ == '__main__':
     if not (args.combine or args.list or args.cont or args.plot):
         print_common_usage()
 
-
     if not args.output.endswith('/'):
         args.output = args.output + '/'
 
     global min_x, max_x, min_y, max_y
 
     min_y = 147
-    max_y = 2050
+    max_y = 2550
     min_x = 1146
-    max_x = 2100
+    max_x = 2600
 
     set_default_style()
 
-    # guess if signal XS
+    # guess if signal xs up/down files exist
     first_path = args.paths[0]
+    global sig_xs_syst
     sig_xs_syst = False
     if os.path.exists('%s/Output_fixSigXSecNominal_hypotest.root' % first_path):
         sig_xs_syst = True
 
     if os.path.exists('%s/Output_fixSigXSecNominal_hypotest__1_harvest_list' % first_path):
         sig_xs_syst = True
-        
+
+
 
     # Combine hypotest files in one: take last path as output
     if args.combine:
@@ -1011,7 +897,7 @@ if __name__ == '__main__':
             print 'error'
             sys.exit()
 
-        combine_hypotest_files_new(inpaths, outpath, sig_xs_syst)
+        combine_hypotest_files(inpaths, outpath)
         sys.exit()
 
     # Create input files
@@ -1020,15 +906,15 @@ if __name__ == '__main__':
             parser.print_usage()
             sys.exit()
 
-        create_listfiles(first_path, args.region, sig_xs_syst)
+        create_listfiles(first_path, args.region)
 
     if args.cont:
         if len(args.paths) > 1:
             parser.print_usage()
             sys.exit()
 
-        create_contourhists(first_path, args.region, sig_xs_syst)
+        create_contourhists(first_path, args.region)
 
     if args.plot:
-        plot_exclusion(first_path, args.region, args.output, sig_xs_syst)
+        plot_exclusion(first_path, args.region, args.output)
 
