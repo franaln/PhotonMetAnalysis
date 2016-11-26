@@ -114,7 +114,7 @@ h_yields_norm.Draw('p same')
 
 x15 = len(run_lumi_dict_2015) + 0.55
 
-l2 = ROOT.TLine(x15, -300, x15, 300)
+l2 = ROOT.TLine(x15, 0, x15, 55)
 l2.SetLineStyle(2)
 l2.SetLineColor(ROOT.kAzure)
 l2.Draw()
@@ -124,12 +124,11 @@ leg.SetBorderSize(0)
 leg.AddEntry(h_yields_norm, 'yield per pb^{-1}')
 leg.AddEntry(l, 'mean', 'l')
 leg.AddEntry(l2, '2015 | 2016', 'l')
-#leg.AddEntry(h_avgmu, '#LT#mu#GT', 'l')
 leg.Draw()
 
 ll = ROOT.TLatex()
 ll.SetNDC()
-ll.DrawLatex(0.1, 0.88, 'Data 2015+2016, ~13.3 fb^{-1}')
+ll.DrawLatex(0.1, 0.88, 'Data 2015+2016, 36.5 fb^{-1}')
 ll.DrawLatex(0.1, 0.78, 'Sel: %s' % seltext)
 
 c.RedrawAxis()
