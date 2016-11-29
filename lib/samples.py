@@ -131,7 +131,7 @@ samples_dict = {
         'data16_13TeV.00303338.physics_Main',
         'data16_13TeV.00303421.physics_Main',        
         'data16_13TeV.00303499.physics_Main',
-        'data16_13TeV.00303560.physics_Main',
+        'data16_13TeV.00303560.physics_Main', # ICHEP
 
         'data16_13TeV.00303638.physics_Main',
         'data16_13TeV.00303832.physics_Main',
