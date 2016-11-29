@@ -134,12 +134,15 @@ plots_conf['dphi_jetmet']  = PlotConf('#Delta#phi(jet, E_{T}^{miss})', 'Events',
 plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'top', logy=True)
 plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'top', logy=True)
 plots_conf['avgmu']        = PlotConf('<#mu>', 'Events', 'right', logy=False)
-plots_conf['met_soft_et']  = PlotConf('E_{T}^{miss} Soft Term (TST) [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['ht+met_et']    = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['meff']         = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['ph_pt[0]+met_et'] = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['stgam']        = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['mt']           = PlotConf('M_{T}', 'Events / BIN', 'right')
+
+plots_conf['met_soft_et']  = PlotConf('E_{T}^{miss} Soft Term [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['met_gam_et']   = PlotConf('E_{T}^{miss} Photon Term [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['met_jet_et']   = PlotConf('E_{T}^{miss} Jet Term [GeV]', 'Events / BIN GeV', 'right')
 
 plots_conf['mgj']    = PlotConf('m_{#gammaj} [GeV]', 'Events / (BIN GeV)', 'right')
 plots_conf['mgjj']   = PlotConf('m_{#gammajj} [GeV]', 'Events / (BIN GeV)', 'right')
