@@ -531,9 +531,15 @@ if do_theo_syst:
 
     # VR
     for vr in validation_channels:
-        vr.getSample('photonjet').addSystematic(syst_gamjet_theo_srl)
-        vr.getSample('wgamma') .addSystematic(syst_gamjet_theo_srl)
-        vr.getSample('ttbarg') .addSystematic(syst_gamjet_theo_srl)
+        if vr.name.endswith('H'):
+            vr.getSample('photonjet').addSystematic(syst_gamjet_theo_srl)
+            vr.getSample('wgamma')   .addSystematic(syst_wgamma_theo_srl)
+            vr.getSample('ttbarg')   .addSystematic(syst_ttgamma_theo_srl)
+        else:        
+            vr.getSample('photonjet').addSystematic(syst_gamjet_theo_srh)
+            vr.getSample('wgamma')   .addSystematic(syst_wgamma_theo_srh)
+            vr.getSample('ttbarg')   .addSystematic(syst_ttgamma_theo_srh)
+
         # FIX: vr.getSample('zgamma').addSystematic(syst_gamjet_theo_sr) 
 
 
