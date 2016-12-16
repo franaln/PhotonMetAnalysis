@@ -281,6 +281,52 @@ def get_sample_datasets(name, version=None, ptag=None):
     return datasets
     
 
+#----------
+# get_mini
+#----------
+def get_mini(name, **kwargs):
+
+    ptag       = kwargs.get('ptag', None)
+    version    = kwargs.get('version', None)
+    lumi       = kwargs.get('lumi', None)
+
+    if lumi is not None:
+        try: 
+            if float(lumi) < 100:
+                lumi = float(lumi) * 1000
+        except:
+            pass
+
+        if lumi == 'data15':
+            lumi = analysis.lumi_data15
+        elif lumi == 'data16':
+            lumi = analysis.lumi_data16
+        elif lumi == 'data':
+            lumi = analysis.lumi_data15 + analysis.lumi_data16
+        
+    if lumi is None:
+        lumi = 1000.
+
+    datasets = get_sample_datasets(name, version, ptag)
+
+    if datasets is None:
+        return None
+
+    # ewk: not implemented
+    # if 'GGM_mu' in name and len(datasets) == 1 and 'fs' not in kwargs:
+    #     pass
+        
+    weights = []
+    for ds in datasets:
+        if ds['project'] == 'mc15_13TeV':
+            lumi_weight = get_lumi_weight(ds, lumi)
+            weights.append(lumi_weight)
+        else:
+            weights.append(None)
+
+    return datasets, weights
+
+
 #---------------
 # get_histogram
 #---------------

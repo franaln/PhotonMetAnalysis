@@ -2,10 +2,9 @@
 use_purw = False
 
 # Mini version
-versions = ['45', '41',] # keep v41 for signal
+versions = ['47', '41'] #'45', '41',] # keep v41 for signal
 
-ptags = ['2840', '2824', '2769', '2689', '2688', '2666', '2667', ] #'2622', '2614']
-
+ptags = ['2840', '2824', '2769', '2689', '2688', '2666', '2667', ]
 
 # Luminosity (OffLumi-13TeV-005)
 lumi_data15 = 3212.96  # All
@@ -28,7 +27,7 @@ backgrounds_mc = [
     'ttbarg',
     'diphoton',
     'vgammagamma',
-    'vqqgamma',
+    # 'vqqgamma',
     ]
 
 backgrounds_dd = [

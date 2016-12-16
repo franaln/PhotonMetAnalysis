@@ -348,7 +348,7 @@ def do_plot(plotname,
     legend1.SetTextSize(legend1.GetTextSize()*0.8)
     if signal:
         if legpos == 'top':
-            legend2 = legend(legxmax+0.05, legymin+0.1, legxmax+0.39, legymax)
+            legend2 = legend(legxmax+0.02, legymin+0.1, legxmax+0.39, legymax)
         else:
             legend2 = legend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
 
@@ -408,15 +408,12 @@ def do_plot(plotname,
         #     chist.SetMinimum(0.01)
 
     if logy:
-        # if 'dphi' in variable: ## or 'phi' in variable or 'eta' or variable:
-        #     chist.SetMaximum(chist.GetMaximum()*100000)
-        # else:
         ymax = chist.GetMaximum()
-        # for hist in signal.itervalues():
-        #     if hist.GetMaximum() < ymax:
-        #         ymax = hist.GetMaximum()
-        
-        chist.SetMaximum(ymax*100)
+
+        if 'dphi' in variable:
+            chist.SetMaximum(ymax*1000)
+        else:
+            chist.SetMaximum(ymax*100)
     else:
         if data:
             ymax = max(chist.GetMaximum(), data.GetMaximum())
@@ -492,7 +489,7 @@ def do_plot(plotname,
         t.SetTextColor(ROOT.kBlack)
 
         if legpos == 'top' and signal:
-            t.DrawLatex(0.19, 0.56, data_label)
+            t.DrawLatex(0.58, 0.66, data_label)
         else:
             if legpos == 'right':
                 t.DrawLatex(0.19, 0.76, data_label)
@@ -650,7 +647,7 @@ def do_plot(plotname,
         frame.GetXaxis().SetTitle(xtitle)
         frame.GetXaxis().SetLabelSize(ratio_xlabel_size)
         frame.GetXaxis().SetTitleSize(ratio_xtitle_size)
-        frame.GetXaxis().SetTitleOffset(1.)
+        frame.GetXaxis().SetTitleOffset(1.1)
         frame.GetXaxis().SetLabelOffset(0.03)
         frame.GetXaxis().SetTickLength(0.06)
 
@@ -932,7 +929,8 @@ def do_plot_cmp(plotname,
                 do_ratio=True, 
                 ratio_type='ratio',
                 normalize=False,
-                logy=True):
+                logy=True,
+                conf=None):
     
 
     if isinstance(histograms, dict):
@@ -950,8 +948,9 @@ def do_plot_cmp(plotname,
             except ZeroDivisionError:
                 pass
 
-
-    if variable not in style.plots_conf:
+    if conf is not None:
+        pass
+    elif variable not in style.plots_conf:
         vartmp = variable[:variable.find('[')]
         conf = style.plots_conf.get(vartmp, style.plots_conf['default'])
     else:
@@ -1071,7 +1070,7 @@ def do_plot_cmp(plotname,
     if chist.GetMaximum() < 10:
         chist.SetMinimum(0.0001)
     elif chist.GetMaximum() > 100:
-        chist.SetMinimum(0.1)
+        chist.SetMinimum(0.01)
     else:
         chist.SetMinimum(0.01)
 
