@@ -74,39 +74,17 @@ def make_box(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
 
 def get_frame(npar, horizontal=False):
 
-    offset = 0.;
-    if horizontal:
-        frame = ROOT.TH2F("frame", "", npar, 0., npar, 8, -4., 4.);
-        frame.GetYaxis().SetTitleSize(0.10)
-        frame.GetYaxis().CenterTitle()
-        frame.GetYaxis().SetTitleOffset(0.35)
-        frame.GetYaxis().SetRangeUser(-max_pull, max_pull)
-        frame.GetXaxis().SetLabelOffset(0.03)
-        frame.GetXaxis().SetLabelSize(0.12)
-        frame.GetYaxis().SetLabelSize(0.12)
-        frame.GetYaxis().SetNdivisions(4)
-        frame.SetYTitle("(n_{#lower[-0.3]{obs}} - n_{exp}) / #sigma_{tot}")
-    else:
-        frame = ROOT.TH2F("frame", '', 1, -3.5, 3.5, npar, -offset, npar+offset)
-
-        scale=1.0
-        frame.SetLabelOffset( 0.012, "Y" );# label offset on x axis
-        frame.GetYaxis().SetTitleOffset( 1.25 )
-        frame.GetXaxis().SetTitleSize(0.06)
-        frame.GetYaxis().SetTitleSize(0.06)
-        frame.GetXaxis().SetLabelSize(0.06)
-        frame.GetYaxis().SetLabelSize(0.07)
-        npar = len(regionList)
-
-        frame.SetLineColor(0);
-        frame.SetTickLength(0,"Y");
-        frame.SetXTitle("(n_{obs} - n_{exp}) / #sigma_{tot}")
-        frame.SetLabelOffset(0.001, "X")
-        frame.SetTitleOffset(1. , "X")
-        frame.SetTitleSize(0.06, "X" )
-        frame.GetYaxis().CenterLabels(1)
-        frame.GetYaxis().SetNdivisions(frame.GetNbinsY()+10, 1)
-
+    frame = ROOT.TH2F("frame", "", npar, 0., npar, 8, -4., 4.);
+    frame.GetYaxis().SetTitleSize(0.10)
+    frame.GetYaxis().CenterTitle()
+    frame.GetYaxis().SetTitleOffset(0.35)
+    frame.GetYaxis().SetRangeUser(-max_pull, max_pull)
+    frame.GetXaxis().SetLabelOffset(0.03)
+    frame.GetXaxis().SetLabelSize(0.12)
+    frame.GetYaxis().SetLabelSize(0.12)
+    frame.GetYaxis().SetNdivisions(4)
+    frame.SetYTitle("(n_{#lower[-0.3]{obs}} - n_{exp}) / #sigma_{tot}")
+        
     # global style settings
     ROOT.gPad.SetTicks();
     frame.SetLabelFont(42, "X");
@@ -285,7 +263,7 @@ def make_hist_pull_plot(samples, regions, results):
     hdata.SetMinimum(0.05)
 
     # Plot
-    c = ROOT.TCanvas("c",'',800,600);
+    c = ROOT.TCanvas("c",'', 1000, 600);
 
     c.SetFrameFillColor(ROOT.kWhite)
 
@@ -298,10 +276,10 @@ def make_hist_pull_plot(samples, regions, results):
     cup.SetBorderMode(0)
     cup.SetBorderSize(2)
     cup.SetTicks()
-    cup.SetTopMargin   ( 0.1 )
-    cup.SetRightMargin ( 0.05 )
-    cup.SetBottomMargin( 0.0025 )
-    cup.SetLeftMargin( 0.10 )
+    cup.SetTopMargin    (0.1)
+    cup.SetRightMargin  (0.02)
+    cup.SetBottomMargin (0.0025)
+    cup.SetLeftMargin   (0.08)
     cup.SetFrameBorderMode(0)
     cup.SetFrameBorderMode(0)
     cup.Draw()
@@ -315,9 +293,9 @@ def make_hist_pull_plot(samples, regions, results):
     cdown.SetTickx(1)
     cdown.SetTicky(1)
     cdown.SetTopMargin   (0.003)
-    cdown.SetRightMargin (0.05)
+    cdown.SetRightMargin (0.02)
     cdown.SetBottomMargin(0.20)
-    cdown.SetLeftMargin  (0.10)
+    cdown.SetLeftMargin  (0.08)
     cdown.Draw()
 
     cup.cd()
@@ -396,7 +374,7 @@ def make_hist_pull_plot(samples, regions, results):
 
     hdata.GetYaxis().SetTitle("Number of events")
     hdata.GetYaxis().SetTitleSize(0.06)
-    hdata.GetYaxis().SetTitleOffset(0.75)
+    hdata.GetYaxis().SetTitleOffset(0.65)
     hdata.GetXaxis().SetLabelSize(0.00)
     hdata.GetYaxis().SetLabelSize(0.05)
 
@@ -427,12 +405,35 @@ def make_hist_pull_plot(samples, regions, results):
     cdown.cd()
 
     # Draw frame with pulls
-    frame = get_frame(npar, horizontal=True)
+    frame = get_frame(npar)
     for b in xrange(1, hdata.GetNbinsX()+1):
-        frame.GetXaxis().SetBinLabel(b ,hdata.GetXaxis().GetBinLabel(b))
+        label = hdata.GetXaxis().GetBinLabel(b)
+        if 'SRi' in label:
+            label = label.replace('SRi', 'SR')
+
+        if label.endswith('L'):
+            label = label[:-1]+'_{L}'
+        elif label.endswith('H'):
+            label = label[:-1]+'_{H}'
+
+        frame.GetXaxis().SetBinLabel(b, label)
 
     frame.GetXaxis().SetLabelSize(0.15)
     frame.Draw()
+
+
+    l1 = ROOT.TLine(0, -1., npar, -1.)
+    l2 = ROOT.TLine(0,  1., npar,  1.)
+    
+    ROOT.SetOwnership(l1, False)
+    ROOT.SetOwnership(l2, False)
+    
+    l1.SetLineStyle(3)
+    l2.SetLineStyle(3)
+    
+    l1.Draw()
+    l2.Draw()
+
 
     allp = get_boxes(regions_pull, frame, True)
     

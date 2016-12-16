@@ -333,7 +333,7 @@ def yieldstable(workspace, samples, channels, output_name, table_name, is_cr=Fal
             rowp.append('%.2f &plusmn %.2f' % (n, m['TOTAL_FITTED_bkg_events_err'][index]))
 
         else:
-            print "WARNING:   negative symmetric error after fit extends below 0. for total bkg pdf:  will print asymmetric error w/ truncated negative error reaching to 0."
+            #print "WARNING:   negative symmetric error after fit extends below 0. for total bkg pdf:  will print asymmetric error w/ truncated negative error reaching to 0."
             rowl.append('$%.2f_{-%.2f}^{+%.2f}$' % (n, n, m['TOTAL_FITTED_bkg_events_err'][index]))
             rowp.append('%.2f -%.2f +%.2f' % (n, n, m['TOTAL_FITTED_bkg_events_err'][index]))
 
@@ -369,7 +369,7 @@ def yieldstable(workspace, samples, channels, output_name, table_name, is_cr=Fal
                     rowp.append('%.2f &plusmn %.2f' % (n, m['Fitted_err_'+sample][index]))
 
                 else:
-                    print "WARNING:   negative symmetric error after fit extends below 0. for sample", sample, "    will print asymmetric error w/ truncated negative error reaching to 0."
+                    #print "WARNING:   negative symmetric error after fit extends below 0. for sample", sample, "    will print asymmetric error w/ truncated negative error reaching to 0."
                     rowl.append('$%.2f_{-%.2f}^{+%.2f}$' % (n, n, m['Fitted_err_'+sample][index]))
                     rowp.append('%.2f -%.2f +%.2f' % (n, n, m['Fitted_err_'+sample][index]))
 
@@ -451,8 +451,8 @@ def yieldstable(workspace, samples, channels, output_name, table_name, is_cr=Fal
         tablep.add_line()
 
         # purity
-        rowl = ['Purity',]
-        rowp = ['Purity',]
+        rowl = ['Background purity',]
+        rowp = ['Background purity',]
 
         for index, region in enumerate(regions_names):
 
