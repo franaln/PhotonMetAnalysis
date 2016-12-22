@@ -41,7 +41,7 @@ bins['dphi'] = (17, 0., 3.4)
 
 ## others
 bins['ht']              = (25, 0., 5000.)
-bins['meff']            = (25, 0., 5000.)
+bins['meff']            = (60, 0., 6000.)
 bins['rt1']             = (22, 0., 1.1)
 bins['rt2']             = (22, 0., 1.1)
 bins['rt3']             = (22, 0., 1.1)
@@ -77,10 +77,10 @@ bins['avgmu'] = (50, 0, 50)
 bins['deta_gamjet'] = (60, 0., 6.)
 bins['dr_gamjet'] = (60, 0., 6.)
 
-bins['jet_pt[0]']  = (80, 0., 2000.)
-bins['jet_pt[1]']  = (80, 0., 2000.)
-bins['jet_pt[2]']  = (80, 0., 2000.)
-bins['jet_pt[3]']  = (80, 0., 2000.)
+bins['jet_pt[0]']  = (20, 0., 2000.)
+bins['jet_pt[1]']  = (20, 0., 2000.)
+bins['jet_pt[2]']  = (20, 0., 2000.)
+bins['jet_pt[3]']  = (20, 0., 2000.)
 
 bins['met_et/sqrt(ht)']  = (100, 0., 50.)
 bins['met_et/meff']  = (20, 0., 1.)

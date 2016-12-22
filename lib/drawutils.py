@@ -234,6 +234,7 @@ def do_plot(plotname,
         cdown.SetRightMargin(0.05)
         cdown.SetTopMargin(0.0054)
         cdown.SetLeftMargin(cdown.GetLeftMargin()*0.9)
+        cdown.SetBottomMargin(cdown.GetBottomMargin()*1.1)
         cdown.SetFillColor(ROOT.kWhite)
         cup.Draw()
         cdown.Draw()

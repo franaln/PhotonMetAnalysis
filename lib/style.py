@@ -95,12 +95,14 @@ colors_dict['GGM_mu_250'] = '#fd6705' #6021fa'
 # Plot config
 class PlotConf():
 
-    def __init__(self, xtitle='', ytitle='', legpos='right', xmin=None, xmax=None, logy=True):
+    def __init__(self, xtitle='', ytitle='', legpos='right', xmin=None, xmax=None, logy=True, ymin=None, ymax=None):
         self.xtitle = xtitle
         self.ytitle = ytitle
         self.legpos = legpos
         self.xmin   = xmin
         self.xmax   = xmax
+        self.ymin   = ymin
+        self.ymax   = ymax
         self.logy   = logy
 
 
@@ -125,8 +127,8 @@ plots_conf['met_sig']      = PlotConf('E_{T}^{miss} significance', 'Events / BIN
 plots_conf['met_sumet']    = PlotConf('SumEt [GeV]', 'Events / BIN', 'right')
 plots_conf['ht']           = PlotConf('H_{T} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['jet_pt']       = PlotConf('Jet p_{T} [GeV]', 'Events / BIN GeV', 'right')
-plots_conf['jet_pt[0]']    = PlotConf('Jet1 p_{T} [GeV]', 'Events / BIN GeV', 'right')
-plots_conf['jet_pt[1]']    = PlotConf('Jet2 p_{T} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['jet_pt[0]']    = PlotConf('p_{T}^{leading jet} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['jet_pt[1]']    = PlotConf('p_{T}^{subleading jet} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['jet_eta']      = PlotConf('Jet #eta', 'Events', 'right')
 plots_conf['rt2']          = PlotConf('R_{T}^{2}', 'Events', 'left', 0.3, 1.1)
 plots_conf['rt4']          = PlotConf('R_{T}^{4}', 'Events / BIN', 'left', 0.3, 1.1)
