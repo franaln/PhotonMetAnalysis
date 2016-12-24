@@ -2,9 +2,9 @@
 use_purw = False
 
 # Mini version
-versions = ['47', '41'] #'45', '41',] # keep v41 for signal
+versions = ['48', '47', '41'] #'45', '41',] # keep v41 for signal
 
-ptags = ['2840', '2824', '2769', '2689', '2688', '2666', '2667', ]
+ptags = ['2889', '2840', '2824', '2769', '2689', '2688', '2666', '2667', ]
 
 # Luminosity (OffLumi-13TeV-005)
 lumi_data15 = 3212.96  # All
