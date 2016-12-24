@@ -378,6 +378,17 @@ if do_syst:
 
             sample.addSystematic(gsyst)
 
+else:
+    # ICHEP fake syst
+    feg = 0.40
+    fjg = 0.25
+
+    syst_feg = Systematic('Feg', 1, 1+feg, 1-feg, 'user', 'userOverallSys')
+    syst_fjg = Systematic('Fjg', 1, 1+fjg, 1-fjg, 'user', 'userOverallSys')
+
+    efake_sample.addSystematic(syst_feg)
+    jfake_sample.addSystematic(syst_fjg)
+
 
 #---------
 #   Fit
