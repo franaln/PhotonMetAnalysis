@@ -315,7 +315,7 @@ def get_mini(name, **kwargs):
     # ewk: not implemented
     # if 'GGM_mu' in name and len(datasets) == 1 and 'fs' not in kwargs:
     #     pass
-        
+
     weights = []
     for ds in datasets:
         if ds['project'] == 'mc15_13TeV':
@@ -353,10 +353,10 @@ def _get_histogram(ds, **kwargs):
     use_lumiw   = kwargs.get('use_lumiw',   True)
     use_sfw     = kwargs.get('use_sfw',     True)
     use_mcw     = kwargs.get('use_mcw',     True)
-    use_purw    = kwargs.get('use_purw',    False) #True)
-    use_mcveto  = kwargs.get('user_mcveto', True)
+    use_purw    = kwargs.get('use_purw',    False) 
+    use_mcveto  = kwargs.get('use_mcveto',  True)
 
-    debug      = kwargs.get('debug', False)
+    debug = kwargs.get('debug', False)
 
     is_mc = (ds['project'] == 'mc15_13TeV')
 
@@ -567,14 +567,16 @@ def get_histogram(name, **kwargs):
     ptag       = kwargs.get('ptag', None)
     version    = kwargs.get('version', None)
 
-    if '.root' in name:
+    ismc       = kwargs.get('ismc', False)
+
+    if name.endswith('.root'):
         # try to identify file
         dname = os.path.basename(name).replace('.root', '')
 
-        try:
-            project, did = dname.split('.')[:2]
-        except:
+        if ismc:
             project, did = 'mc15_13TeV', 0
+        else:
+            project, did = 'data15_13TeV', 0
 
         dataset = {
             'name': dname,
