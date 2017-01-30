@@ -23,6 +23,7 @@ def main():
     parser.add_argument('-i', dest='files', help='Files separated with ,')
     parser.add_argument('-l', dest='luminosity', help='Luminosity [fb-1]')
     parser.add_argument('-p', dest='percentage', action='store_true', help='Show percentage')
+    parser.add_argument('-v', dest='version', help='Mini version')
     parser.add_argument('--latex', action='store_true', default=False, help='use LatexTable instead PrettyTable')
     parser.add_argument('--sel', dest='selection', help='Selection')
     parser.add_argument('--pre', dest='preselection', action='store_true', help='add preselection cutflow')
@@ -35,21 +36,7 @@ def main():
     
     ## samples
     if args.samples is None and args.files is None:
-        samples = [
-            'data', 
-            'photonjet', 
-            'wgamma', 
-            'zllgamma', 
-            'znunugamma', 
-            'ttbar', 
-            'ttbarg', 
-            'wjets', 
-            'zjets', 
-            'diboson', 
-            'efake', 
-            'jfake'
-            ]
-        
+        sys.exit(1)        
 
     if args.regions is None:
         args.regions = 'Sel'
@@ -60,12 +47,6 @@ def main():
 
     for region in args.regions.split(','):
 
-        #if args.samples is not None:
-        #    files = [ os.path.join(MiniDir, '%s.t146_mini.root' % sample) for sample in args.samples.split(',') ]
-
-        #if args.files is not None:
-        #    files = args.files.split(',')
-        
         try:
             selection = getattr(regions_, region)
         except:
@@ -76,7 +57,7 @@ def main():
         if args.samples is not None:
             for sample in args.samples.split(','):
 
-                cutflow = get_cutflow(sample, selection=selection, lumi=args.luminosity, preselection=args.preselection, scale=do_scale)
+                cutflow = get_cutflow(sample, selection=selection, lumi=args.luminosity, preselection=args.preselection, scale=do_scale, version=args.version)
 
                 cuts = [ cutflow.GetXaxis().GetBinLabel(b+1) for b in xrange(cutflow.GetNbinsX()) ]
                 flows[sample] = [ cutflow.GetBinContent(b+1) for b in xrange(cutflow.GetNbinsX()) ]
@@ -84,7 +65,7 @@ def main():
         if args.files is not None:
             for fname in args.files.split(','):
 
-                cutflow = get_cutflow(fname, selection=selection, preselection=args.preselection, scale=do_scale)
+                cutflow = get_cutflow(fname, selection=selection, preselection=args.preselection, scale=do_scale, version=args.version)
     
                 cuts = [ cutflow.GetXaxis().GetBinLabel(b+1) for b in xrange(cutflow.GetNbinsX()) ]
                 flows[os.path.basename(fname)] = [ cutflow.GetBinContent(b+1) for b in xrange(cutflow.GetNbinsX()) ]

@@ -670,7 +670,7 @@ def get_events(sample, **kwargs):
 #-------------
 # get_cutflow
 #-------------
-def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False):
+def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False, **kwargs):
 
     if not selection:
         return None
@@ -697,7 +697,7 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False)
         if selection == ' ':
             selection = ''
 
-        evts = get_events(sample, selection=selection, lumi=lumi, scale=scale)
+        evts = get_events(sample, selection=selection, lumi=lumi, scale=scale, **kwargs)
 
         cutflow.SetBinContent(i+1, evts.mean)
         cutflow.SetBinError(i+1, evts.error)
@@ -708,10 +708,14 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False)
         if '.root' in sample:
             ds = [sample, ]
         else:
-            ds = get_sample_datasets(sample)
+            if 'version' in kwargs:
+                ds = get_sample_datasets(sample, kwargs['version'])
+            else:
+                ds = get_sample_datasets(sample)
 
         h_preselection = None
         for s in ds:
+
             f = ROOT.TFile.Open(s['path'])
             htmp = f.Get('cutflow_w')
 
