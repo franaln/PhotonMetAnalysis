@@ -1,33 +1,68 @@
-# mini -> histograms -> fit -> tables / plots / limits
+# analysis: mini -> histograms -> fit -> tables / plots / limits
 
 import os
 import sys
+import argparse
 import subprocess
 import datetime
 
 import analysis
 import regions
-from fitutils import get_normalization_factors
 from yieldstable import yieldstable, merge_tables
 from webpage import create_webpage
 
 today = datetime.datetime.today()
 
+parser = argparse.ArgumentParser(description='do_analysis.py')
+parser.add_argument('--tag', default='', help='Output name tag')
+
+parser.add_argument('-f', '--fit', action='store_true', help='Do fit')
+parser.add_argument('-t', '--tables', action='store_true', help='Do tables')
+parser.add_argument('-p', '--plots', action='store_true', help='Do plots')
+
+parser.add_argument('--syst', action='store_true', help='Include experimental systematics')
+parser.add_argument('--unblind', action='store_true', help='Unblind Signal Regions! Use with caution, you could find SUSY')
+
+args = parser.parse_args()
+
+
 daytag = today.strftime('%Y%b%d')
-extratag = 'test' #ds2_v41_crt'
 
-tag = daytag + ('_'+extratag if extratag else '')
+tag = daytag + ('_'+args.tag if args.tag else '')
 
-mc_samples = analysis.backgrounds_mc
+mc_samples = [
+    'photonjet',
+    'wgamma',
+    'zllgamma', 
+    'znunugamma',
+    'ttbarg',
+    'diphoton',
+    'vgammagamma',
+    ]
+
 
 # Config
-unblind = True
-do_syst = False
-do_plots = False
+unblind = args.unblind
+do_syst = args.syst
 
-srs = ['SRi_L', 'SRi_H']
+do_fit    = args.fit
+do_tables = args.tables
+do_plots  = args.plots
+
+do_plot_sr = True
+do_plot_cr = True
+do_plot_vr = True
+
+srs = ['SRiL', 'SRiH']
 crs = ['CRQ', 'CRW', 'CRT']
-vrs = ['VRM1', 'VRM2', 'VRM3', 'VRL1', 'VRL2', 'VRL3', 'VRL4', 'VRD1', 'VRD2', 'VRD3']
+vrs = [
+    'VRM1L', 'VRM2L', 'VRM3L', 
+    'VRM1H', 'VRM2H', 'VRM3H', 
+    'VRL1', 'VRL2', 'VRL3', 'VRL4', 'VRZ',
+    'VRLW1', 'VRLT1', 'VRLW3', 'VRLT3',
+    ]
+
+regions_str = '%s,%s,%s' % (','.join(srs), ','.join(crs), ','.join(vrs))
 
 # Results outpu dir
 susy_dir = os.environ['SUSY_ANALYSIS']
@@ -38,7 +73,7 @@ histograms_dir = '%s/histograms' % results_dir
 fits_dir       = '%s/fits'       % results_dir
 tables_dir     = '%s/tables'     % results_dir
 plots_dir      = '%s/plots'      % results_dir
-web_dir        = '%s/www'      % results_dir
+web_dir        = '%s/www'        % results_dir
 
 os.system('mkdir -p %s' % results_dir)
 os.system('mkdir -p %s' % log_dir)
@@ -49,8 +84,7 @@ os.system('mkdir -p %s' % plots_dir)
 os.system('mkdir -p %s' % web_dir)
 
 
-logfile_srl = log_dir + '/analysis_srl.txt'
-logfile_srh = log_dir + '/analysis_srh.txt'
+logfile = log_dir + '/analysis.txt'
 
 def run_cmd(*cmds):
 
@@ -94,7 +128,7 @@ def run_cmd(*cmds):
 info_dict = {
     'date': today.strftime('%d %b %Y'),
     'version': ','.join(analysis.versions),
-    'lumi': (analysis.lumi_data15+analysis.lumi_data16), 
+    'lumi': (analysis.lumi_data), 
     'syst': do_syst,
     }
 
@@ -109,26 +143,22 @@ Syst: {syst}
 
 
 #------------------
-# Histograms (cuts)
+# Create Histograms
 #------------------
-histograms_srl_path = '%s/histograms_srl.root' % (histograms_dir)
-histograms_srh_path = '%s/histograms_srh.root' % (histograms_dir)
+histograms_path = '%s/histograms.root' % (histograms_dir)
 
-samples = ','.join(mc_samples) + ',signal,data,efake,jfake'
+samples = ','.join(mc_samples) + ',data,efake,jfake' # signal
 
-cmd_srl = 'sphistograms.py -o %s -s %s -r all -n L --lumi data' % (histograms_srl_path, samples) 
-cmd_srh = 'sphistograms.py -o %s -s %s -r all -n H --lumi data' % (histograms_srh_path, samples)
+cmd = 'sphistograms.py -o %s -s %s -r %s --lumi data' % (histograms_path, samples, regions_str) 
 
 if unblind:
-    cmd_srl += ' --unblind'
-    cmd_srh += ' --unblind'
+    cmd += ' --unblind'
 
 if do_syst:
-    cmd_srl += ' --syst'
-    cmd_srh += ' --syst'
+    cmd += ' --syst'
 
-if not os.path.isfile(histograms_srl_path) or not os.path.isfile(histograms_srh_path):
-    run_cmd(cmd_srl, cmd_srh)
+if not os.path.isfile(histograms_path):
+    run_cmd(cmd)
 
 
 #--------------
@@ -136,24 +166,17 @@ if not os.path.isfile(histograms_srl_path) or not os.path.isfile(histograms_srh_
 #--------------
 configfile = susy_dir + '/lib/PhotonMet_HistFitter_config.py'
 
-fit_srl_dir = '%s/bkgonly_srl' % fits_dir
-fit_srh_dir = '%s/bkgonly_srh' % fits_dir
+fit_dir = '%s/bkgonly' % fits_dir
+ws = fit_dir + "/BkgOnlyFit_combined_BasicMeasurement_model_afterFit.root"
 
-cmd_srl = 'run_bkgonly.py -i %s -o %s --sr SRiL -c %s --val --data data --log %s/bkgonly_fit_srl.log' % (histograms_srl_path, fit_srl_dir, configfile, log_dir)
-cmd_srh = 'run_bkgonly.py -i %s -o %s --sr SRiH -c %s --val --data data --log %s/bkgonly_fit_srh.log' % (histograms_srh_path, fit_srh_dir, configfile, log_dir)
+cmd = 'run_bkgonly.py -i %s -o %s --sr SRiL,SRiH -c %s --val --data data --log %s/bkgonly_fit.log' % (histograms_path, fit_dir, configfile, log_dir)
 
 if do_syst:
-    cmd_srl += ' --syst'
-    cmd_srh += ' --syst'
+    cmd += ' --syst'
 
-run_cmd(cmd_srl)
-run_cmd(cmd_srh)
+if do_fit:
+    run_cmd(cmd)
 
-ws_srl = fit_srl_dir + "/BkgOnlyFit_combined_BasicMeasurement_model_afterFit.root"
-ws_srh = fit_srh_dir + "/BkgOnlyFit_combined_BasicMeasurement_model_afterFit.root"
-
-mus_srl = get_normalization_factors(ws_srl)
-mus_srh = get_normalization_factors(ws_srh)
 
 
 #-------
@@ -163,43 +186,40 @@ mus_srh = get_normalization_factors(ws_srh)
 backgrounds_str = 'photonjet,wgamma,[zllgamma,znunugamma],ttbarg,efake,jfake,[diphoton,vgammagamma]' 
         
 # Yields tables
-## CR
-yieldstable(ws_srl, backgrounds_str, 'CRQ,CRW,CRT', tables_dir+'/table_cr_srl.tex', 'CR for SRL', is_cr=True)
-yieldstable(ws_srh, backgrounds_str, 'CRQ,CRW,CRT', tables_dir+'/table_cr_srh.tex', 'CR for SRH', is_cr=True)
+if do_tables:
+    ## CR
+    yieldstable(ws, backgrounds_str, 'CRQ,CRW,CRT', tables_dir+'/table_cr.tex', 'Control Regions', is_cr=True)
 
-## VR
-yieldstable(ws_srl, backgrounds_str, 'VRM1,VRM2,VRM3',      tables_dir+'/table_vrm_srl.tex', 'VR for SRL')
-yieldstable(ws_srl, backgrounds_str, 'VRL1,VRL2,VRL3,VRL4', tables_dir+'/table_vrl_srl.tex', 'VR for SRL')
-yieldstable(ws_srl, backgrounds_str, 'VRD1,VRD2,VRD3',      tables_dir+'/table_vrd_srl.tex', 'VR for SRL')
+    ## VR
+    yieldstable(ws, backgrounds_str, 'VRM1L,VRM2L,VRM3L,VRM1H,VRM2H,VRM3H', tables_dir+'/table_vrm.tex', 'VRM')
 
-yieldstable(ws_srh, backgrounds_str, 'VRM1,VRM2,VRM3',      tables_dir+'/table_vrm_srh.tex', 'VR for SRH')
-yieldstable(ws_srh, backgrounds_str, 'VRL1,VRL2,VRL3,VRL4', tables_dir+'/table_vrl_srh.tex', 'VR for SRH')
-yieldstable(ws_srh, backgrounds_str, 'VRD1,VRD2,VRD3',      tables_dir+'/table_vrd_srh.tex', 'VR for SRH')
+    yieldstable(ws, backgrounds_str, 'VRL1,VRL2,VRL3,VRL4,VRZ', tables_dir+'/table_vrl.tex', 'VRL/VRZ')
+    yieldstable(ws, backgrounds_str, 'VRLW1,VRLT1,VRLW3,VRLT3', tables_dir+'/table_vrlwt.tex', 'VRLWT')
 
-## SR
-yieldstable(ws_srl, backgrounds_str, 'SRi', tables_dir+'/table_sr_srl.tex', 'Signal Region', unblind=unblind)
-yieldstable(ws_srh, backgrounds_str, 'SRi', tables_dir+'/table_sr_srh.tex', 'Signal Region', unblind=unblind)
+    ## SR
+    yieldstable(ws, backgrounds_str, 'SRiL,SRiH', tables_dir+'/table_sr.tex', 'Signal Regions', unblind=unblind)
+
 
 # Systematics tables
-cmd1 = 'SysTable.py -w ' + ws_srl + ' -c SRi              -o %s/table_syst_sr_srl.tex -%%' % tables_dir
-cmd2 = 'SysTable.py -w ' + ws_srl + ' -c CRQ,CRW,CRT      -o %s/table_syst_cr_srl.tex -%%'  % tables_dir
-cmd3 = 'SysTable.py -w ' + ws_srl + ' -c SRi              -o %s/table_syst_sr_bkgs_srl.tex -%% -s photonjet,ttbarg,wgamma' % tables_dir
+# cmd1 = 'SysTable.py -w ' + ws + ' -c SRiL,SRiH        -o %s/table_syst_sr.tex -%%' % tables_dir
+# cmd2 = 'SysTable.py -w ' + ws + ' -c CRQ,CRW,CRT      -o %s/table_syst_cr.tex -%%'  % tables_dir
+# cmd3 = 'SysTable.py -w ' + ws + ' -c SRiL,SRiH        -o %s/table_syst_sr_bkgs.tex -%% -s photonjet,ttbarg,wgamma' % tables_dir
             
-run_cmd(cmd1)
-run_cmd(cmd2)
-run_cmd(cmd3)
+# run_cmd(cmd1)
+# run_cmd(cmd2)
+# run_cmd(cmd3)
 
-# Merge tables
-# SR
-merge_tables(tables_dir+'/table_sr_srl.tex', tables_dir+'/table_sr_srh.tex', tables_dir+'/table_sr_srl_srh.tex')
+# # Merge tables
+# # SR
+# merge_tables(tables_dir+'/table_sr_srl.tex', tables_dir+'/table_sr_srh.tex', tables_dir+'/table_sr_srl_srh.tex')
 
-# CR
-merge_tables(tables_dir+'/table_cr_srl.tex', tables_dir+'/table_cr_srh.tex', tables_dir+'/table_cr_srl_srh.tex')
+# # # CR
+# # merge_tables(tables_dir+'/table_cr_srl.tex', tables_dir+'/table_cr_srh.tex', tables_dir+'/table_cr_srl_srh.tex')
 
-# VR
-merge_tables(tables_dir+'/table_vrm_srl.tex', tables_dir+'/table_vrm_srh.tex', tables_dir+'/table_vrm_srl_srh.tex')
-merge_tables(tables_dir+'/table_vrl_srl.tex', tables_dir+'/table_vrl_srh.tex', tables_dir+'/table_vrl_srl_srh.tex')
-merge_tables(tables_dir+'/table_vrd_srl.tex', tables_dir+'/table_vrd_srh.tex', tables_dir+'/table_vrd_srl_srh.tex')
+# # VR
+# merge_tables(tables_dir+'/table_vrm_srl.tex', tables_dir+'/table_vrm_srh.tex', tables_dir+'/table_vrm_srl_srh.tex')
+# # # merge_tables(tables_dir+'/table_vre_srl.tex', tables_dir+'/table_vre_srh.tex', tables_dir+'/table_vre_srl_srh.tex')
+# # merge_tables(tables_dir+'/table_vrl_srl.tex', tables_dir+'/table_vrl_srh.tex', tables_dir+'/table_vrl_srl_srh.tex')
 
 
 
@@ -208,103 +228,78 @@ merge_tables(tables_dir+'/table_vrd_srl.tex', tables_dir+'/table_vrd_srh.tex', t
 #-------
 
 variables = [
-    # 'ph_n',
     'ph_pt[0]',
-    'ph_etas2[0]',
-    # 'ph_phi[0]',
-
     'jet_n',
-    # 'bjet_n',
-    'jet_pt',
-    # 'jet_pt[0]',
-    # 'jet_pt[1]',
-    
+    'bjet_n',
+    'jet_pt[0]',
+    'jet_pt[1]',
     'met_et',
-    # 'met_phi'
-    # 'met_sumet',
-    #'tst_et',
-    # 'tst_phi',
-
     'ht',
     'meff',
-
     'dphi_jetmet',
     'dphi_gammet',
     'dphi_gamjet',
+    'rt4',
 ]
-
-
-muq_l = '%f,%f' % mus_srl['CRQ']
-muw_l = '%f,%f' % mus_srl['CRW']
-mut_l = '%f,%f' % mus_srl['CRT']
-
-muq_h = '%f,%f' % mus_srh['CRQ']
-muw_h = '%f,%f' % mus_srh['CRW']
-mut_h = '%f,%f' % mus_srh['CRT']
-
-# Distributions
-after_cmd_srl = ' --after --muq %s --muw %s --mut %s' % (muq_l, muw_l, mut_l)
-after_cmd_srh = ' --after --muq %s --muw %s --mut %s' % (muq_h, muw_h, mut_h)
 
 variables_str = ','.join(variables)
 
-
-## preselection
-# cmd = 'draw.py -v %s -r presel -l data --data data -o %s --n1 --ext "pdf,png"' % (variables_str, plots_dir) 
-# run_cmd(cmd)
+# Distributions plots
+after_cmd = ' --ws %s' % ws
 
 ## SR
-cmd_srl = 'draw.py -v %s -r SRi_L -l data --data data -o %s --signal --n1 --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srl
-cmd_srh = 'draw.py -v %s -r SRi_H -l data --data data -o %s --signal --n1 --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srh
+cmd = 'draw.py -r SRiL,SRiH -l data -o %s --signal --n1 --ext "pdf,png" --save %s/histograms_plots_sr.root' % (plots_dir, histograms_dir) + after_cmd
 
-if do_plots and unblind:
-    run_cmd(cmd_srl, cmd_srh)
+if not unblind:
+    cmd += ' -v met_et,meff --blind'
+else:
+    cmd += ' -v %s --ratio none' % variables_str
+
+if do_plot_sr:
+    run_cmd(cmd)
 
 
 ## CR
-cmd_srl = 'draw.py -v %s -r CRQ_L,CRW_L,CRT_L -l data --data data -o %s --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srl
-cmd_srh = 'draw.py -v %s -r CRQ_H,CRW_H,CRT_H -l data --data data -o %s --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srh
+cmd = 'draw.py -v %s -r CRQ,CRW,CRT -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_cr.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
 
-if do_plots:
-    run_cmd(cmd_srl)
-    run_cmd(cmd_srh)
+if do_plot_cr:
+    run_cmd(cmd)
 
-## vr
-cmd_srl = 'draw.py -v %s -r VRM1_L,VRM2_L,VRM3_L -l data --data data -o %s --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srl
-cmd_srh = 'draw.py -v %s -r VRM1_H,VRM2_H,VRM3_H -l data --data data -o %s --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srh
+## VRM
+cmd_vrml = 'draw.py -v %s -r VRM1L,VRM2L,VRM3L -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrml.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+cmd_vrmh = 'draw.py -v %s -r VRM1H,VRM2H,VRM3H -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrmh.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
 
-if do_plots:
-    run_cmd(cmd_srl)
-    run_cmd(cmd_srh)
+if do_plot_vr:
+    run_cmd(cmd_vrml, cmd_vrmh)
 
-cmd_srl = 'draw.py -v %s -r VRL1_L,VRL2_L,VRL3_L,VRL4_L -l data --data data -o %s --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srl
-cmd_srh = 'draw.py -v %s -r VRL1_H,VRL2_H,VRL3_H,VRL4_H -l data --data data -o %s --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srh
+# VRL
+cmd_vrl1 = 'draw.py -v %s -r VRL1,VRL2     -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrl1.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+cmd_vrl2 = 'draw.py -v %s -r VRL3,VRL4,VRZ -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrl2.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
 
-if do_plots:
-    run_cmd(cmd_srl)
-    run_cmd(cmd_srh)
-
-cmd_srl = 'draw.py -v %s -r VRD1_L,VRL2_L,VRD3_L -l data --data data -o %s --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srl
-cmd_srh = 'draw.py -v %s -r VRD1_H,VRD2_H,VRD3_H -l data --data data -o %s --ext "pdf,png"' % (variables_str, plots_dir) + after_cmd_srh
-
-if do_plots:
-    run_cmd(cmd_srl)
-    run_cmd(cmd_srh)
+if do_plot_vr:
+    run_cmd(cmd_vrl1, cmd_vrl2)
 
 # Region pulls
-cmd_srl_all  = 'plot_region_pull.py --ws %s -r CRQ,CRW,CRT,VRM1,VRM2,VRM3,VRL1,VRL2,VRL3,VRL4,VRD1,VRD2,VRD3,SRi -n L --data data -o %s --ext "pdf,png"' % (ws_srl,  plots_dir)  + (' --unblind' if unblind else '')
-cmd_srh_all  = 'plot_region_pull.py --ws %s -r CRQ,CRW,CRT,VRM1,VRM2,VRM3,VRL1,VRL2,VRL3,VRL4,VRD1,VRD2,VRD3,SRi -n H --data data -o %s --ext "pdf,png"' % (ws_srh,  plots_dir)  + (' --unblind' if unblind else '')
+all_regions_str = 'CRQ,CRW,CRT,VRM1L,VRM2L,VRM3L,VRM1H,VRM2H,VRM3H,VRL1,VRL2,VRL3,VRL4,SRiL,SRiH'
+cmd  = 'plot_region_pull.py --ws %s -r %s -o %s --ext "pdf,png"' % (ws, all_regions_str, plots_dir)  + (' --unblind' if unblind else '')
 
 if do_plots:
-    run_cmd(cmd_srl_all, cmd_srh_all)
+    run_cmd(cmd)
 
 # Signal contamination
 if do_plots:
-    run_cmd('draw_signal_contamination.py -o %s --ext "pdf,png"' % plots_dir)
+    run_cmd('draw_signal_contamination.py -r %s -o %s --ext "pdf,png"' % (all_regions_str, plots_dir))
 
 
 #--------
 # Webpage
 #--------
-create_webpage(results_dir, web_dir, info_dict, regions=['SRi',] + crs + vrs)
+#create_webpage(results_dir, web_dir, info_dict, regions=['SRi',] + crs + vrs)
+
+# # copy webpage
+# wwwdir = '~/work/www/Susy/PhotonMetAnalysis/'
+
+# # if not os.path.isdir(wwwdir+'analysis_%s' % tag):
+# #     os.sytem('cp -r results/analysis_2016Oct03_test_vrm/www/ ~/work/www/Susy/PhotonMetAnalysis/analysis_2016Oct03_test_vrm
+
 
