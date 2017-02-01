@@ -419,7 +419,8 @@ fitconfig.addSamples(bkg_samples + data_samples)
 # Measurement
 measName = "BasicMeasurement"
 measLumi = 1.0
-measLumiError = 0.029 # Preliminar for ICHEP: 2.9% (3.7% for 2016 and 2.1% for 2015)
+#measLumiError = 0.029 # Preliminar for ICHEP: 2.9% (3.7% for 2016 and 2.1% for 2015)
+measLumiError = 0.041 # Preliminar Moriond: 4.1% (4.5% for 2016 and 2.1% for 2015)
 
 meas = fitconfig.addMeasurement(measName, measLumi, measLumiError)
 
