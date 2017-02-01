@@ -15,6 +15,7 @@ parser = argparse.ArgumentParser(description='')
 
 parser.add_argument('-v', '--versions' , required=True)
 parser.add_argument('-s', '--samples', required=True)
+parser.add_argument('--scale', action='store_true')
 
 args = parser.parse_args()
 
@@ -63,7 +64,7 @@ for sample in samples:
 
         print region
         for idx, ver in enumerate(versions):
-            evts = get_events(sample, selection=sel, version=ver, scale=False)
+            evts = get_events(sample, selection=sel, version=ver, scale=args.scale)
             print ver, evts
             histograms[idx].SetBinContent(iregion+1, evts.mean)
 

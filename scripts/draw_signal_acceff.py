@@ -7,7 +7,7 @@ ROOT.gROOT.SetBatch(1)
 import sys, argparse
 from miniutils import get_sample_datasets, get_sumw, get_events
 from rootutils import *
-from drawutils import draw_grid_frame
+from drawutils import draw_grid_frame, grid_histogram
 from  regions import SR_L, SR_H, SRincl_L, SRincl_H
 from mass_dict import mass_dict
 
@@ -21,15 +21,15 @@ n1_max = 2100
 gl_bins = (gl_max - gl_min) / 25
 n1_bins = (n1_max - n1_min) / 25
 
-h_sel_srl = ROOT.TH2F('h_sel_srl', 'h_sel_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
-h_sel_srh = ROOT.TH2F('h_sel_srh', 'h_sel_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
-h_srl     = ROOT.TH2F('h_srl', 'h_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
-h_srh     = ROOT.TH2F('h_srh', 'h_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sel_srl = grid_histogram('h_sel_srl', 'h_sel_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sel_srh = grid_histogram('h_sel_srh', 'h_sel_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_srl     = grid_histogram('h_srl', 'h_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_srh     = grid_histogram('h_srh', 'h_srh', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
 
-h_sel_sril = ROOT.TH2F('h_sel_sril', 'h_sel_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
-h_sel_srih = ROOT.TH2F('h_sel_srih', 'h_sel_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
-h_sril     = ROOT.TH2F('h_sril', 'h_sril', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
-h_srih     = ROOT.TH2F('h_srih', 'h_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sel_sril = grid_histogram('h_sel_sril', 'h_sel_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sel_srih = grid_histogram('h_sel_srih', 'h_sel_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_sril     = grid_histogram('h_sril', 'h_sril', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
+h_srih     = grid_histogram('h_srih', 'h_srih', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
 
 h_srl.SetDirectory(0)
 h_srh.SetDirectory(0)
