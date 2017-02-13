@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser(description='')
 parser.add_argument('-v', '--versions' , required=True)
 parser.add_argument('-s', '--samples', required=True)
 parser.add_argument('--scale', action='store_true')
+parser.add_argument('--plots', action='store_true')
 
 args = parser.parse_args()
 
@@ -23,6 +24,19 @@ regions  = [
     'CRQ',
     'CRW',
     'CRT',
+
+    'VRM1L',
+    'VRM2L',
+    'VRM3L',
+    'VRM1H',
+    'VRM2H',
+    'VRM3H',
+
+    'VRL1',
+    'VRL2',
+    'VRL3',
+    'VRL4',
+    'VRZ',
     
     'SRiL',
     'SRiH',
@@ -31,7 +45,9 @@ regions  = [
 colors = [
     'grey',
     'blue',
-    'pink'
+    'pink',
+    'green',
+    'yellow',
     ]
 
 versions = args.versions.split(',')
@@ -58,11 +74,10 @@ for sample in samples:
 
         sel = getattr(regions_, region)
         
-        
         histograms[0].GetXaxis().SetBinLabel(iregion+1, region)
 
-
         print region
+        print '-----'
         for idx, ver in enumerate(versions):
             evts = get_events(sample, selection=sel, version=ver, scale=args.scale)
             print ver, evts
@@ -102,10 +117,10 @@ for sample in samples:
     cup.cd()
         
     # add entries to legend
-    legymin = 0.55
-    legymax = 0.85
+    legymin = 0.60
+    legymax = 0.90
     
-    legxmin = 0.55
+    legxmin = 0.75
     legxmax = 0.91
     
     legend1 = legend(legxmin, legymin, legxmax, legymax)
@@ -194,5 +209,26 @@ for sample in samples:
         line.Draw()
 
     c.Print('cmp_' + sample + '.pdf')
+
+
+if args.plots:
+
+    # plot with baseline selection
+
+    selection = 'ph_n>0 && el_n+mu_n==0 && ph_pt[0]>145 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4 && met_et>50'
+
+    variables = ['ph_pt', 'jet_n', 'bjet_n', 'met_et', 'ht', 'meff', 'rt4', 'dphi_jetmet',]
+
+    for variable in variables:
+
+        histograms = []
+        for idx, ver in enumerate(versions):
+            h = get_histogram(sample, variable=variable, selection=selection, version=ver, remove_var=True)
+
+            set_style(h, color=colors[idx])
+
+            histograms.append((ver, h))
+
+        do_plot_cmp('cmp_' + sample + variable.replace('[', '').replace(']', ''), variable, histograms)
 
 
