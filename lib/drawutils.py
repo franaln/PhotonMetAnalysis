@@ -931,7 +931,8 @@ def do_plot_cmp(plotname,
                 ratio_type='ratio',
                 normalize=False,
                 logy=True,
-                conf=None):
+                conf=None,
+                text=''):
     
 
     if isinstance(histograms, dict):
@@ -1025,26 +1026,34 @@ def do_plot_cmp(plotname,
         legymax = 0.88
 
         if legpos == 'left':
-            legxmin = 0.20
-            legxmax = 0.53
+            legxmin1 = 0.20
+            legxmax1 = 0.53
+            legxmin2 = 0.55
+            legxmax2 = 0.88
         elif legpos == 'right' or legpos == 'top':
-            legxmin = 0.55
-            legxmax = 0.88
+            legxmin1 = 0.55
+            legxmax1 = 0.88
+            legxmin2 = 0.20
+            legxmax2 = 0.53
     else:
         legymin = 0.80
         legymax = 0.94
 
         if legpos == 'left':
-            legxmin = 0.20
-            legxmax = 0.53
+            legxmin1 = 0.20
+            legxmax1 = 0.53
+            legxmin2 = 0.65
+            legxmax2 = 0.92
         elif legpos == 'right' or legpos == 'top':
-            legxmin = 0.65
-            legxmax = 0.92
+            legxmin2 = 0.20
+            legxmax2 = 0.53
+            legxmin1 = 0.65
+            legxmax1 = 0.92
 
     if len(histograms) > 5:
-        legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
+        legend1 = legend(legxmin1, legymin, legxmax1, legymax, columns=2)
     else:
-        legend1 = legend(legxmin, legymin, legxmax, legymax)
+        legend1 = legend(legxmin1, legymin, legxmax1, legymax)
 
     for (name, hist) in histograms:
         legend1.AddEntry(hist, style.labels_dict.get(name, name))
@@ -1112,6 +1121,15 @@ def do_plot_cmp(plotname,
         cup.RedrawAxis()
     else:
         can.RedrawAxis()
+
+
+    if text:
+        ltext = ROOT.TLatex(legxmin2, (legymax+legymin)/2, text)
+        ROOT.SetOwnership(ltext, False)
+        ltext.SetNDC()
+        ltext.SetTextSize(0.03)
+        ltext.SetTextColor(ROOT.kBlack)
+        ltext.Draw() 
 
     legend1.Draw()
 
