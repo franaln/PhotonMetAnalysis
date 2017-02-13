@@ -27,8 +27,7 @@ PhotonMetAnalysis
     source setup.sh
     ```
 
-## Analysis: bkg-only fit
-
+## Analysis: bkg-only fit / plots / table / webpage
     ```
     do_analsys.py
     ```
