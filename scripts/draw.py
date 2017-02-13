@@ -50,6 +50,7 @@ def main():
     parser.add_argument('--mc', action='store_true', help='use all backgrounds from MC')
  
     # normalization
+    parser.add_argument('--muq', help='mu value for photon+jet')
     parser.add_argument('--ws',  help='Bkg-only fit workspace to extract normalization factors')
 
     # other
@@ -65,6 +66,7 @@ def main():
     parser.add_argument('--www', action='store_true', help='create webpage')
     parser.add_argument('--ext', dest='extensions', default='pdf', help='')
     parser.add_argument('--ratio', default='default', help='ratio type: none,default')
+    #parser.add_argument('--ratio', default='default', help='ratio type: none,default')
 
     global args
     args = parser.parse_args()
@@ -193,15 +195,20 @@ def main():
                 if 'CRQ' in mus:
                     mu = mus['CRQ']
                     histogram_scale(h_bkg['photonjet'], *mu)
+                    #h_bkg['photonjet'].Scale(mu[0])
                 if 'CRW' in mus:
                     mu = mus['CRW']
                     histogram_scale(h_bkg['wgamma'], *mu)
+                    #h_bkg['wgamma'].Scale(mu[0])
                     if 'vqqgamma' in h_bkg:
                         histogram_scale(h_bkg['vqqgamma'], *mu)
                 if 'CRT' in mus:
                     mu = mus['CRT']
                     histogram_scale(h_bkg['ttbarg'], *mu)
-
+                   # h_bkg['ttbarg'].Scale(mu[0])
+            else:
+                if args.muq is not None:
+                    histogram_scale(h_bkg['photonjet'], float(args.muq))
                         
             # Merge backgrounds to plot
             ## V + jets
@@ -277,6 +284,9 @@ def main():
                 elif region.endswith('H'):
                     signal1 = 'GGM_M3_mu_1900_1650'
                     signal2 = 'GGM_M3_mu_1900_1850'
+                else:
+                    signal1 = 'GGM_M3_mu_1900_650'
+                    signal2 = 'GGM_M3_mu_1900_1650'
                     
                 h_signal[signal1] = get_histogram(signal1, variable=variable, region=region_name, selection=selection, syst=syst)
                 h_signal[signal2] = get_histogram(signal2, variable=variable, region=region_name, selection=selection, syst=syst)
