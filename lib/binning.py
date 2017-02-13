@@ -12,6 +12,7 @@ bins['ph_iso'] = (40, -20., 20.)
 bins['ph_eta'] = (30, -3., 3.)
 bins['ph_etas2'] = (30, -3., 3.)
 bins['ph_phi'] = (17, -3.4, 3.4)
+bins['ph_truth_pt']  = (100, 145., 2045.)
 
 ## jets
 bins['jet_n']   = (20, 0, 20)
@@ -38,6 +39,10 @@ bins['dphi_jetmet']     = (17, 0., 3.4)
 bins['dphi_gamjet']     = (17, 0., 3.4)
 bins['dphi_gammet']     = (17, 0., 3.4)
 bins['dphi'] = (17, 0., 3.4)
+
+bins['fabs(dphi_jetmet)']     = (17, 0., 3.4)
+bins['fabs(dphi_gamjet)']     = (17, 0., 3.4)
+bins['fabs(dphi_gammet)']     = (17, 0., 3.4)
 
 ## others
 bins['ht']              = (25, 0., 5000.)
@@ -85,3 +90,5 @@ bins['jet_pt[3]']  = (20, 0., 2000.)
 bins['met_et/sqrt(ht)']  = (100, 0., 50.)
 bins['met_et/meff']  = (20, 0., 1.)
 bins['met_et/ht']  = (40, 0., 2.)
+
+bins['photontype'] = (4, 0, 4)

@@ -22,6 +22,13 @@ MiniDir2  = '/ar/pcunlp002/disk/falonso/mini2'
 # FS for EWK samples
 relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
 
+# Load macros
+ROOT.gInterpreter.Declare(open(os.environ['SUSY_ANALYSIS'] + '/lib/photontype.cxx').read())
+
+variable_aliases = {
+    'photontype': 'photontype(ph_truth_type[0], ph_truth_origin[0])',
+}
+
 # --------
 # Binning
 #---------
@@ -58,7 +65,7 @@ def get_binning_single_variable(variable):
 
 def get_binning(variable):
 
-    if ':' in variable:
+    if ':' in variable and not '::' in variable:
         varx, vary = variable.split(':')
 
         binning_x = get_binning_single_variable(varx)
@@ -207,7 +214,7 @@ def get_datasets_names(name):
     return ds
  
 
-r_ds = re.compile('(mc15_13TeV|data15_13TeV|data16_13TeV|efake15|efake16|jfake15|jfake16)\.([0-9]*)\.(.*)')
+r_ds = re.compile('(mc15_13TeV|data15_13TeV|data16_13TeV|efake15|efake16|efake15m|efake15t|efake16m|efake16t|jfake15|jfake16)\.([0-9]*)\.(.*)')
 
 def find_path(project, did, short_name, versions, ptags):
 
@@ -371,7 +378,7 @@ def _get_histogram(ds, **kwargs):
     #-----------
     systname = syst
 
-    if ':' in variable:
+    if ':' in variable and '::' not in variable:
         varx, vary = variable.split(':')
 
     if binning is None:
@@ -383,7 +390,7 @@ def _get_histogram(ds, **kwargs):
         # to avoid the ROOT warning, not using this name anyway
         hname = 'h%s%s_%s_obs_%s' % (ds['did'], systname, region, get_escaped_variable(variable))
 
-    if ':' in variable:
+    if ':' in variable and '::' not in variable:
         htemp = ROOT.TH2D(hname, hname, *binning)
         htemp.Sumw2()
     else:
@@ -392,6 +399,11 @@ def _get_histogram(ds, **kwargs):
         else:
             htemp = ROOT.TH1D(hname, hname, *binning)
         htemp.Sumw2()
+
+
+    # Variable
+    variable = variable_aliases.get(variable, variable) # check if alias
+
 
     #-----------
     # Selection
@@ -545,7 +557,7 @@ def _get_histogram(ds, **kwargs):
         hist.SetBinContent(1, integral)
         hist.SetBinError(1, error)
 
-    elif ':' in variable:
+    elif ':' in variable and not '::' in variable:
         tree.Project(hname, '%s:%s' % (vary, varx), varexp)
         hist = htemp.Clone()
 
