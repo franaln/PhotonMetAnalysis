@@ -6,6 +6,10 @@ import argparse
 import subprocess
 import datetime
 
+import ROOT
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+ROOT.gROOT.SetBatch(1)
+
 import analysis
 import regions
 from yieldstable import yieldstable, merge_tables
@@ -139,6 +143,11 @@ Mini version: {version}
 Lumi: {lumi:.2f}
 Syst: {syst}
 """.format(**info_dict))
+
+with open(log_dir + '/selection.txt', 'w+') as f:
+    for reg in srs+crs+vrs:
+        f.write('%s: %s\n' % (reg, getattr(regions, reg)))
+
 
 
 
@@ -294,7 +303,7 @@ if do_plots:
 #--------
 # Webpage
 #--------
-#create_webpage(results_dir, web_dir, info_dict, regions=['SRi',] + crs + vrs)
+create_webpage(results_dir, web_dir, info_dict, regions=['SRi',] + crs + vrs)
 
 # # copy webpage
 # wwwdir = '~/work/www/Susy/PhotonMetAnalysis/'
