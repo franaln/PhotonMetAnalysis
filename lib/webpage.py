@@ -1,6 +1,8 @@
 import os
 import glob
 
+import regions as regions_
+
 header = """<!DOCTYPE html>
 <html>
 <head>
@@ -23,7 +25,6 @@ footer = """
 """
 
 def create_webpage(analysis_dir, webdir, info, regions=[]):
-
     
     tables_dir = '%s/tables' % analysis_dir
     plots_dir  = '%s/plots' % analysis_dir
@@ -46,11 +47,11 @@ def create_webpage(analysis_dir, webdir, info, regions=[]):
     main_html += '\n\n<p><h2> Yields tables </h2></p>\n\n'
 
     tables = [
-        analysis_dir+'/tables/table_cr_srl_srh.html',
-        analysis_dir+'/tables/table_vrm_srl_srh.html',
-        analysis_dir+'/tables/table_vrl_srl_srh.html',
-        analysis_dir+'/tables/table_vrd_srl_srh.html',
-        analysis_dir+'/tables/table_sr_srl_srh.html',
+        analysis_dir+'/tables/table_cr.html',
+        analysis_dir+'/tables/table_vrm.html',
+        analysis_dir+'/tables/table_vrl.html',
+        analysis_dir+'/tables/table_vrlwt.html',
+        analysis_dir+'/tables/table_sr.html',
         ]
 
     for table in tables:
@@ -68,122 +69,101 @@ def create_webpage(analysis_dir, webdir, info, regions=[]):
     # Plots
     main_html += '\n\n<p><h2> Plots </h2></p>\n\n'
 
-    ## Regions pull
-    if glob.glob(plots_dir+'/pull_regions*.png'):
+     #pull_regions.pdf
+     ## Regions pull
+    if glob.glob(plots_dir+'/pull_regions.png'):
 
-        os.system('mv %s/pull_regions_SR_L_data.png %s/' % (plots_dir, webdir))
-        os.system('mv %s/pull_regions_SR_H_data.png %s/' % (plots_dir, webdir))
+        os.system('mv %s/pull_regions.png %s/' % (plots_dir, webdir))
 
-        main_html += """
-<center>
-<table class="plotstable">
-<tr>
-<th colspan=2 text><h3>Pulls</h3></th>
-</tr>
-<tr>
-<th>L</th>
-<th>H</th>
-</tr>
-"""
-        main_html += '<tr>\n'
-        main_html += '<td><a href=\"pull_regions_SR_L_data.png\"><img src=\"pull_regions_SR_L_data.png\" width=\"540\" height=\"380\"></a></td>\n'
-        main_html += '<td><a href=\"pull_regions_SR_H_data.png\"><img src=\"pull_regions_SR_H_data.png\" width=\"540\" height=\"380\"></a></td>\n'
-        main_html += '</tr>\n'
-        main_html += '</table>\n</center><p></p>\n'
+        main_html += '\n<center>\n'
+        main_html += '<a href=\"pull_regions.png\"><img src=\"pull_regions.png\" width=\"540\" height=\"380\"></a></td>\n'
+        main_html += '</center><p></p>\n'
     
     ## Regions distributions
     for region in regions:
             
-        plot_list  = glob.glob(plots_dir+'/can_{0}_L_*.png'.format(region))
+        plot_list  = glob.glob(plots_dir+'/can_{0}_*.png'.format(region))
 
         if not plot_list:
             continue
 
+        chunks = [plot_list[x:x+3] for x in xrange(0, len(plot_list), 3)]
+
         main_html += """
 <center>
+<h3>%s</h3>
 <table class="plotstable">
-<tr>
-<th colspan=2 text><h3>{0}</h3></th>
-</tr>
-<tr>
-<th>L</th>
-<th>H</th>
-</tr>
-""".format(region)
+""" % region
 
-        for plot in sorted(plot_list):
+        for plots in sorted(chunks):
 
             main_html += '<tr>\n'
 
-            plot_path = plot
-            plot_name = plot.split('/')[-1] 
+            for plot in plots:
 
-            os.system('mv %s %s/' % (plot_path, webdir))
+                plot_path = plot
+                plot_name = plot.split('/')[-1] 
+
+                os.system('mv %s %s/' % (plot_path, webdir))
         
-            main_html += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"480\" height=\"480\"></a></td>\n'
+                main_html += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"480\" height=\"480\"></a></td>\n'
 
-            plot_path = plot_path.replace('_L_', '_H_')
-            plot_name = plot_name.replace('_L_', '_H_')
-
-            os.system('mv %s %s/' % (plot_path, webdir))
-        
-            main_html += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"480\" height=\"480\"></a></td>\n'
             main_html += '</tr>\n'
                 
         main_html += "</table>\n</center>\n"
 
 
     ## More plots
-    main_html += '\n\n<p><h2> More plots </h2></p>\n\n'
+    # main_html += '\n\n<p><h2> More plots </h2></p>\n\n'
 
-    ### Signal contamination
-    sc_html = ''
-    for region in regions:
+#     ### Signal contamination
+#     sc_html = ''
+#     for region in regions:
             
-        sc_plot  = plots_dir+'/signal_contamination_{0}_L.png'.format(region)
+#         sc_plot  = plots_dir+'/signal_contamination_{0}_L.png'.format(region)
 
-        if not os.path.isfile(sc_plot):
-            continue
+#         if not os.path.isfile(sc_plot):
+#             continue
 
-        sc_html += "<center>"
+#         sc_html += "<center>"
 
-        sc_html += """
+#         sc_html += """
 
-<table class="plotstable">
-<tr>
-<th colspan=2 text><h3>{0}</h3></td>
-</tr>
-<tr>
-<th>L</th>
-<th>H</th>
-</tr>
-""".format(region)
+# <table class="plotstable">
+# <tr>
+# <th colspan=2 text><h3>{0}</h3></td>
+# </tr>
+# <tr>
+# <th>L</th>
+# <th>H</th>
+# </tr>
+# """.format(region)
 
-        sc_html += '<tr>\n'
+#         sc_html += '<tr>\n'
 
-        plot_path = sc_plot
-        plot_name = sc_plot.split('/')[-1] 
+#         plot_path = sc_plot
+#         plot_name = sc_plot.split('/')[-1] 
 
-        os.system('mv %s %s/' % (plot_path, webdir))
+#         os.system('mv %s %s/' % (plot_path, webdir))
         
-        sc_html += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"540\" height=\"480\"></a></td>\n'
+#         sc_html += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"540\" height=\"480\"></a></td>\n'
 
-        plot_path = plot_path.replace('_L', '_H')
-        plot_name = plot_name.replace('_L', '_H')
+#         plot_path = plot_path.replace('_L', '_H')
+#         plot_name = plot_name.replace('_L', '_H')
 
-        os.system('mv %s %s/' % (plot_path, webdir))
+#         os.system('mv %s %s/' % (plot_path, webdir))
         
-        sc_html += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"540\" height=\"480\"></a></td>\n'
-        sc_html += '</tr>\n'
+#         sc_html += '<td><a href=\"' + plot_name + '\"><img src=\"' + plot_name + '\" width=\"540\" height=\"480\"></a></td>\n'
+#         sc_html += '</tr>\n'
                 
-        sc_html += "</table>\n</center>\n"
+#         sc_html += "</table>\n</center>\n"
 
-    if sc_html:
-        sc_path = os.path.join(webdir, 'signal_contamination.html')
-        with open(sc_path, 'w') as f:
-            f.write(header+sc_html+footer)
+#     if sc_html:
+#         sc_path = os.path.join(webdir, 'signal_contamination.html')
+#         with open(sc_path, 'w') as f:
+#             f.write(header+sc_html+footer)
 
-        main_html += '<ul> <li><a href="signal_contamination.html">Signal contamination</a></li></ul>'
+#         main_html += '<ul> <li><a href="signal_contamination.html">Signal contamination</a></li></ul>'
 
 
     # Save html files
