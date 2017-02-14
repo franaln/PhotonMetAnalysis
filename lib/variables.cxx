@@ -1,8 +1,17 @@
+float get_dphi(float phi1, float phi2)
+{
+  float  phi = fabs(phi1 - phi2);
+  if (phi <= TMath::Pi())  return phi;
+  else                     return (2 * TMath::Pi() - phi); 
+}
+
 int photontype(int truth_type, int truth_origin)
 {
   int type = 3;
   if (truth_type == 2) { // iso electron
-    if (truth_origin == 12) // coming from W
+    if (truth_origin == 10) // coming from top
+      type = 1;
+    else if (truth_origin == 12) // coming from W
       type = 1;
     else if (truth_origin == 13) // coming from Z
       type = 1;
@@ -13,6 +22,10 @@ int photontype(int truth_type, int truth_origin)
       type = 0;
   }
    
+  else if (truth_type == 13) { // unknown y (mainly for tty, probably isr/fsr photons)
+    type = 0;
+  }
+
   else if (truth_type == 14) { // isolated y
     if (truth_origin == 3) // single y
       type = 0;
@@ -28,7 +41,7 @@ int photontype(int truth_type, int truth_origin)
   }
 
   else if (truth_type == 16) { // background y
-    if (truth_origin == 23) // light meson
+    if (truth_origin >= 23 && truth_origin <= 35) // meson, baryon decays
       type = 2;
     else if (truth_origin == 38) // underline (?)
       type = 2;

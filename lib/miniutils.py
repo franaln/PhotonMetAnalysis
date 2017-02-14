@@ -23,7 +23,7 @@ MiniDir2  = '/ar/pcunlp002/disk/falonso/mini2'
 relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
 
 # Load macros
-ROOT.gInterpreter.Declare(open(os.environ['SUSY_ANALYSIS'] + '/lib/photontype.cxx').read())
+ROOT.gInterpreter.Declare(open(os.environ['SUSY_ANALYSIS'] + '/lib/variables.cxx').read())
 
 variable_aliases = {
     'photontype': 'photontype(ph_truth_type[0], ph_truth_origin[0])',
@@ -450,6 +450,7 @@ def _get_histogram(ds, **kwargs):
             selection = '%s && mcveto==0' % selection
         else:
             selection = 'mcveto==0'
+
 
     # change selection and variable for systematics
     if syst != 'Nom' and systematics.affects_kinematics(syst):

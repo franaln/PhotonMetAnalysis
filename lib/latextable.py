@@ -91,7 +91,7 @@ class LatexTable(object):
         if self._add_environment:
             lines.append(r'\end{tabular}')
 
-        return '\n'.join(lines)
+        return '\n'.join(lines) + '\n'
 
     def save_tex(self, name='table'):
         fname = name if name.endswith('.tex') else '%s.tex' % name
