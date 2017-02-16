@@ -1113,7 +1113,10 @@ def do_plot_cmp(plotname,
     chist.GetYaxis().SetTitleOffset(1.)
     
 
-    chist.Draw('hist')
+    if histograms[0][0].lower() == 'data':
+        chist.Draw()
+    else:
+        chist.Draw('hist')
     for (name, hist) in histograms[1:]:
         hist.Draw('hist same')
 
@@ -1195,9 +1198,9 @@ def do_plot_cmp(plotname,
         ratios[0].GetYaxis().SetTitleOffset(0.3)
         ratios[0].GetYaxis().SetLabelOffset(0.01)
 
-        ratios[0].Draw()
+        ratios[0].Draw('hist')
         for ratio in ratios[1:]:
-            ratio.Draw('same')
+            ratio.Draw('hist same')
             
         firstbin = ratios[0].GetXaxis().GetFirst()
         lastbin  = ratios[0].GetXaxis().GetLast()

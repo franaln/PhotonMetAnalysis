@@ -23,6 +23,7 @@ parser.add_argument('--tag', default='', help='Output name tag')
 parser.add_argument('-f', '--fit', action='store_true', help='Do fit')
 parser.add_argument('-t', '--tables', action='store_true', help='Do tables')
 parser.add_argument('-p', '--plots', action='store_true', help='Do plots')
+parser.add_argument('--allplots', action='store_true', help='Do all plots')
 
 parser.add_argument('--syst', action='store_true', help='Include experimental systematics')
 parser.add_argument('--unblind', action='store_true', help='Unblind Signal Regions! Use with caution, you could find SUSY')
@@ -52,10 +53,6 @@ do_syst = args.syst
 do_fit    = args.fit
 do_tables = args.tables
 do_plots  = args.plots
-
-do_plot_sr = True
-do_plot_cr = True
-do_plot_vr = True
 
 srs = ['SRiL', 'SRiH']
 crs = ['CRQ', 'CRW', 'CRT']
@@ -210,25 +207,14 @@ if do_tables:
 
 
 # Systematics tables
-# cmd1 = 'SysTable.py -w ' + ws + ' -c SRiL,SRiH        -o %s/table_syst_sr.tex -%%' % tables_dir
-# cmd2 = 'SysTable.py -w ' + ws + ' -c CRQ,CRW,CRT      -o %s/table_syst_cr.tex -%%'  % tables_dir
-# cmd3 = 'SysTable.py -w ' + ws + ' -c SRiL,SRiH        -o %s/table_syst_sr_bkgs.tex -%% -s photonjet,ttbarg,wgamma' % tables_dir
+if do_syst:
+    cmd1 = 'SysTable.py -w ' + ws + ' -c SRiL,SRiH    -o %s/table_syst_sr.tex -%%' % tables_dir
+    cmd2 = 'SysTable.py -w ' + ws + ' -c CRQ,CRW,CRT  -o %s/table_syst_cr.tex -%%' % tables_dir
+    cmd3 = 'SysTable.py -w ' + ws + ' -c SRiL,SRiH    -o %s/table_syst_sr_bkgs.tex -%% -s photonjet,ttbarg,wgamma' % tables_dir
             
-# run_cmd(cmd1)
-# run_cmd(cmd2)
-# run_cmd(cmd3)
-
-# # Merge tables
-# # SR
-# merge_tables(tables_dir+'/table_sr_srl.tex', tables_dir+'/table_sr_srh.tex', tables_dir+'/table_sr_srl_srh.tex')
-
-# # # CR
-# # merge_tables(tables_dir+'/table_cr_srl.tex', tables_dir+'/table_cr_srh.tex', tables_dir+'/table_cr_srl_srh.tex')
-
-# # VR
-# merge_tables(tables_dir+'/table_vrm_srl.tex', tables_dir+'/table_vrm_srh.tex', tables_dir+'/table_vrm_srl_srh.tex')
-# # # merge_tables(tables_dir+'/table_vre_srl.tex', tables_dir+'/table_vre_srh.tex', tables_dir+'/table_vre_srl_srh.tex')
-# # merge_tables(tables_dir+'/table_vrl_srl.tex', tables_dir+'/table_vrl_srh.tex', tables_dir+'/table_vrl_srl_srh.tex')
+    run_cmd(cmd1)
+    run_cmd(cmd2)
+    run_cmd(cmd3)
 
 
 
@@ -257,35 +243,44 @@ variables_str = ','.join(variables)
 after_cmd = ' --ws %s' % ws
 
 ## SR
-cmd = 'draw.py -r SRiL,SRiH -l data -o %s --signal --n1 --ext "pdf,png" --save %s/histograms_plots_sr.root' % (plots_dir, histograms_dir) + after_cmd
+if do_plots:
 
-if not unblind:
-    cmd += ' -v met_et,meff --blind'
-else:
-    cmd += ' -v %s --ratio none' % variables_str
+    cmd = 'draw.py -r SRiL,SRiH -l data -o %s --signal --n1 --ext "pdf,png" --save %s/histograms_plots_sr.root' % (plots_dir, histograms_dir) + after_cmd
 
-if do_plot_sr:
+    if not unblind:
+        cmd += ' -v met_et,meff --blind'
+    else:
+        cmd += ' -v %s --ratio none' % variables_str
+        
     run_cmd(cmd)
 
 
 ## CR
-cmd = 'draw.py -v %s -r CRQ,CRW,CRT -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_cr.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+if do_plots:
+    cmd = 'draw.py -v %s -r CRQ,CRW,CRT -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_cr.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
 
-if do_plot_cr:
     run_cmd(cmd)
 
 ## VRM
-cmd_vrml = 'draw.py -v %s -r VRM1L,VRM2L,VRM3L -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrml.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
-cmd_vrmh = 'draw.py -v %s -r VRM1H,VRM2H,VRM3H -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrmh.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+if do_plots:
+    if args.allplots:
+        cmd_vrml = 'draw.py -v %s -r VRM1L,VRM2L,VRM3L -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrml.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+        cmd_vrmh = 'draw.py -v %s -r VRM1H,VRM2H,VRM3H -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrmh.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+    else:
+        cmd_vrml = 'draw.py -v %s -r VRM1L -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrml.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+        cmd_vrmh = 'draw.py -v %s -r VRM1H -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrmh.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
 
-if do_plot_vr:
     run_cmd(cmd_vrml, cmd_vrmh)
 
 # VRL
-cmd_vrl1 = 'draw.py -v %s -r VRL1,VRL2     -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrl1.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
-cmd_vrl2 = 'draw.py -v %s -r VRL3,VRL4,VRZ -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrl2.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+if do_plots:
+    if args.allplots:
+        cmd_vrl1 = 'draw.py -v %s -r VRL1,VRL2     -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrl1.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+        cmd_vrl2 = 'draw.py -v %s -r VRL3,VRL4,VRZ -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrl2.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+    else:
+        cmd_vrl1 = 'draw.py -v %s -r VRL1 -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrl1.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
+        cmd_vrl2 = 'draw.py -v %s -r VRL3 -l data --data data -o %s --ext "pdf,png" --save %s/histograms_plots_vrl2.root' % (variables_str, plots_dir, histograms_dir) + after_cmd
 
-if do_plot_vr:
     run_cmd(cmd_vrl1, cmd_vrl2)
 
 # Region pulls
