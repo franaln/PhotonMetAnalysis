@@ -1,3 +1,4 @@
+#! /usr/bin/env python2.7
 # analysis: mini -> histograms -> fit -> tables / plots / limits
 
 import os
