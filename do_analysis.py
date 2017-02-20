@@ -55,6 +55,10 @@ do_fit    = args.fit
 do_tables = args.tables
 do_plots  = args.plots
 
+if not do_fit and not do_tables and not do_plots:
+    parser.print_usage()
+    sys.exit(1)
+
 srs = ['SRiL', 'SRiH']
 crs = ['CRQ', 'CRW', 'CRT']
 vrs = [

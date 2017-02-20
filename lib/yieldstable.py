@@ -383,8 +383,8 @@ def yieldstable(workspace, samples, channels, output_name, table_name, is_cr=Fal
     if show_before_fit:
 
         # if the N_fit - N_error extends below 0, make the error physical , meaning extend to 0
-        rowl = ['Before SM events',]
-        rowp = ['(before fit) SM events',]
+        rowl = ['Before fit SM events',]
+        rowp = ['Before fit SM events',]
 
         total_before = []
         purity_before = []
@@ -421,8 +421,8 @@ def yieldstable(workspace, samples, channels, output_name, table_name, is_cr=Fal
                     if sample_name != sample:
                         continue
               
-                    rowl.append('(before fit) %s' % labels_latex_dict.get(sample_name, sample_name).replace('_', '\_'))
-                    rowp.append('(before fit) %s' % labels_html_dict.get(sample_name, sample_name))
+                    rowl.append('Before fit %s' % labels_latex_dict.get(sample_name, sample_name).replace('_', '\_'))
+                    rowp.append('Before fit %s' % labels_html_dict.get(sample_name, sample_name))
 
                     for index, n in enumerate(m[name]):
                     
@@ -456,7 +456,7 @@ def yieldstable(workspace, samples, channels, output_name, table_name, is_cr=Fal
 
         for index, region in enumerate(regions_names):
 
-            purity = int(purity_before[index]/total_before[index] * 100.)
+            purity = int(round(purity_before[index]/total_before[index] * 100.))
 
             rowl.append('$%i\%%$' % purity)
             rowp.append('%i%%' % purity)
