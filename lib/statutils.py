@@ -53,7 +53,7 @@ def get_significance(s, b):
 
     try:
         za2 = 2 * ((s+b) * math.log(1+s/b) - s)
-    except ZeroDivisionError:
+    except:
         return 0.
 
     if za2 <= 0:

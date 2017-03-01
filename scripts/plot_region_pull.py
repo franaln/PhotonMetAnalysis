@@ -311,19 +311,14 @@ def make_hist_pull_plot(samples, regions, results):
 
     merged_bkgs['gamjet'] = to_merge['photonjet']
     merged_bkgs['tgamma'] = to_merge['ttbarg'] #+ to_merge['ttbarghad'] to_merge['topgamma'] + 
-
-    # merged_bkgs['efake'] = to_merge['efake']
-    # merged_bkgs['jfake'] = to_merge['jfake']
     merged_bkgs['fakes'] = to_merge['efake'] + to_merge['jfake']
-
-    # merged_bkgs['vgamma'] = to_merge['wgamma'] + to_merge['zllgamma'] + to_merge['znunugamma'] 
     merged_bkgs['wgamma'] = to_merge['wgamma']
     merged_bkgs['zgamma'] = to_merge['zllgamma'] + to_merge['znunugamma']
+    merged_bkgs['diphoton'] = to_merge['diphoton'] + to_merge['vgammagamma']
 
     if 'vqqgamma' in merged_bkgs:
         merged_bkgs['vgamma'] += to_merge['vqqgamma']
 
-    merged_bkgs['diphoton'] = to_merge['diphoton'] + to_merge['vgammagamma']
 
     for sam, h in merged_bkgs.iteritems():
         set_style(h, color=colors_dict[sam], fill=True)

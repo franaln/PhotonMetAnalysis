@@ -59,7 +59,7 @@ if not do_fit and not do_tables and not do_plots:
     parser.print_usage()
     sys.exit(1)
 
-srs = ['SRiL', 'SRiH']
+srs = ['SRL', 'SRH']
 crs = ['CRQ', 'CRW', 'CRT']
 vrs = [
     'VRM1L', 'VRM2L', 'VRM3L', 
@@ -180,7 +180,7 @@ configfile = susy_dir + '/lib/PhotonMet_HistFitter_config.py'
 fit_dir = '%s/bkgonly' % fits_dir
 ws = fit_dir + "/BkgOnlyFit_combined_BasicMeasurement_model_afterFit.root"
 
-cmd = 'run_bkgonly.py -i %s -o %s --sr SRiL,SRiH -c %s --val --data data --log %s/bkgonly_fit.log' % (histograms_path, fit_dir, configfile, log_dir)
+cmd = 'run_bkgonly.py -i %s -o %s --sr SRL,SRH -c %s --val --data data --log %s/bkgonly_fit.log' % (histograms_path, fit_dir, configfile, log_dir)
 
 if do_syst:
     cmd += ' --syst'
@@ -208,18 +208,18 @@ if do_tables:
     yieldstable(ws, backgrounds_str, 'VRLW1,VRLT1,VRLW3,VRLT3', tables_dir+'/table_vrlwt.tex', 'VRLWT')
 
     ## SR
-    yieldstable(ws, backgrounds_str, 'SRiL,SRiH', tables_dir+'/table_sr.tex', 'Signal Regions', unblind=unblind)
+    yieldstable(ws, backgrounds_str, 'SRL,SRH', tables_dir+'/table_sr.tex', 'Signal Regions', unblind=unblind)
 
 
 # Systematics tables
-if do_syst:
-    cmd1 = 'SysTable.py -w ' + ws + ' -c SRiL,SRiH    -o %s/table_syst_sr.tex -%%' % tables_dir
-    cmd2 = 'SysTable.py -w ' + ws + ' -c CRQ,CRW,CRT  -o %s/table_syst_cr.tex -%%' % tables_dir
-    cmd3 = 'SysTable.py -w ' + ws + ' -c SRiL,SRiH    -o %s/table_syst_sr_bkgs.tex -%% -s photonjet,ttbarg,wgamma' % tables_dir
+#if do_syst:
+cmd1 = 'SysTable.py -w ' + ws + ' -c SRL,SRH      -o %s/table_syst_sr.tex -%%' % tables_dir
+cmd2 = 'SysTable.py -w ' + ws + ' -c CRQ,CRW,CRT  -o %s/table_syst_cr.tex -%%' % tables_dir
+cmd3 = 'SysTable.py -w ' + ws + ' -c SRL,SRH      -o %s/table_syst_sr_bkgs.tex -%% -s photonjet,ttbarg,wgamma,znunugamma' % tables_dir
             
-    run_cmd(cmd1)
-    run_cmd(cmd2)
-    run_cmd(cmd3)
+run_cmd(cmd1)
+run_cmd(cmd2)
+run_cmd(cmd3)
 
 
 
@@ -250,7 +250,7 @@ after_cmd = ' --ws %s' % ws
 ## SR
 if do_plots:
 
-    cmd = 'draw.py -r SRiL,SRiH -l data -o %s --signal --n1 --ext "pdf,png" --save %s/histograms_plots_sr.root' % (plots_dir, histograms_dir) + after_cmd
+    cmd = 'draw.py -r SRL,SRH -l data -o %s --signal --n1 --ext "pdf,png" --save %s/histograms_plots_sr.root' % (plots_dir, histograms_dir) + after_cmd
 
     if not unblind:
         cmd += ' -v met_et,meff --blind'
@@ -289,7 +289,7 @@ if do_plots:
     run_cmd(cmd_vrl1, cmd_vrl2)
 
 # Region pulls
-all_regions_str = 'CRQ,CRW,CRT,VRM1L,VRM2L,VRM3L,VRM1H,VRM2H,VRM3H,VRL1,VRL2,VRL3,VRL4,SRiL,SRiH'
+all_regions_str = 'CRQ,CRW,CRT,VRM1L,VRM2L,VRM3L,VRM1H,VRM2H,VRM3H,VRL1,VRL2,VRL3,VRL4,SRL,SRH'
 cmd  = 'plot_region_pull.py --ws %s -r %s -o %s --ext "pdf,png"' % (ws, all_regions_str, plots_dir)  + (' --unblind' if unblind else '')
 
 if do_plots:
@@ -303,7 +303,7 @@ if do_plots:
 #--------
 # Webpage
 #--------
-create_webpage(results_dir, web_dir, info_dict, regions=['SRi',] + crs + vrs)
+create_webpage(results_dir, web_dir, info_dict, regions=['SR',] + crs + vrs)
 
 # # copy webpage
 # wwwdir = '~/work/www/Susy/PhotonMetAnalysis/'

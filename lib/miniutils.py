@@ -360,7 +360,7 @@ def _get_histogram(ds, **kwargs):
     use_lumiw   = kwargs.get('use_lumiw',   True)
     use_sfw     = kwargs.get('use_sfw',     True)
     use_mcw     = kwargs.get('use_mcw',     True)
-    use_purw    = kwargs.get('use_purw',    False) 
+    use_purw    = kwargs.get('use_purw',    True) #False) 
     use_mcveto  = kwargs.get('use_mcveto',  True)
 
     debug = kwargs.get('debug', False)
@@ -546,7 +546,7 @@ def _get_histogram(ds, **kwargs):
         varexp = w_str
 
     if debug:
-        print 'get_histogram', hname, variable, varexp
+        print 'get_histogram:', hname, variable, varexp
 
     if variable == 'cuts':
         tree.Project(hname, '1', varexp)

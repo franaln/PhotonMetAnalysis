@@ -181,6 +181,7 @@ def do_plot(plotname,
             normalize=False,
             do_fit=False,
             logy=True,
+            big_label=False,
             extensions=['pdf',]):
 
     if data is None:
@@ -207,6 +208,8 @@ def do_plot(plotname,
     else:
         logy = conf.logy
 
+    logx = conf.logx
+
     can = canvas(plotname, plotname, 800, 800)
     can.cd()
 
@@ -226,14 +229,14 @@ def do_plot(plotname,
         cdown = ROOT.TPad("d", "d", 0., 0.01, 0.99, 0.295)
         cup.SetRightMargin(0.05)
         cup.SetBottomMargin(0.005)
-        cup.SetLeftMargin(cup.GetLeftMargin()*0.9)
+        cup.SetLeftMargin(cup.GetLeftMargin())
         cup.SetTickx()
         cup.SetTicky()
         cdown.SetTickx()
         cdown.SetTicky()
         cdown.SetRightMargin(0.05)
         cdown.SetTopMargin(0.0054)
-        cdown.SetLeftMargin(cdown.GetLeftMargin()*0.9)
+        cdown.SetLeftMargin(cdown.GetLeftMargin())
         cdown.SetBottomMargin(cdown.GetBottomMargin()*1.1)
         cdown.SetFillColor(ROOT.kWhite)
         cup.Draw()
@@ -241,6 +244,9 @@ def do_plot(plotname,
 
         if logy and conf.logy:
             cup.SetLogy()
+        if logx:
+            cup.SetLogx()
+            cdown.SetLogx()
 
         cup.SetTopMargin(0.08)
         cdown.SetBottomMargin(0.35)
@@ -251,6 +257,8 @@ def do_plot(plotname,
     else:
         if logy: ## conf.logy:
             can.SetLogy()
+        if logx:
+            can.SetLogx()
 
         can.SetTicks(1, 1)
         can.SetLeftMargin(0.12)
@@ -261,8 +269,9 @@ def do_plot(plotname,
         up_size = calc_size(can)
         dn_size = calc_size(can) 
 
-    up_size *= 1.2
-    dn_size *= 1.2 
+    if big_label:
+        up_size *= 1.2
+        dn_size *= 1.2 
 
     # configure histograms
     if data:
@@ -277,9 +286,8 @@ def do_plot(plotname,
         for sig, hist in signal.iteritems():
             set_style(hist, msize=1.2, lwidth=2, lstyle=2, color=style.colors_dict[sig])
 
+    # bkg stack
     if bkg:
-
-        # create SM stack
         sm_stack = ROOT.THStack()
 
         def _compare(a, b):
@@ -288,6 +296,7 @@ def do_plot(plotname,
             return cmp(int(amax), int(bmax))
 
         for hist in sorted(bkg.itervalues(), _compare):
+            print hist
             sm_stack.Add(hist)
 
         # Total background
@@ -302,8 +311,9 @@ def do_plot(plotname,
         sm_total = None
         for h in bkg.itervalues():
             if sm_total is None:
-                sm_total = histogram_equal_to(h)
-            sm_total += h
+                sm_total = histogram.Clone('sm_total')
+            else:
+                sm_total.Add(h, 1)
 
         sm_total_stat = sm_total.Clone()
 
@@ -320,7 +330,7 @@ def do_plot(plotname,
             sm_total_stat.SetMarkerSize(0)
             
 
-    # add entries to legend
+    # legend
     legxmin, legxmax = 0.6, 0.88
     legymin, legymax = 0.6, 0.88
     if do_ratio:
@@ -403,14 +413,9 @@ def do_plot(plotname,
         can.RedrawAxis()
 
     if logy:
-        # if chist.GetMinimum() > 1:
         chist.SetMinimum(0.01)
-        # else:
-        #     chist.SetMinimum(0.01)
 
-    if logy:
         ymax = chist.GetMaximum()
-
         if 'dphi' in variable:
             chist.SetMaximum(ymax*1000)
         else:
@@ -428,17 +433,25 @@ def do_plot(plotname,
 
         chist.SetMaximum(ymax*1.4)
 
+
+    if big_label:
+        y_offset = 1.1
+        x_offset = 1.
+    else:
+        y_offset = 0.9
+        x_offset = 1.
+
+    # x-axis
     if do_ratio:
         chist.GetXaxis().SetLabelSize(0.)
         chist.GetXaxis().SetTitleSize(0.)
     else:
         chist.GetXaxis().SetTitle(xtitle)
-        chist.GetXaxis().SetTitleOffset(1.15)
+        chist.GetXaxis().SetTitleOffset(x_offset)
         chist.GetXaxis().SetLabelSize(up_size)
         chist.GetXaxis().SetTitleSize(up_size)
-    chist.GetYaxis().SetLabelSize(up_size)
-    chist.GetYaxis().SetTitleSize(up_size)
  
+    # y-axis
     if 'BIN' in ytitle:
         if bkg:
             width = sm_total.GetBinWidth(1)
@@ -451,10 +464,9 @@ def do_plot(plotname,
             ytitle = ytitle.replace('BIN', '{:.2f}'.format(width))
 
     chist.GetYaxis().SetTitle(ytitle)
-    if do_ratio:
-        chist.GetYaxis().SetTitleOffset(1.1)
-    else:
-        chist.GetYaxis().SetTitleOffset(1.4)
+    chist.GetYaxis().SetLabelSize(up_size)
+    chist.GetYaxis().SetTitleSize(up_size)
+    chist.GetYaxis().SetTitleOffset(y_offset)
 
     if data:
         data_graph = make_poisson_cl_errors(data)
@@ -523,7 +535,7 @@ def do_plot(plotname,
             ratio.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
         ratio.GetXaxis().SetLabelSize(ratio_xlabel_size)
         ratio.GetXaxis().SetTitleSize(ratio_xtitle_size)
-        ratio.GetXaxis().SetTitleOffset(1.2)
+        ratio.GetXaxis().SetTitleOffset(x_offset)
         ratio.GetXaxis().SetLabelOffset(0.03)
         ratio.GetXaxis().SetTickLength(0.06)
 
@@ -717,6 +729,7 @@ def do_plot(plotname,
 
 
     elif do_ratio and signal and bkg:
+        cdown.cd()
 
         names = []
         ratio_z = []
@@ -744,7 +757,7 @@ def do_plot(plotname,
 
                 s = signal[name].Integral(imin, imax)
 
-                z = get_significance(s, b)
+                z = get_significance_unc(s, b, 0.1)
                 eff = s/s0 if s0 > 0 else 0
 
                 ratio_z[i].SetBinContent(bin_, z)
@@ -754,16 +767,13 @@ def do_plot(plotname,
             set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=style.colors_dict[name])
             set_style(ratio_e[i], msize=1.2, lwidth=2, lstyle=3, color=style.colors_dict[name])
 
-
-        cdown.cd()
-
-        # x axis
+        # x-axis
         ratio_z[0].GetXaxis().SetTitle(xtitle)
         if conf.xmin is not None and conf.xmax is not None:
             ratio_z[0].GetXaxis().SetRangeUser(xmin, xmax)
         ratio_z[0].GetXaxis().SetLabelSize(ratio_xlabel_size)
         ratio_z[0].GetXaxis().SetTitleSize(ratio_xtitle_size)
-        ratio_z[0].GetXaxis().SetTitleOffset(1.)
+        ratio_z[0].GetXaxis().SetTitleOffset(x_offset)
         ratio_z[0].GetXaxis().SetLabelOffset(0.03)
         ratio_z[0].GetXaxis().SetTickLength(0.06)
 
@@ -772,84 +782,27 @@ def do_plot(plotname,
         else:
             ratio_z[0].GetXaxis().SetNdivisions(508)
 
-        # y axis
+        # y-axis
+        cdown.SetGridy()
         ratio_z[0].GetYaxis().SetTitle('Significance')
         ratio_z[0].GetYaxis().SetLabelSize(ratio_ylabel_size)
         ratio_z[0].GetYaxis().SetTitleSize(ratio_ytitle_size)
         ratio_z[0].GetYaxis().SetNdivisions(504)
-        ratio_z[0].GetYaxis().SetTitleOffset(0.4)
+        ratio_z[0].GetYaxis().SetTitleOffset(y_offset*0.4)
         ratio_z[0].GetYaxis().SetLabelOffset(0.01)
-
-        # ratio_z[0].GetYaxis().SetLabelOffset(99)
-        # ratio_z[0].GetYaxis().SetLabelSize(0.)
 
         zmax = 0
         for ratio in ratio_z:
             if ratio.GetMaximum() > zmax:
                 zmax = ratio.GetMaximum()
 
-        ratio_z[0].GetYaxis().SetRangeUser(0, zmax)
-
+        ratio_z[0].GetYaxis().SetRangeUser(0, zmax*1.2)
         ratio_z[0].Draw()
         for ratio in ratio_z[1:]:
             ratio.Draw('same')
 
-        # emax = 0
-        # for ratio in ratio_e:
-        #     if ratio.GetMaximum() > emax:
-        #         emax = ratio.GetMaximum()
 
-        # for ratio in ratio_e:
-        #     ratio.Scale(zmax)
-        #     ratio.Draw('same')
-
-        # firstbin = ratio.GetXaxis().GetFirst()
-        # lastbin  = ratio.GetXaxis().GetLast()
-        # xmax     = ratio.GetXaxis().GetBinUpEdge(lastbin)
-        # xmin     = ratio.GetXaxis().GetBinLowEdge(firstbin)
-
-        # axis = ROOT.TGaxis(xmax, 0, xmax, zmax, 0, 1, 510, "+L")
-        # axis.SetTitle("Efficiency")
-        # axis.SetNdivisions(504)
-        # axis.SetLabelSize(ratio_ylabel_size)
-        # axis.SetTitleSize(ratio_ytitle_size)
-        # axis.SetTitleFont(ratio_z[0].GetYaxis().GetTitleFont())
-        # axis.Draw()
-
-        # firstbin = ratio_z[0].GetXaxis().GetFirst()
-        # lastbin  = ratio_z[0].GetXaxis().GetLast()
-        # xmax     = ratio_z[0].GetXaxis().GetBinUpEdge(lastbin)
-        # xmin     = ratio_z[0].GetXaxis().GetBinLowEdge(firstbin)
-
-        # lines = [None, None, None, None, None]
-        # lines[0] = ROOT.TLine(xmin, 1., xmax, 1.)
-        # lines[1] = ROOT.TLine(xmin, 2., xmax, 2.)
-        # lines[2] = ROOT.TLine(xmin, 3., xmax, 3.)
-        # lines[3] = ROOT.TLine(xmin, 4., xmax, 4.)
-        # lines[4] = ROOT.TLine(xmin, 5., xmax, 5.)
-
-        # lines[0].SetLineStyle(2)
-        # lines[1].SetLineStyle(2)
-        # lines[2].SetLineStyle(2)
-        # lines[3].SetLineStyle(2)
-        # lines[4].SetLineStyle(2)
-
-        # for line in lines:
-        #     line.Draw()
-
-        # x = ROOT.gPad.GetUxmin() - 0.1*ratio_z[0].GetXaxis().GetBinWidth(1);
-
-        # t = ROOT.TLatex()
-        # t.SetTextSize(0.10)
-        # t.SetTextAlign(32)
-        # t.SetTextAngle(0);
-        # for i in xrange(5):
-        #     y = ratio_z[0].GetYaxis().GetBinCenter(i+1)
-        #     t.DrawLatex(x, y+0.5, '%s' % (i+1))
-
-
-
-    # Save 
+    # Save plot
     output_name = fix_output_name(plotname)
     for ext in extensions:
         can.SaveAs(output_name+'.'+ext)
@@ -929,6 +882,7 @@ def do_plot_cmp(plotname,
                 histograms,
                 do_ratio=True, 
                 ratio_type='ratio',
+                ratio_cmp=None,
                 normalize=False,
                 logy=True,
                 conf=None,
@@ -1012,13 +966,6 @@ def do_plot_cmp(plotname,
         up_size = calc_size(can)
         dn_size = calc_size(can) 
 
-    # configure histograms
-    # for (name, hist) in histograms:
-    #     try:
-    #         set_style(hist, color=colors_dict[name], fill=True)
-    #         hist.SetLineColor(ROOT.kBlack)
-    #     except:
-    #         pass
 
     # add entries to legend
     if do_ratio:
@@ -1078,7 +1025,7 @@ def do_plot_cmp(plotname,
         can.RedrawAxis()
 
     if chist.GetMaximum() < 10:
-        chist.SetMinimum(0.0001)
+        chist.SetMinimum(0.01)
     elif chist.GetMaximum() > 100:
         chist.SetMinimum(0.01)
     else:
@@ -1160,11 +1107,22 @@ def do_plot_cmp(plotname,
 
         else:
 
-            for (name, hist) in histograms[1:]:
-                ratio = hist.Clone()
-                ratio.Divide(histograms[0][1])
+            if ratio_cmp is not None:
+                ratio_cmp = ratio_cmp.split(',')
+                
+                for cmp_str in ratio_cmp:
+                    
+                    nom, oth = [ int(s)-1 for s in cmp_str.split('-') ]
+                    
+                    ratio = histograms[oth][1].Clone()
+                    ratio.Divide(histograms[nom][1])
+                    ratios.append(ratio)
+            else:
+                for (name, hist) in histograms[1:]:
+                    ratio = hist.Clone()
+                    ratio.Divide(histograms[0][1])
 
-                ratios.append(ratio)
+                    ratios.append(ratio)
 
         cdown.cd()
         ratios[0].SetTitle('')
