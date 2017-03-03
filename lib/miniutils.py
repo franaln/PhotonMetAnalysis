@@ -95,9 +95,8 @@ def split_cut(s):
     for op in ['==', '>=', '<=', '>', '<', '!=']:
         if op in s:
             var, value = s.split(op)
-            break
-
-    return (var.strip(), op, value.strip())
+            return (var.strip(), op, value.strip())
+            
 
 def revert_cut(s):
     (var, op, value) = split_cut(s)
@@ -433,6 +432,14 @@ def _get_histogram(ds, **kwargs):
         if vary in selection:
             selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == vary ])
 
+    # check aliases: FIX for complex selection
+    if selection and '(' not in selection:
+        cuts = selection.split('&&')
+        for cut in cuts:
+            vcut = split_cut(cut)[0]
+            if vcut in variable_aliases:
+                selection = selection.replace(vcut, variable_aliases.get(vcut, vcut))
+
     if is_mc and fs is not None:
         if selection:
             selection = selection + ' && fs==%s' % fs
@@ -450,7 +457,7 @@ def _get_histogram(ds, **kwargs):
             selection = '%s && mcveto==0' % selection
         else:
             selection = 'mcveto==0'
-
+       
 
     # change selection and variable for systematics
     if syst != 'Nom' and systematics.affects_kinematics(syst):

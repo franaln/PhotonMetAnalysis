@@ -296,7 +296,6 @@ def do_plot(plotname,
             return cmp(int(amax), int(bmax))
 
         for hist in sorted(bkg.itervalues(), _compare):
-            print hist
             sm_stack.Add(hist)
 
         # Total background
@@ -308,14 +307,16 @@ def do_plot(plotname,
         sm_stat_color = ROOT.kGray+1
         sm_syst_color = ROOT.kGray+3
 
-        sm_total = None
-        for h in bkg.itervalues():
-            if sm_total is None:
-                sm_total = histogram.Clone('sm_total')
-            else:
-                sm_total.Add(h, 1)
-
+        sm_total = sm_stack.GetStack().Last().Clone('sm_total')
         sm_total_stat = sm_total.Clone()
+
+        # sm_total = None
+        # for h in bkg.itervalues():
+        #     if sm_total is None:
+        #         sm_total = h.Clone('sm_total')
+        #     else:
+        #         sm_total.Add(h, 1)
+
 
         if sm_total is not None:
             sm_total.SetLineWidth(2)
