@@ -5,7 +5,7 @@ from signalgrid import grid_m3_mu, grid_mu
 
 # Labels
 atlas_label = '' ##bf{#it{ATLAS}} Preliminary'
-data_label   = '#sqrt{s} = 13 TeV, 36.5 fb^{-1}'
+data_label   = '#sqrt{s} = 13 TeV, 36.1 fb^{-1}'
 
 # Legend labels
 labels_dict = dict()
@@ -34,7 +34,7 @@ for (m3, mu), (mgl, mn1) in grid_m3_mu.iteritems():
 
     name = 'GGM_M3_mu_%i_%i' % (m3, mu)
     
-    label = 'm_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
+    label = 'HW (%i, %i)' % (m3, mu) ##m_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
 
     labels_dict[name] = label
 
@@ -45,6 +45,9 @@ for mu, mn1 in grid_mu.iteritems():
     label = '%s = %i GeV' % (mn1_text, mn1)
 
     labels_dict[name] = label
+
+labels_dict['GGM_GG_bhmix_1900_650'] = 'MG (1900, 650)'
+labels_dict['GGM_GG_bhmix_1900_1650'] = 'MG (1900, 1650)'
 
 
 # Colours
@@ -92,10 +95,15 @@ colors_dict['GGM_mu_150'] = '#059bfd' ##4e5de4'
 colors_dict['GGM_mu_200'] = '#fd059b' #e44e5d'
 colors_dict['GGM_mu_250'] = '#fd6705' #6021fa'
 
+# MG focus points
+colors_dict['GGM_GG_bhmix_1900_650']  = '#4e5de4'
+colors_dict['GGM_GG_bhmix_1900_1650'] = '#4e5de4'
+
+
 # Plot config
 class PlotConf():
 
-    def __init__(self, xtitle='', ytitle='', legpos='right', xmin=None, xmax=None, logy=True, ymin=None, ymax=None):
+    def __init__(self, xtitle='', ytitle='', legpos='right', xmin=None, xmax=None, logx=False, logy=True, ymin=None, ymax=None):
         self.xtitle = xtitle
         self.ytitle = ytitle
         self.legpos = legpos
@@ -103,6 +111,7 @@ class PlotConf():
         self.xmax   = xmax
         self.ymin   = ymin
         self.ymax   = ymax
+        self.logx   = logx 
         self.logy   = logy
 
 
@@ -110,13 +119,14 @@ plots_conf = dict()
 plots_conf['cuts']         = PlotConf('', 'Events', 'right')
 plots_conf['ph_n']         = PlotConf('Number of photons', 'Events', 'right')
 plots_conf['el_n']         = PlotConf('Number of electrons', 'Events', 'right')
+plots_conf['mu_n']         = PlotConf('Number of muons', 'Events', 'right')
 plots_conf['jet_n']        = PlotConf('Number of jets', 'Events', 'right')
 plots_conf['bjet_n']       = PlotConf('Number of b-jets', 'Events', 'right')
 plots_conf['ph_pt']        = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['ph_eta']       = PlotConf('Photon #eta', 'Events / BIN GeV', 'right')
 plots_conf['ph_phi']       = PlotConf('Photon #phi', 'Events / BIN GeV', 'right')
 plots_conf['ph_iso']       = PlotConf('E_{T}^{iso} - 0.022 #times  p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_pt[0]']     = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['ph_pt[0]']     = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right', logx=True)
 plots_conf['ph_eta[0]']    = PlotConf('Photon #eta', 'Events / BIN GeV', 'right')
 plots_conf['ph_etas2[0]']  = PlotConf('Photon #eta_{s2}', 'Events / BIN GeV', 'right')
 plots_conf['ph_phi[0]']    = PlotConf('Photon #phi', 'Events / BIN GeV', 'right')
@@ -125,6 +135,7 @@ plots_conf['met_et']       = PlotConf('E_{T}^{miss} [GeV]', 'Events / BIN GeV', 
 plots_conf['met_phi']      = PlotConf('#phi^{miss}', 'Events', 'right')
 plots_conf['met_sig']      = PlotConf('E_{T}^{miss} significance', 'Events / BIN', 'right')
 plots_conf['met_sumet']    = PlotConf('SumEt [GeV]', 'Events / BIN', 'right')
+plots_conf['ht0']           = PlotConf('H_{T} (only jets) [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['ht']           = PlotConf('H_{T} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['jet_pt']       = PlotConf('Jet p_{T} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['jet_pt[0]']    = PlotConf('p_{T}^{leading jet} [GeV]', 'Events / BIN GeV', 'right')

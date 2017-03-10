@@ -2,15 +2,16 @@
 use_purw = False
 
 # Mini version
-versions = ['51', '47', '41'] # keep v41 for signal
+versions = ['52', '51', '47', '41'] # keep v41 for signal
 
-ptags = ['2927', '2889', '2840', '2824', '2823', '2769', '2689', '2688', '2666', '2667', ]
+ptags = ['2950', '2927', '2889', '2840', '2824', '2823', '2769', '2689', '2688', '2666', '2667', ]
 
 # Luminosity (OffLumi-13TeV-005)
 lumi_data15 = 3212.96  # All
 #lumi_data16 = 10064.30 # DS2 (Runs 297730-303560)
 #lumi_data16 = 24799.90 # DS3 (Runs 297730-308084)
-lumi_data16 = 33257.20 # All 2016
+#lumi_data16 = 33257.20 # All 2016
+lumi_data16 = 32861.6 # new 2016 GRL
 
 lumi_data = lumi_data15 + lumi_data16
 
