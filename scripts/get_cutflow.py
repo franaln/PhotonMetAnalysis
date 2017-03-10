@@ -82,7 +82,7 @@ def main():
             total = float(flow[0])
 
             if args.percentage:
-                table.add_column(sample, ['%.2f (%d%%)' % (n, 100*n/total) for n in flow])
+                table.add_column(sample, ['%.2f (%d%%)' % (n, int(round(100*(n/total)))) for n in flow])
             else:
                 table.add_column(sample, ['%.2f' % n for n in flow])
     

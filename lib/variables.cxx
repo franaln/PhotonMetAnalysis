@@ -5,6 +5,7 @@ float get_dphi(float phi1, float phi2)
   else                     return (2 * TMath::Pi() - phi); 
 }
 
+// type: 0=photon, 1=electron, 2=jet, 3=other
 int photontype(int truth_type, int truth_origin)
 {
   int type = 3;
