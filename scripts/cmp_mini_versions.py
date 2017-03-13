@@ -38,8 +38,8 @@ regions  = [
     'VRL4',
     'VRZ',
     
-    'SRiL',
-    'SRiH',
+    'SRL',
+    'SRH',
     ]
 
 colors = [
@@ -79,7 +79,7 @@ for sample in samples:
         print region
         print '-----'
         for idx, ver in enumerate(versions):
-            evts = get_events(sample, selection=sel, version=ver, scale=args.scale)
+            evts = get_events(sample, selection=sel, version=ver, scale=args.scale, lumi='data')
             print ver, evts
             histograms[idx].SetBinContent(iregion+1, evts.mean)
 

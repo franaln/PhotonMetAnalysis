@@ -728,17 +728,15 @@ def do_plot(plotname,
         ratio.Draw('P0Z')
 
 
-
+    # S/B significance as a function of cut in plotted variable
     elif do_ratio and signal and bkg:
         cdown.cd()
 
         names = []
         ratio_z = []
-        ratio_e = []
         for name in signal.iterkeys():
             names.append(name)
             ratio_z.append(histogram_equal_to(sm_total))
-            ratio_e.append(histogram_equal_to(sm_total))
 
         # remove the point from the plot if zero
         max_bins = ratio_z[0].GetNbinsX()
@@ -752,26 +750,22 @@ def do_plot(plotname,
                 imax = max_bins
 
             b = sm_total.Integral(imin, imax)
-            s0 = signal[name].Integral()
 
             for i, name in enumerate(names):
 
                 s = signal[name].Integral(imin, imax)
 
-                z = get_significance_unc(s, b, 0.1)
-                eff = s/s0 if s0 > 0 else 0
+                z = get_significance_unc(s, b, 0.3, True)
 
                 ratio_z[i].SetBinContent(bin_, z)
-                ratio_e[i].SetBinContent(bin_, eff)
 
         for i, name in enumerate(names):
             set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=style.colors_dict[name])
-            set_style(ratio_e[i], msize=1.2, lwidth=2, lstyle=3, color=style.colors_dict[name])
 
         # x-axis
         ratio_z[0].GetXaxis().SetTitle(xtitle)
         if conf.xmin is not None and conf.xmax is not None:
-            ratio_z[0].GetXaxis().SetRangeUser(xmin, xmax)
+            ratio_z[0].GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
         ratio_z[0].GetXaxis().SetLabelSize(ratio_xlabel_size)
         ratio_z[0].GetXaxis().SetTitleSize(ratio_xtitle_size)
         ratio_z[0].GetXaxis().SetTitleOffset(x_offset)
@@ -797,7 +791,7 @@ def do_plot(plotname,
             if ratio.GetMaximum() > zmax:
                 zmax = ratio.GetMaximum()
 
-        ratio_z[0].GetYaxis().SetRangeUser(0, zmax*1.2)
+        ratio_z[0].GetYaxis().SetRangeUser(0, zmax*1.5)
         ratio_z[0].Draw()
         for ratio in ratio_z[1:]:
             ratio.Draw('same')
@@ -810,9 +804,9 @@ def do_plot(plotname,
 
 
 def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
-               zmin=None, zmax=None, options='colz', text=None):
+               zmin=None, zmax=None, drawopts='colz', text=None):
 
-    if 'text' in options:
+    if 'text' in drawopts:
         for bx in xrange(hist.GetNbinsX()):
             for by in xrange(hist.GetNbinsY()):
                 content = hist.GetBinContent(bx+1, by+1)
@@ -840,7 +834,6 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     hist.GetYaxis().SetTitleOffset(1.5)
     hist.GetZaxis().SetTitleOffset(1.2)
 
-
     can = canvas(plotname, plotname, 800, 800)
     can.cd()
     
@@ -859,9 +852,9 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     if zmin is not None and zmax is not None:
         hist.SetContour(999)
         hist.GetZaxis().SetRangeUser(zmin, zmax)
-        hist.Draw(options)
+        hist.Draw(drawopts)
     else:
-        hist.Draw(options)
+        hist.Draw(drawopts)
 
     if text is not None:
         
