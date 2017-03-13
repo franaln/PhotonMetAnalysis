@@ -128,30 +128,30 @@ def check_cut(value, op, cut):
 #----------------------------
 # Cross section/lumi weights
 #----------------------------
-def get_xs(ds):
+# def get_xs(ds):
 
-    xs = xsutils.get_xs_did(int(ds['did']))[0]
+#     xs = xsutils.get_xs_did(int(ds['did']))
 
-    if xs is None:
-        print 'missing XS for this ID:', did
-        return 0.0
+#     if xs is None:
+#         print 'missing XS for this ID:', did
+#         return 0.0
     
-    return xs
+#     return xs
 
 
-def get_signal_xs(ds, fs=0):
+# def get_signal_xs(ds, fs=0):
 
-    if 'GGM_M3' in ds['short_name']:
+#     if 'GGM_M3' in ds['short_name']:
 
-        xs, unc = xsutils.get_xs_did(ds['did'])
+#         xs, unc = xsutils.get_xs_did(ds['did'], fs=2)
 
-        return xs
+#         return xs
 
-    elif 'GGM_mu' in ds['short_name']:
+#     elif 'GGM_mu' in ds['short_name']:
 
-        xs, unc = xsutils.get_xs_did(ds['did'], fs=fs)
+#         xs, unc = xsutils.get_xs_did(ds['did'], fs=fs)
 
-        return xs
+#         return xs
 
 
 def get_sumw(ds):
@@ -180,6 +180,9 @@ def get_lumi_weight(ds, lumi, fs=None):
         else:
             sumw = get_sumw(ds)
     
+        if 'GGM_M3_mu' in ds['short_name']:
+            fs = 2 
+
         xs = xsutils.get_xs_did(int(ds['did']), fs)[0]
 
         try:
@@ -339,6 +342,27 @@ def get_mini(name, **kwargs):
 def get_escaped_variable(variable):
     return variable.replace(':', '_').replace('/', '').replace('(', '').replace(')', '')
 
+def get_lumi(lumi):
+    if lumi is not None:
+        try:
+            if float(lumi) < 100:
+                lumi = float(lumi) * 1000
+        except:
+            pass
+
+    if lumi == 'data15':
+        lumi = analysis.lumi_data15
+    elif lumi == 'data16':
+        lumi = analysis.lumi_data16
+    elif lumi == 'data':
+        lumi = analysis.lumi_data
+
+    # by default normalize to 1 ifb
+    if lumi is None:
+        lumi = 1000.
+
+    return lumi
+
 def _get_histogram(ds, **kwargs):
 
     variable   = kwargs.get('variable', 'cuts')
@@ -347,7 +371,7 @@ def _get_histogram(ds, **kwargs):
     syst       = kwargs.get('syst', 'Nom')
     scale      = kwargs.get('scale', True)
     truth      = kwargs.get('truth', False)
-    lumi       = kwargs.get('lumi', None)
+    lumi_str   = kwargs.get('lumi', None)
     binning    = kwargs.get('binning', None)
     version    = kwargs.get('version', None)
     fs         = kwargs.get('fs', None)
@@ -398,7 +422,7 @@ def _get_histogram(ds, **kwargs):
         else:
             htemp = ROOT.TH1D(hname, hname, *binning)
         htemp.Sumw2()
-
+        # htemp.SetBinErrorOption(ROOT.TH1.kPoisson)
 
     # Variable
     variable = variable_aliases.get(variable, variable) # check if alias
@@ -472,23 +496,7 @@ def _get_histogram(ds, **kwargs):
     #---------
     # Weights
     #---------
-    if lumi is not None:
-        try:
-            if float(lumi) < 100:
-                lumi = float(lumi) * 1000
-        except:
-            pass
-
-    if lumi == 'data15':
-        lumi = analysis.lumi_data15
-    elif lumi == 'data16':
-        lumi = analysis.lumi_data16
-    elif lumi == 'data':
-        lumi = analysis.lumi_data
-        
-    # by default normalize to 1 ifb
-    if lumi is None:
-        lumi = 1000.
+    lumi = get_lumi(lumi_str)
 
     w_list = []
     if is_mc and scale:
@@ -553,7 +561,7 @@ def _get_histogram(ds, **kwargs):
         varexp = w_str
 
     if debug:
-        print 'get_histogram:', hname, variable, varexp
+        print 'DEBUG (get_histogram):', hname, variable, varexp
 
     if variable == 'cuts':
         tree.Project(hname, '1', varexp)
@@ -564,7 +572,7 @@ def _get_histogram(ds, **kwargs):
 
         hist.SetBinContent(1, integral)
         hist.SetBinError(1, error)
-
+        
     elif ':' in variable and not '::' in variable:
         tree.Project(hname, '%s:%s' % (vary, varx), varexp)
         hist = htemp.Clone()
@@ -622,6 +630,7 @@ def get_histogram(name, **kwargs):
 
         return hist
 
+    # from name
     datasets = get_sample_datasets(name, version, ptag)
 
     if datasets is None:
@@ -631,7 +640,7 @@ def get_histogram(name, **kwargs):
     hist = None
                                  
     # ewk grid: sum over all sub-processes
-    if 'GGM_mu' in name and len(datasets) == 1 and 'fs' not in kwargs:
+    if 'GGM_mu' in name and len(datasets)==1 and 'fs' not in kwargs:
 
         for fs in relevant_fs:
             
@@ -641,7 +650,10 @@ def get_histogram(name, **kwargs):
                 hist = h.Clone()
             else:
                 hist.Add(h, 1)
-                
+
+    elif 'GGM_CN' in name and len(datasets)==1 and 'fs' not in kwargs:
+        # implement ...
+        relevant_fs = []
     else:
         
         for ds in datasets:
@@ -740,22 +752,7 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False,
             htmp = f.Get('cutflow_w')
 
             # Weight
-            if lumi is not None:
-                try: 
-                    if float(lumi) < 100:
-                        lumi = float(lumi) * 1000
-                except:
-                    pass
-
-            if lumi == 'data15':
-                lumi = analysis.lumi_data15
-            elif lumi == 'data16':
-                lumi = analysis.lumi_data16
-            elif lumi == 'data':
-                lumi = analysis.lumi_data15 + analysis.lumi_data16
-        
-            if lumi is None:
-                lumi = 1000.
+            lumi = get_lumi(lumi)
 
             if scale and 'data' not in sample:
                 lumi_weight = get_lumi_weight(s, lumi)

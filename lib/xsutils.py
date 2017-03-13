@@ -3,10 +3,57 @@
 import os
 from samples import samples_dict
 
-gg_xs_file  = os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu.txt'
-ewk_xs_file = os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu.txt'
+signal_xs_files = [
+    os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu.txt',
+    os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu.txt',
+]
 
 bkg_xs_file = os.environ['SUSY_ANALYSIS'] + '/data/susy_crosssections_13TeV.txt'
+
+_bkg_xs_db = dict()
+_sig_xs_db = dict()
+
+def _create_xs_db():
+
+    # Background 
+    with open(bkg_xs_file) as f:
+        for line in f:
+            line = line.replace('\n', '')
+            if not line or line.startswith('#'):
+                continue
+            
+            try:
+                did, sample, xs, kfac, eff, unc = line.split()
+            except:
+                continue
+
+            # effective cross-section and relative uncertainty
+            xseff = float(xs) * float(kfac) * float(eff)
+            relunc = float(unc)
+
+            _bkg_xs_db[int(did)] = (xseff, relunc)
+
+
+    # Signal
+    for xs_file in signal_xs_files:
+        with open(xs_file) as f:
+            for line in f:
+                line = line.replace('\n', '')
+                if not line or line.startswith('#'):
+                    continue
+            
+                try:
+                    did, fs, xs, kfac, eff, unc = line.split()
+                except:
+                    continue
+
+                # effective cross-section and relative uncertainty
+                xseff = float(xs) * float(kfac) * float(eff)
+                relunc = float(unc)
+
+                _sig_xs_db[(int(did), int(fs))] = (xseff, relunc)
+
+
 
 def get_did(name):
     sample = samples_dict[name]
@@ -14,29 +61,15 @@ def get_did(name):
 
 def get_xs_did(did, fs=None):
 
-    if did > 373000 and did < 373999:
-        xs_file = ewk_xs_file if int(did) in range(373162, 373173) else gg_xs_file
-    else:
-        xs_file = bkg_xs_file
+    if not _bkg_xs_db or not _sig_xs_db:
+        _create_xs_db()
 
-    with open(xs_file) as f:
-        for line in f:
-            line = line.replace('\n', '')
-            if not line or line.startswith('#'):
-                continue
+    if did in _bkg_xs_db:
+        return _bkg_xs_db[did]
+    elif (did, fs) in _sig_xs_db:
+        return _sig_xs_db[(did, fs)]
 
-            try:
-                did_, fs_, xs_, kfac_, eff_, unc_ = line.split()
-            except:
-                continue
-
-            if int(did_) == int(did) and (fs is None or int(fs) == int(fs_)):
-                
-                xseff = float(xs_) * float(kfac_) * float(eff_)
-
-                return (xseff, float(unc_))
-            
-    raise Exception('XS not found for DID=%s (FS=%s)' % (did, fs))
+    raise Exception('ERROR: XS not found for DID=%s (FS=%s)' % (did, fs))
 
 
 def get_xs(par1, par2=None, fs=None):
