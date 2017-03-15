@@ -66,7 +66,7 @@ def main():
     parser.add_argument('--www', action='store_true', help='create webpage')
     parser.add_argument('--ext', dest='extensions', default='pdf', help='')
     parser.add_argument('--ratio', default='default', help='ratio type: none,default')
-    #parser.add_argument('--ratio', default='default', help='ratio type: none,default')
+    parser.add_argument('--sepfakes', action='store_true', help='separete efakes/jfakes')
 
     global args
     args = parser.parse_args()
@@ -251,12 +251,13 @@ def main():
                 del h_bkg['vgammagamma']
 
             ## fakes
-            h_bkg['fakes'] = h_bkg['efake'].Clone()
-            h_bkg['fakes'].Add(h_bkg['jfake'], 1)
-            h_bkg['fakes'].SetName(h_bkg['efake'].GetName().replace('efake', 'fakes'))
+            if not args.sepfakes:
+                h_bkg['fakes'] = h_bkg['efake'].Clone()
+                h_bkg['fakes'].Add(h_bkg['jfake'], 1)
+                h_bkg['fakes'].SetName(h_bkg['efake'].GetName().replace('efake', 'fakes'))
             
-            del h_bkg['efake']
-            del h_bkg['jfake']
+                del h_bkg['efake']
+                del h_bkg['jfake']
 
 
             ## data
