@@ -2,7 +2,27 @@ import ROOT
 import math
 from array import array
 
-def get_significance_unc(s, b, sb_over_b=0.5):
+def get_significance(s, b, sb, minb=None, mins=None):
+    
+    sig = ROOT.RooStats.NumberCountingUtils.BinomialExpZ(s, b, sb)
+
+    if minb is not None and b < minb:
+        sig = 0.
+    if mins is not None and s < mins:
+        sig = 0.
+    if sig < 0.:
+        sig = 0.
+
+    try:
+        sig = float(sig)
+    except:
+        sig = 0.
+    
+    return sig
+
+
+
+def get_significance_unc(s, b, sb=0.5, minb=None, mins=None): 
 
     """ Get significance taking into account
     the background systematic uncertainty
@@ -16,12 +36,15 @@ def get_significance_unc(s, b, sb_over_b=0.5):
 
     s, b = float(s), float(b)
 
-    if s < 0 or b < 0:
-        return 0.00
-    if b == 0.:
+    if s < 0.00001 or b < 0.00001:
         return 0.00
 
-    sb = sb_over_b * b # as default we use 50% of uncertainty for the background
+    if mins is not None and s < mins:
+        return 0.00
+    if minb is not None and b < minb:
+        return 0.00
+
+    sb = sb * b # as default we use 50% of uncertainty for the background
 
     za2_p = (s + b) * math.log( ((s + b) * (b + sb**2)) / (b**2 + (s + b) * sb**2) )
     za2_m = (b**2/sb**2) * math.log( 1 + (s * sb**2)/(b * (b + sb**2)) )
@@ -41,27 +64,27 @@ def get_significance_unc(s, b, sb_over_b=0.5):
     return za
 
 
-def get_significance(s, b):
+# def get_significance(s, b):
 
-    try:
-        s = s.mean
-        b = b.mean
-    except:
-        pass
+#     try:
+#         s = s.mean
+#         b = b.mean
+#     except:
+#         pass
 
-    s, b = float(s), float(b)
+#     s, b = float(s), float(b)
 
-    try:
-        za2 = 2 * ((s+b) * math.log(1+s/b) - s)
-    except:
-        return 0.
+#     try:
+#         za2 = 2 * ((s+b) * math.log(1+s/b) - s)
+#     except:
+#         return 0.
 
-    if za2 <= 0:
-        return 0.
+#     if za2 <= 0:
+#         return 0.
 
-    za = math.sqrt(za2)
+#     za = math.sqrt(za2)
 
-    return round(za, 2)
+#     return round(za, 2)
 
 
 def get_sb(s, b):

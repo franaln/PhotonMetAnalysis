@@ -182,7 +182,8 @@ def do_plot(plotname,
             do_fit=False,
             logy=True,
             big_label=False,
-            extensions=['pdf',]):
+            extensions=['pdf',],
+            region_line=None):
 
     if data is None:
         data = {}
@@ -510,6 +511,16 @@ def do_plot(plotname,
             else:
                 t.DrawLatex(0.60, 0.76, data_label)
 
+    # Region line
+    if region_line is not None:
+        
+        xline = float(region_line)
+
+        l = ROOT.TLine(xline, ymin, xline, ymax)
+        l.SetLineWidth(1)
+        l.Draw()
+
+
     ratio_ylabel_size = dn_size
     ratio_ytitle_size = dn_size
     
@@ -804,7 +815,8 @@ def do_plot(plotname,
 
 
 def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
-               zmin=None, zmax=None, drawopts='colz', text=None):
+               zmin=None, zmax=None, xmin=None, xmax=None, ymin=None, ymax=None,
+               drawopts='colz', text=None):
 
     if 'text' in drawopts:
         for bx in xrange(hist.GetNbinsX()):
@@ -848,6 +860,11 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     can.SetLeftMargin(0.14)
     can.SetBottomMargin(0.14)
     can.SetFillColor(ROOT.kWhite)
+
+    if xmin is not None and xmax is not None:
+        hist.GetXaxis().SetRangeUser(xmin, xmax)
+    if ymin is not None and ymax is not None:
+        hist.GetYaxis().SetRangeUser(ymin, ymax)
 
     if zmin is not None and zmax is not None:
         hist.SetContour(999)

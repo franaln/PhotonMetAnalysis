@@ -180,8 +180,8 @@ def get_lumi_weight(ds, lumi, fs=None):
         else:
             sumw = get_sumw(ds)
     
-        if 'GGM_M3_mu' in ds['short_name']:
-            fs = 2 
+        if 'GGM_M3_mu' in ds['short_name'] or 'GGM_GG_bhmix' in ds['short_name']:
+            fs = 2 # gluino-gluino final state
 
         xs = xsutils.get_xs_did(int(ds['did']), fs)[0]
 
@@ -299,22 +299,7 @@ def get_mini(name, **kwargs):
     version    = kwargs.get('version', None)
     lumi       = kwargs.get('lumi', None)
 
-    if lumi is not None:
-        try: 
-            if float(lumi) < 100:
-                lumi = float(lumi) * 1000
-        except:
-            pass
-
-        if lumi == 'data15':
-            lumi = analysis.lumi_data15
-        elif lumi == 'data16':
-            lumi = analysis.lumi_data16
-        elif lumi == 'data':
-            lumi = analysis.lumi_data15 + analysis.lumi_data16
-        
-    if lumi is None:
-        lumi = 1000.
+    lumi = get_lumi(lumi)
 
     datasets = get_sample_datasets(name, version, ptag)
 
@@ -333,7 +318,7 @@ def get_mini(name, **kwargs):
         else:
             weights.append(None)
 
-    return datasets, weights
+    return zip(datasets, weights)
 
 
 #---------------

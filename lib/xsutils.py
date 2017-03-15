@@ -3,12 +3,15 @@
 import os
 from samples import samples_dict
 
+data_dir = os.environ['SUSY_ANALYSIS'] + '/data/'
+
 signal_xs_files = [
-    os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu.txt',
-    os.environ['SUSY_ANALYSIS'] + '/data/HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu.txt',
+    'HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu.txt',
+    'HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu.txt',
+    'MGPy8EG_A14N23LO_GGM_GG_bhmix.txt',
 ]
 
-bkg_xs_file = os.environ['SUSY_ANALYSIS'] + '/data/susy_crosssections_13TeV.txt'
+bkg_xs_file = 'susy_crosssections_13TeV.txt'
 
 _bkg_xs_db = dict()
 _sig_xs_db = dict()
@@ -16,7 +19,7 @@ _sig_xs_db = dict()
 def _create_xs_db():
 
     # Background 
-    with open(bkg_xs_file) as f:
+    with open(data_dir + bkg_xs_file) as f:
         for line in f:
             line = line.replace('\n', '')
             if not line or line.startswith('#'):
@@ -36,7 +39,7 @@ def _create_xs_db():
 
     # Signal
     for xs_file in signal_xs_files:
-        with open(xs_file) as f:
+        with open(data_dir+xs_file) as f:
             for line in f:
                 line = line.replace('\n', '')
                 if not line or line.startswith('#'):
