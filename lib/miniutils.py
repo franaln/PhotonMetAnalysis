@@ -153,6 +153,19 @@ def check_cut(value, op, cut):
 
 #         return xs
 
+def get_produced_fs_and_weights(ds):
+    
+    f = ROOT.TFile.Open(ds['path'])
+    h_susy_sumw = f.Get('susy_sumw')
+
+    fs = []
+    sumw = []
+    for b in xrange(1, h_susy_sumw.GetXaxis().GetNbins()+1):
+        if h_susy_sumw.GetBinContent(b) > 0:
+            fs.append(b)
+            sumw.append(h_susy_sumw.GetBinContent(b))
+
+    return fs, sumw
 
 def get_sumw(ds):
 
@@ -466,7 +479,13 @@ def _get_histogram(ds, **kwargs):
             selection = '%s && mcveto==0' % selection
         else:
             selection = 'mcveto==0'
-       
+    
+    # Hack to remove the weid jfake events
+    if 'jfake' in ds['name']:
+        if selection:
+            selection += '&& meff<4000'
+        else:
+            selection = 'meff<4000'
 
     # change selection and variable for systematics
     if syst != 'Nom' and systematics.affects_kinematics(syst):
@@ -638,7 +657,17 @@ def get_histogram(name, **kwargs):
 
     elif 'GGM_CN' in name and len(datasets)==1 and 'fs' not in kwargs:
         # implement ...
-        relevant_fs = []
+        produced_fs, sumw_fs = get_produced_fs_and_weights(ds['path'])
+
+        for fs in zip(produced_fs, sumw_fs):
+
+            h = _get_histogram(datasets[0], fs=fs, **kwargs)
+
+            if hist is None:
+                hist = h.Clone()
+            else:
+                hist.Add(h, 1)
+
     else:
         
         for ds in datasets:
