@@ -9,6 +9,7 @@ signal_xs_files = [
     'HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu.txt',
     'HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu.txt',
     'MGPy8EG_A14N23LO_GGM_GG_bhmix.txt',
+    'MGPy8EG_A14N23LO_GGM_CN_bhmix.txt',
 ]
 
 bkg_xs_file = 'susy_crosssections_13TeV.txt'
