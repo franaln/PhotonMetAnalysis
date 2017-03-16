@@ -13,9 +13,7 @@ def get_significance(s, b, sb, minb=None, mins=None):
     if sig < 0.:
         sig = 0.
 
-    try:
-        sig = float(sig)
-    except:
+    if sig == float('Inf'):
         sig = 0.
     
     return sig

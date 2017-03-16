@@ -361,9 +361,15 @@ def do_plot(plotname,
     legend1.SetTextSize(legend1.GetTextSize()*0.8)
     if signal:
         if legpos == 'top':
-            legend2 = legend(legxmax+0.02, legymin+0.1, legxmax+0.39, legymax)
+            if data:
+                legend2 = legend(legxmax+0.02, legymin+0.1, legxmax+0.39, legymax)
+            else:
+                legend2 = legend(legxmax+0.02, legymin, legxmax+0.39, legymax)
         else:
-            legend2 = legend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
+            if data:
+                legend2 = legend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
+            else:
+                legend2 = legend(legxmin-0.01, legymin-.20, legxmax-0.01, legymin -.01)
 
         legend2.SetTextFont(42)
         legend2.SetTextSize(legend1.GetTextSize())
@@ -766,12 +772,13 @@ def do_plot(plotname,
 
                 s = signal[name].Integral(imin, imax)
 
-                z = get_significance_unc(s, b, 0.3, True)
+                z = get_significance(s, b, 0.3)
 
                 ratio_z[i].SetBinContent(bin_, z)
 
         for i, name in enumerate(names):
             set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=style.colors_dict[name])
+
 
         # x-axis
         ratio_z[0].GetXaxis().SetTitle(xtitle)
@@ -783,17 +790,17 @@ def do_plot(plotname,
         ratio_z[0].GetXaxis().SetLabelOffset(0.03)
         ratio_z[0].GetXaxis().SetTickLength(0.06)
 
-        if ratio_z[0].GetXaxis().GetXmax() < 5.:
-            ratio_z[0].GetXaxis().SetNdivisions(512)
-        else:
-            ratio_z[0].GetXaxis().SetNdivisions(508)
+        # if ratio_z[0].GetXaxis().GetXmax() < 5.:
+        #     ratio_z[0].GetXaxis().SetNdivisions(512)
+        # else:
+        #     ratio_z[0].GetXaxis().SetNdivisions(508)
 
         # y-axis
         cdown.SetGridy()
         ratio_z[0].GetYaxis().SetTitle('Significance')
         ratio_z[0].GetYaxis().SetLabelSize(ratio_ylabel_size)
         ratio_z[0].GetYaxis().SetTitleSize(ratio_ytitle_size)
-        ratio_z[0].GetYaxis().SetNdivisions(504)
+        ratio_z[0].GetYaxis().SetNdivisions(508)
         ratio_z[0].GetYaxis().SetTitleOffset(y_offset*0.4)
         ratio_z[0].GetYaxis().SetLabelOffset(0.01)
 
@@ -802,7 +809,7 @@ def do_plot(plotname,
             if ratio.GetMaximum() > zmax:
                 zmax = ratio.GetMaximum()
 
-        ratio_z[0].GetYaxis().SetRangeUser(0, zmax*1.5)
+        ratio_z[0].GetYaxis().SetRangeUser(0, zmax+0.5)
         ratio_z[0].Draw()
         for ratio in ratio_z[1:]:
             ratio.Draw('same')
