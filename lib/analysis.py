@@ -2,7 +2,7 @@
 use_purw = False
 
 # Mini version
-versions = ['52', '51', '47', '41'] # keep v41 for signal
+versions = ['53', '52', '51', '47', '41'] # keep v41 for signal
 
 ptags = ['3017', '2950', '2927', '2889', '2840', '2824', '2823', '2769', '2689', '2688', '2666', '2667', ]
 
