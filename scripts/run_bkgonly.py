@@ -20,10 +20,10 @@ def main():
     parser.add_argument('-c', dest='configfile', help='HF configfile')
     parser.add_argument('--hf',  dest='hf_options', help='HF extra options')
     parser.add_argument('--log',  dest='logfile', default='histfitter.log', help='Logfile')
+    parser.add_argument('--syst', help='Systematics options to pass to HF')
 
     parser.add_argument('--val', action='store_true', dest='do_validation', help='Do validation')
     parser.add_argument('--mc', action='store_true', help='Use MC backgrounds')
-    parser.add_argument('--syst', action='store_true', help='Do systematics')
     parser.add_argument('--data', default='data', help='data|data15|data16')
 
     if len(sys.argv) < 2:
@@ -63,7 +63,7 @@ def main():
     if args.mc:
         options += ' --mc'
     if args.syst:
-        options += ' --syst'
+        options += args.syst
     if args.data != 'data':
         options += ' --data %s' % args.data
 

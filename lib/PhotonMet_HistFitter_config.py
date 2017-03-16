@@ -31,9 +31,13 @@ parser.add_argument('-i', dest='hist_file')
 parser.add_argument('--sr', dest='signal_region')
 parser.add_argument('--data', default='data')
 
+parser.add_argument('--syst', action='store_true')
+parser.add_argument('--detsyst', action='store_true')
+parser.add_argument('--ddsyst', action='store_true')
+parser.add_argument('--mcsyst', action='store_true')
+
 parser.add_argument('--val', action='store_true')
 parser.add_argument('--mc', action='store_true')
-parser.add_argument('--syst', action='store_true')
 parser.add_argument('--rm', action='store_true')
 parser.add_argument('--asimov', action='store_true')
 parser.add_argument('--ntoys', type=int, default=5000)
@@ -49,8 +53,11 @@ hist_file  = args.hist_file
 signal_region = args.signal_region
 do_validation = args.val 
 use_mc_bkgs   = args.mc 
-do_syst       = args.syst 
-do_theo_syst  = True
+
+do_detector_syst = args.detsyst or args.syst
+do_dd_syst       = args.ddsyst or args.syst
+do_mc_syst       = args.mcsyst or args.syst
+
 
 data_name = args.data
 
@@ -90,8 +97,8 @@ elif myFitType == FitType.Discovery:
 opttag = ''
 if use_mc_bkgs:
     opttag += '_mc'
-if not do_syst:
-    opttag += '_nosys'
+# if not do_syst:
+#     opttag += '_nosys'
 
 if opttag:
     configMgr.analysisName = "%sAnalysis_%s%s_%s" % (base_analysis, fittag, opttag, signal_region)
@@ -132,6 +139,8 @@ regions = [
     
     'VRL1', 'VRL2', 'VRL3', 'VRL4', 'VRZ',
     'VRLW1', 'VRLT1', 'VRLW3', 'VRLT3',
+
+    'VRE',
     ]
 
 regions += srs
@@ -174,7 +183,6 @@ multijet_sample  = Sample('multijet', color("multijet"))
 
 multijet_sample.setNormByTheory()
 photonjet_sample.setNormFactor("mu_q", 1., 0., 2.)
-#vqqgamma_sample.setNormFactor("mu_q", 1., 0., 2.)
 
 
 # Diphoton backgrounds
@@ -376,11 +384,7 @@ sigXsec      = Sys('SigXSec')
 
 
 # Add Sample Specific Systematics (apparently it's needed to add these systs to the samples *BEFORE* adding them to the FitConfig
-if do_syst: 
-    efake_sample.addSystematic(syst_feg)
-    jfake_sample.addSystematic(syst_fjg)
-    
-    #-- global systematics
+if do_detector_syst:
     for gsyst in syst_to_all:
 
         for sample in bkg_samples:
@@ -389,16 +393,11 @@ if do_syst:
 
             sample.addSystematic(gsyst)
 
-else:
-    # ICHEP fake syst
-    feg = 0.40
-    fjg = 0.25
-
-    syst_feg = Systematic('Feg', 1, 1+feg, 1-feg, 'user', 'userOverallSys')
-    syst_fjg = Systematic('Fjg', 1, 1+fjg, 1-fjg, 'user', 'userOverallSys')
-
+if do_dd_syst:
     efake_sample.addSystematic(syst_feg)
     jfake_sample.addSystematic(syst_fjg)
+
+
 
 
 #---------
@@ -432,7 +431,7 @@ measName = "BasicMeasurement"
 measLumi = 1.0
 #measLumiError = 0.029 # Preliminar for ICHEP: 2.9% (3.7% for 2016 and 2.1% for 2015)
 #measLumiError = 0.041 # Preliminar Moriond: 4.1% (4.5% for 2016 and 2.1% for 2015)
-measLumiError = 0.031 # Moriond: 4.1% (4.5% for 2016 and 2.1% for 2015)
+measLumiError = 0.032 # Moriond: 3.2% (3.% for 2016 and 2.1% for 2015)
 
 meas = fitconfig.addMeasurement(measName, measLumi, measLumiError)
 
@@ -490,13 +489,13 @@ if do_validation:
     VRM2H  = fitconfig.addChannel(variable, ['VRM2H'], *binning)
     VRM3H  = fitconfig.addChannel(variable, ['VRM3H'], *binning)
 
-    validation_channels.append(VRM1H)
-    validation_channels.append(VRM2H)
-    validation_channels.append(VRM3H)
-
     validation_channels.append(VRM1L)
     validation_channels.append(VRM2L)
     validation_channels.append(VRM3L)
+
+    validation_channels.append(VRM1H)
+    validation_channels.append(VRM2H)
+    validation_channels.append(VRM3H)
 
     VRL1  = fitconfig.addChannel(variable, ['VRL1'], *binning)
     VRL2  = fitconfig.addChannel(variable, ['VRL2'], *binning)
@@ -520,10 +519,13 @@ if do_validation:
     validation_channels.append(VRLW3)
     validation_channels.append(VRLT3)
 
+    VRE  = fitconfig.addChannel(variable, ['VRE'], *binning)
+    validation_channels.append(VRE)
+
 
 
 # Add theoretical systematics region specific
-if do_theo_syst:
+if do_mc_syst:
 
     photonjet_sample.addSystematic(syst_gamjet_theo_all)
 

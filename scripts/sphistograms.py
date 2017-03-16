@@ -12,14 +12,13 @@ import sys
 import argparse
 import re
 from functools import partial
-
 from rootutils import RootFile
-import miniutils
-import regions as regions_
-from xsutils import get_xs
-import systematics
 
 import analysis 
+import miniutils
+import systematics
+import regions as regions_
+from xsutils import get_xs
 
 fzero = 0.0001
 
@@ -65,9 +64,13 @@ def sphistograms():
 
     # other options
     parser.add_argument('--add', action='store_true')
-    parser.add_argument('--syst', action='store_true')
     parser.add_argument('--unblind', action='store_true')
     parser.add_argument('--version', help='Use this version')
+
+    parser.add_argument('--syst', action='store_true')
+    parser.add_argument('--detsyst', action='store_true')
+    parser.add_argument('--ddsyst', action='store_true')
+    parser.add_argument('--mcsyst', action='store_true')
 
     # scale to lumi?
     parser.add_argument('-i', '--input')
@@ -172,8 +175,10 @@ def sphistograms():
         samples.extend(analysis.signal)
 
     # Systematics
-    do_syst = args.syst
-
+    do_detector_syst = args.detsyst or args.syst
+    do_dd_syst       = args.ddsyst or args.syst
+    do_mc_syst       = args.mcsyst or args.syst
+    
     ## high-low systematics
     systematics_expHL = systematics.get_high_low_systematics()
 
@@ -187,18 +192,15 @@ def sphistograms():
     #     existing_histograms = [ key.GetName() for key in f.GetListOfKeys() ]
     #     f.Close()
     
-
     # create histograms
     for sample in samples:
 
         print 'Processing sample %s ...' % sample
 
-        #histograms = []
         histograms = HistManager(args.output)
 
         for region in regions:
 
-            # region_name, region_type = region.split('_')
             region_name = region
 
             # don't need signal in VR
@@ -240,16 +242,48 @@ def sphistograms():
                     h_nom.SetBinContent(1, 0.0)
 
                 # jet fakes in SR (from extrapolation)
-                # if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
-                #     if region_type == 'L':
-                #         h_nom.SetBinContent(1, 0.04)
-                #     elif region_type == 'H':
-                #         h_nom.SetBinContent(1, 0.0001)
+                if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
+                    if region_name.endswith('L'):
+                        h_nom.SetBinContent(1, 0.13)
+                    elif region_name.endswith('H'):
+                        h_nom.SetBinContent(1, 0.01)
 
                 histograms.add(h_nom)
 
 
-                if do_syst:
+                # DD backgrounds systematics
+                if do_dd_syst:
+
+                    ## efakes 
+                    if sample.startswith('efake'):
+                        
+                        h_dn = get_histogram(syst='FegLow')
+                        h_up = get_histogram(syst='FegHigh')
+                        
+                        histograms.add(h_dn)
+                        histograms.add(h_up)
+
+                    ## jet fakes 
+                    elif sample.startswith('jfake'):
+                    
+                        h_dn = get_histogram(syst='FjgLow')
+                        h_up = get_histogram(syst='FjgHigh')
+
+                        # in SR (from extrapolation)
+                        if region_name.startswith('SR') and variable == 'cuts':
+                            if region_name[-1] == 'L':
+                                h_dn.SetBinContent(1, 0.11)
+                                h_up.SetBinContent(1, 0.15)
+                            elif region_name[-1] == 'H':
+                                h_dn.SetBinContent(1, 0.00)
+                                h_up.SetBinContent(1, 0.02)
+                            
+                        histograms.add(h_dn)
+                        histograms.add(h_up)
+
+
+                # Detector systematics
+                if do_detector_syst:
                     
                     if 'data' in sample:
                         continue
@@ -291,79 +325,34 @@ def sphistograms():
                         #         histograms.append(h_high)
 
 
-                    # data driven
-                    ## efakes 
-                    if sample.startswith('efake'):
-                        
-                        h_dn = get_histogram(syst='FegLow')
-                        h_up = get_histogram(syst='FegHigh')
-                        
-                        if h_up.GetBinContent(1) < fzero:
-                            h_up.Fill(1, 0.045)
-                            
-                        histograms.add(h_dn)
-                        histograms.add(h_up)
+                # MC (theoretical) systematics
+                if do_mc_syst:
 
-                    ## jet fakes 
-                    if sample.startswith('jfake'):
-                    
-                        h_dn = get_histogram(syst='FjgLow')
-                        h_up = get_histogram(syst='FjgHigh')
-
-                        # # in SR (from extrapolation)
-                        # if sample == 'jfake' and region_name.startswith('SR') and variable == 'cuts':
-                        #     if region_name[-1] == 'L':
-                        #         h_dn.SetBinContent(1, 0.03)
-                        #         h_up.SetBinContent(1, 0.05)
-                        #     elif region_name[-1] == 'H':
-                        #         h_dn.SetBinContent(1, 0.0001)
-                        #         h_up.SetBinContent(1, 0.0001)
-                            
-                        histograms.add(h_dn)
-                        histograms.add(h_up)
-
-
-                    # theoretical 
                     syst = None
                     sigma, sigma_up, sigma_dn = None, None, None
                         
                     ## photonjet
-                    if sample == 'photonjet':
+                    # if sample == 'photonjet':
 
-                        syst = 'theoSysGJ'
-                        sigma = 0.45 # FIX: ~ from Run 1
-
-                    # ## ttbar
-                    # if sample == 'ttbar':
-                    #     syst = 'theoSysTop'
-                    #     sigma = 1.
+                    #     syst = 'theoSysGJ'
+                    #     sigma = 0.45 # FIX: ~ from Run 1
 
                     ## ttbargamma
-                    if 'ttbarg' in sample:
-                        syst = 'theoSysTopG'
-                        sigma = 0.2 # FIX: ~ from Run 1
+                    # if 'ttbarg' in sample:
+                    #     syst = 'theoSysTopG'
+                    #     sigma = 0.2 # FIX: ~ from Run 1
 
-                    # ## single top gamma
-                    # if 'topgamma' in sample:
-                    #     syst = 'theoSysSingleTopG'
-                    #     sigma = 0.068 #6.8 (%) cross section (stop wt channel note)
-
-                    ## wgamma
-                    if 'wgamma' in sample:
-                        syst = 'theoSysWG'
-                        sigma = 0.2 # FIX ~ from Run 1
+                    # ## wgamma
+                    # if 'wgamma' in sample:
+                    #     syst = 'theoSysWG'
+                    #     sigma = 0.2 # FIX ~ from Run 1
                     
-                    ## zgamma
-                    if 'zllgamma' in sample or 'znunugamma' in sample or 'zgamma' in sample:
-                        syst = 'theoSysZG'
-                        sigma = 1   ##guestimate
+                    # ## zgamma
+                    # if 'zllgamma' in sample or 'znunugamma' in sample or 'zgamma' in sample:
+                    #     syst = 'theoSysZG'
+                    #     sigma = 1   ##guestimate
 
-                    # ## diboson
-                    # if 'diboson' in sample:
-                    #     syst = 'theoSysVV'
-                    #     sigma = 1.   ##guestimate
-
-                    ## signal
+                    ## signal (FIX: implement in HF?)
                     if 'GGM_M3' in sample:
                         syst = 'SigXSec'
 
