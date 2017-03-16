@@ -46,8 +46,14 @@ for mu, mn1 in grid_mu.iteritems():
 
     labels_dict[name] = label
 
+labels_dict['GGM_GG_bhmix_1900_150'] = 'MG (1900, 150)'
+labels_dict['GGM_GG_bhmix_1900_250'] = 'MG (1900, 250)'
+labels_dict['GGM_GG_bhmix_1900_450'] = 'MG (1900, 450)'
 labels_dict['GGM_GG_bhmix_1900_650'] = 'MG (1900, 650)'
+labels_dict['GGM_GG_bhmix_1900_1450'] = 'MG (1900, 1450)'
 labels_dict['GGM_GG_bhmix_1900_1650'] = 'MG (1900, 1650)'
+labels_dict['GGM_GG_bhmix_1900_1810'] = 'MG (1900, 1810)'
+labels_dict['GGM_GG_bhmix_1900_1860'] = 'MG (1900, 1860)'
 
 
 # Colours
@@ -96,8 +102,15 @@ colors_dict['GGM_mu_200'] = '#fd059b' #e44e5d'
 colors_dict['GGM_mu_250'] = '#fd6705' #6021fa'
 
 # MG focus points
-colors_dict['GGM_GG_bhmix_1900_650']  = '#4e5de4'
-colors_dict['GGM_GG_bhmix_1900_1650'] = '#4e5de4'
+colors_dict['GGM_GG_bhmix_1900_150']  = '#3a92fa'
+colors_dict['GGM_GG_bhmix_1900_250']  = '#fa3a92'
+colors_dict['GGM_GG_bhmix_1900_450']  = '#8453fb'
+colors_dict['GGM_GG_bhmix_1900_650']  = '#faa23a'
+
+colors_dict['GGM_GG_bhmix_1900_1450']  = '#3a92fa'
+colors_dict['GGM_GG_bhmix_1900_1650']  = '#fa3a92'
+colors_dict['GGM_GG_bhmix_1900_1810']  = '#8453fb'
+colors_dict['GGM_GG_bhmix_1900_1860']  = '#faa23a'
 
 
 # Plot config
