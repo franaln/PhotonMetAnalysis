@@ -61,3 +61,6 @@ CRQ4 = "ph_n>0 &&  ph_pt[0]>145 && el_n+mu_n==0 && met_et>200 && jet_n>2 && dphi
 
 #VRF = 'ph_n>0 && el_n+mu_n>0 && ph_pt[0]>145 && jet_n>1 && met_et<50 && dphi_jetmet>0.4 && meff>1000'
 VRF = 'ph_n>0 && ph_pt[0]>145 && jet_n>2 && met_et>40 && met_et<200 && meff>1000 && mt_gam>35 && mt_gam<90'
+
+VRE  = "ph_n>0 && ph_pt[0]>145 && met_et>200 && jet_n>=1 && meff>500 && meff<2000 && bjet_n>=1 && dphi_jetmet>0.4 && dphi_gammet<0.4"
+
