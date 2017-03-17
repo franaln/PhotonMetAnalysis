@@ -21,6 +21,8 @@ MiniDir2  = '/ar/pcunlp002/disk/falonso/mini2'
 
 # FS for EWK samples
 relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
+CN_fs = [111, 112, 113, 115, 117, 122, 123, 125, 127, 133, 135, 137, 157]
+
 
 # Load macros
 ROOT.gInterpreter.Declare(open(os.environ['SUSY_ANALYSIS'] + '/lib/variables.cxx').read())
@@ -128,44 +130,20 @@ def check_cut(value, op, cut):
 #----------------------------
 # Cross section/lumi weights
 #----------------------------
-# def get_xs(ds):
+def get_fs_sumw(ds, fs):
 
-#     xs = xsutils.get_xs_did(int(ds['did']))
-
-#     if xs is None:
-#         print 'missing XS for this ID:', did
-#         return 0.0
-    
-#     return xs
-
-
-# def get_signal_xs(ds, fs=0):
-
-#     if 'GGM_M3' in ds['short_name']:
-
-#         xs, unc = xsutils.get_xs_did(ds['did'], fs=2)
-
-#         return xs
-
-#     elif 'GGM_mu' in ds['short_name']:
-
-#         xs, unc = xsutils.get_xs_did(ds['did'], fs=fs)
-
-#         return xs
-
-def get_produced_fs_and_weights(ds):
-    
     f = ROOT.TFile.Open(ds['path'])
-    h_susy_sumw = f.Get('susy_sumw')
 
-    fs = []
-    sumw = []
-    for b in xrange(1, h_susy_sumw.GetXaxis().GetNbins()+1):
-        if h_susy_sumw.GetBinContent(b) > 0:
-            fs.append(b)
-            sumw.append(h_susy_sumw.GetBinContent(b))
+    sumw = 0
+    try:
+        h_susy_sumw = f.Get('susy_sumw')
+        sumw = h_susy_sumw.GetBinContent(fs)
+    except:
+        pass
 
-    return fs, sumw
+    f.Close()
+
+    return sumw
 
 def get_sumw(ds):
 
@@ -190,6 +168,9 @@ def get_lumi_weight(ds, lumi, fs=None):
         if 'GGM_mu' in ds['short_name'] and fs is not None:
             mu = int(re.findall(ur'GGM_mu_(\d*)', ds['short_name'])[0])
             sumw = xsutils.get_ewk_sumw(mu, fs)
+        elif 'GGM_CN' in ds['short_name'] and fs is not None:
+            mu = int(re.findall(ur'GGM_CN_bhmix_(\d*)', ds['short_name'])[0])
+            sumw = get_fs_sumw(ds, fs)
         else:
             sumw = get_sumw(ds)
     
@@ -621,7 +602,7 @@ def get_histogram(name, **kwargs):
         hist = None
 
         if 'GGM_mu' in name and 'fs' not in kwargs:
-            for fs in relevant_fs:
+            for fs in CN_fs:
                 h = _get_histogram(dataset, fs=fs, **kwargs)
                 if hist is None:
                     hist = h.Clone()
@@ -643,24 +624,11 @@ def get_histogram(name, **kwargs):
 
     hist = None
                                  
-    # ewk grid: sum over all sub-processes
-    if 'GGM_mu' in name and len(datasets)==1 and 'fs' not in kwargs:
+    # ewk (CN) signal grid: sum over all sub-processes
+    if ('GGM_mu' in name or 'GGM_CN' in name) and len(datasets)==1 and 'fs' not in kwargs:
 
-        for fs in relevant_fs:
+        for fs in CN_fs:
             
-            h = _get_histogram(datasets[0], fs=fs, **kwargs)
-
-            if hist is None:
-                hist = h.Clone()
-            else:
-                hist.Add(h, 1)
-
-    elif 'GGM_CN' in name and len(datasets)==1 and 'fs' not in kwargs:
-        # implement ...
-        produced_fs, sumw_fs = get_produced_fs_and_weights(ds['path'])
-
-        for fs in zip(produced_fs, sumw_fs):
-
             h = _get_histogram(datasets[0], fs=fs, **kwargs)
 
             if hist is None:
