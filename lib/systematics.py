@@ -10,21 +10,26 @@ systematics_photon_kin = [
 
 systematics_photon_w = [
     'PH_EFF_ID_Uncertainty__1down', 'PH_EFF_ID_Uncertainty__1up',
+    'PH_EFF_LOWPTISO_Uncertainty__1down', 'PH_EFF_LOWPTISO_Uncertainty__1up',
+#    'PH_EFF_LOWPTISO_Uncertainty__1down', 'PH_EFF_LOWPTISO_Uncertainty__1up',
 ]
 
 systematics_electron_w = [
-    'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1down',         'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1up',
-    'EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR__1down',        'EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR__1up',
-    'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1down',       'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1up',
-    'EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR__1down', 'EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR__1up',
-    'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1down',    'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+    'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1down',          'EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+    'EL_EFF_ChargeIDSel_TOTAL_1NPCOR_PLUS_UNCOR__1down', 'EL_EFF_ChargeIDSel_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+    'EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR__1down',         'EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+    'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1down',        'EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+    'EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR__1down',  'EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR__1up',
+    'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1down',     'EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR__1up',
 ]
 
 # muons
 systematics_muon_kin = [
-    'MUONS_MS__1down',     'MUONS_MS__1up',
-    'MUONS_ID__1down',     'MUONS_ID__1up',
-    'MUONS_SCALE__1down',  'MUONS_SCALE__1up',
+    'MUON_MS__1down',              'MUON_MS__1up',
+    'MUON_ID__1down',              'MUON_ID__1up',
+    'MUON_SAGITTA_RESBIAS__1down', 'MUON_SAGITTA_RESBIAS__1up',
+    'MUON_SAGITTA_RHO__1down',     'MUON_SAGITTA_RHO__1up',
+    'MUON_SCALE__1down',           'MUON_SCALE__1up',
 ]
 
 systematics_muon_w = [
@@ -36,6 +41,11 @@ systematics_muon_w = [
     'MUON_EFF_TrigSystUncertainty__1down', 'MUON_EFF_TrigSystUncertainty__1up',
     'MUON_ISO_STAT__1down',                'MUON_ISO_STAT__1up',
     'MUON_ISO_SYS__1down',                 'MUON_ISO_SYS__1up',
+    'MUON_BADMUON_STAT__1down',             'MUON_BADMUON_STAT__1up',
+    'MUON_BADMUON_SYS__1down',             'MUON_BADMUON_SYS__1up',
+    'MUON_TTVA_STAT__1down',             'MUON_TTVA_STAT__1up',
+    'MUON_TTVA_SYS__1down',             'MUON_TTVA_SYS__1up',
+
 ]
 
 
@@ -45,20 +55,20 @@ systematics_jet_kin = [
     'JET_GroupedNP_1__1up',        'JET_GroupedNP_1__1down',
     'JET_GroupedNP_2__1up',        'JET_GroupedNP_2__1down',
     'JET_GroupedNP_3__1up',        'JET_GroupedNP_3__1down',
-    'JET_Rtrk_Baseline_Kin__1up',  'JET_Rtrk_Baseline_Kin__1down',
-    'JET_Rtrk_Baseline_Sub__1up',  'JET_Rtrk_Baseline_Sub__1down',
-    'JET_Rtrk_Modelling_Kin__1up', 'JET_Rtrk_Modelling_Kin__1down',
-    'JET_Rtrk_Modelling_Sub__1up', 'JET_Rtrk_Modelling_Sub__1down',
-    'JET_Rtrk_TotalStat_Kin__1up', 'JET_Rtrk_TotalStat_Kin__1down',
-    'JET_Rtrk_TotalStat_Sub__1up', 'JET_Rtrk_TotalStat_Sub__1down',
-    'JET_Rtrk_Tracking_Kin__1up',  'JET_Rtrk_Tracking_Kin__1down',
-    'JET_Rtrk_Tracking_Sub__1up',  'JET_Rtrk_Tracking_Sub__1down',
+    # 'JET_Rtrk_Baseline_Kin__1up',  'JET_Rtrk_Baseline_Kin__1down',
+    # 'JET_Rtrk_Baseline_Sub__1up',  'JET_Rtrk_Baseline_Sub__1down',
+    # 'JET_Rtrk_Modelling_Kin__1up', 'JET_Rtrk_Modelling_Kin__1down',
+    # 'JET_Rtrk_Modelling_Sub__1up', 'JET_Rtrk_Modelling_Sub__1down',
+    # 'JET_Rtrk_TotalStat_Kin__1up', 'JET_Rtrk_TotalStat_Kin__1down',
+    # 'JET_Rtrk_TotalStat_Sub__1up', 'JET_Rtrk_TotalStat_Sub__1down',
+    # 'JET_Rtrk_Tracking_Kin__1up',  'JET_Rtrk_Tracking_Kin__1down',
+    # 'JET_Rtrk_Tracking_Sub__1up',  'JET_Rtrk_Tracking_Sub__1down',
 
     'JET_JER_SINGLE_NP__1up',
 ]
 
 systematics_jet_w = [
-    'JvtEfficiencyDown', 'JvtEfficiencyUp',     
+    'JET_JvtEfficiency__1down', 'JET_JvtEfficiency__1up',     
     #     'FT_EFF_B_systematics__1down', 'FT_EFF_B_systematics__1up',
     #     'FT_EFF_C_systematics__1down', 'FT_EFF_C_systematics__1up',
     #     'FT_EFF_Light_systematics__1down', 'FT_EFF_Light_systematics__1up',
