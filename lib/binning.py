@@ -68,7 +68,7 @@ bins['mgjj'] = (100, 0, 7000.)
 bins['mgjjj'] = (107, 0, 7490.)
 
 ## others
-bins['ph_pt[0]+met_et'] = (50, 0, 5000.)
+bins['ph_pt[0]+met_et'] = (25, 0, 5000.)
 bins['ht+met_et'] = (50, 0, 5000.)
 bins['ht+met_et-ph_pt'] = (60, 0, 6000.)
 bins['ht-ph_pt[0]'] = (25, 0, 5000.)

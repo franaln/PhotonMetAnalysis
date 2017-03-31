@@ -8,21 +8,46 @@ import glob
 import ROOT
 
 from rootutils import set_atlas_style, set_style
-from regions import CRQ_L
 
-sys.path.append(os.getenv('SUSY_ANALYSIS')+'/data')
-from run_lumi_dict_2015 import run_lumi_dict as run_lumi_dict_2015
-from run_lumi_dict_2016 import run_lumi_dict as run_lumi_dict_2016
+# config
+lumi_2015 = os.environ['SUSY_ANALYSIS']+'/data/lumi_2015.txt'
+lumi_2016 = os.environ['SUSY_ANALYSIS']+'/data/lumi_2016.txt'
+
+version = '53'
+
+# preselection
+# selection = 'ph_n>0 && ph_pt[0]>145  && el_n+mu_n==0 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4'
+# seltext   = '>0 photons, p^{#gamma}_{T}>145 GeV, no lep, >2 jets, #Delta#phi cleaning'
+# outname   = 'yields_lumi_presel'
+
+selection = 'ph_n>0 && ph_pt[0]>145  && el_n+mu_n==0 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4 && met_et>50'
+seltext   = '>0 photons, p^{#gamma}_{T}>145 GeV, no lep, >2 jets, #Delta#phi cleaning, E_{T}^{miss}>50 GeV'
+outname   = 'yields_lumi_presel2'
+
+
+# Read lumi from text files in data/
+def get_lumi_data(txt):
+
+    lumi_dict = dict()
+    for line in open(txt).read().split('\n'):
+        if not line or line.startswith('Total'):
+            continue
+
+        _run, _lumi = line.split(':')
+
+        run  = int(_run)
+        lumi = float(_lumi.strip())
+
+        lumi_dict[run] = lumi
+
+    return lumi_dict
+
+run_lumi_dict_2015 = get_lumi_data(lumi_2015)
+run_lumi_dict_2016 = get_lumi_data(lumi_2016)
 
 nruns = len(run_lumi_dict_2015) + len(run_lumi_dict_2016)
 
 run_lumi_dict = dict(run_lumi_dict_2015, **run_lumi_dict_2016)
-
-# config
-selection = 'ph_n>0 && ph_pt[0]>145  && el_n+mu_n==0 && jet_n>2 && dphi_jetmet>0.4 && dphi_gammet>0.4'
-seltext   = '>0 photons, p^{#gamma}_{T}>145 GeV, no lep, >2 jets, #Delta#phi cleaning'
-outname   = 'yields_lumi_presel'
-
 
 h_yields = ROOT.TH1D('yields', 'yields', nruns, 0.5, nruns+0.5)
 h_lumi   = ROOT.TH1D('lumi', 'lumi', nruns, 0.5, nruns+0.5)
@@ -43,11 +68,9 @@ for run, lumi in sorted(run_lumi_dict.iteritems()):
     else:
         data = 'data15'
 
-    path = '/raid/falonso/mini2/v45/%s_13TeV.00%i.physics_Main.mini.*.v45_output.root' % (data, run)
+    path = '/raid/falonso/mini2/v%s/%s_13TeV.00%i.physics_Main.mini.*.v%s_output.root' % (version, data, run, version)
 
     gpaths = glob.glob(path)
-    # if not os.path.exists(path):
-    #     path = '/raid/falonso/mini2/v37/%s_13TeV.00%i.physics_Main.mini.p2689.v37_output.root' % (data, run)
 
     tree = ROOT.TChain('mini')
     tree.Add(gpaths[0])
@@ -128,7 +151,7 @@ leg.Draw()
 
 ll = ROOT.TLatex()
 ll.SetNDC()
-ll.DrawLatex(0.1, 0.88, 'Data 2015+2016, 36.5 fb^{-1}')
+ll.DrawLatex(0.1, 0.88, 'Data 2015+2016, 36.1 fb^{-1}')
 ll.DrawLatex(0.1, 0.78, 'Sel: %s' % seltext)
 
 c.RedrawAxis()

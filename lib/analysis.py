@@ -27,7 +27,7 @@ backgrounds_mc = [
     'znunugamma',
     'ttbarg',
     'diphoton',
-    'vgammagamma',
+    #'vgammagamma',
     # 'vqqgamma',
     ]
 

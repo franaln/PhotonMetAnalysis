@@ -187,10 +187,10 @@ photonjet_sample.setNormFactor("mu_q", 1., 0., 2.)
 
 # Diphoton backgrounds
 diphoton_sample    = Sample('diphoton', color("diphoton"))
-vgammagamma_sample = Sample('vgammagamma', color("vgammagamma"))
+# vgammagamma_sample = Sample('vgammagamma', color("vgammagamma"))
 
 diphoton_sample.setNormByTheory()
-vgammagamma_sample.setNormByTheory()
+# vgammagamma_sample.setNormByTheory()
 
 # Fakes
 if data_name == 'data15':
@@ -218,7 +218,6 @@ ttbarg_sample.setStatConfig(useStat)
 photonjet_sample.setStatConfig(useStat)
 multijet_sample.setStatConfig(useStat)
 diphoton_sample.setStatConfig(useStat)
-vgammagamma_sample.setStatConfig(useStat)
 vqqgamma_sample.setStatConfig(useStat)
 
 if use_mc_bkgs:
@@ -243,8 +242,6 @@ else:
         efake_sample,
         jfake_sample,
         diphoton_sample,
-        vgammagamma_sample,
-#        vqqgamma_sample,
         ]
 
 data_samples = [data_sample,]
@@ -265,16 +262,16 @@ syst_jets = [
     Sys('JET_GroupedNP_2'),
     Sys('JET_GroupedNP_3'),
 
-    Sys('JET_Rtrk_Baseline_Kin'),
-    Sys('JET_Rtrk_Baseline_Sub'),
-    Sys('JET_Rtrk_Modelling_Kin'),
-    Sys('JET_Rtrk_Modelling_Sub'),
-    Sys('JET_Rtrk_TotalStat_Kin'),
-    Sys('JET_Rtrk_TotalStat_Sub'),
-    Sys('JET_Rtrk_Tracking_Kin'),
-    Sys('JET_Rtrk_Tracking_Sub'),
+    # Sys('JET_Rtrk_Baseline_Kin'),
+    # Sys('JET_Rtrk_Baseline_Sub'),
+    # Sys('JET_Rtrk_Modelling_Kin'),
+    # Sys('JET_Rtrk_Modelling_Sub'),
+    # Sys('JET_Rtrk_TotalStat_Kin'),
+    # Sys('JET_Rtrk_TotalStat_Sub'),
+    # Sys('JET_Rtrk_Tracking_Kin'),
+    # Sys('JET_Rtrk_Tracking_Sub'),
 
-    Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NPUp', '', 'tree', 'histoSysOneSide'),
+    Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NP__1up', '', 'tree', 'histoSysOneSide'),
 ]
 
 syst_btagging = []
@@ -292,9 +289,11 @@ syst_egamma = [
 ]
 
 syst_muon = [
-    Sys("MUONS_SCALE"),
-    Sys("MUONS_MS"),
-    Sys("MUONS_ID"),
+    Sys("MUON_SCALE"),
+    Sys("MUON_MS"),
+    Sys("MUON_ID"),
+    Sys("MUON_SAGITTA_RESBIAS"),
+    Sys("MUON_SAGITTA_RHO"),
 ]
 
 # Fake photon backgrounds
@@ -302,32 +301,34 @@ syst_feg = Systematic('Feg', nom_name, '_FegUp', '_FegDown', 'tree', 'overallSys
 syst_fjg = Systematic('Fjg', nom_name, '_FjgUp', '_FjgDown', 'tree', 'overallSys')
 
 syst_weight = [
+    Sys('PH_EFF_ID_Uncertainty'),
+    Sys('JET_JvtEfficiency'),
     Sys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
     Sys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
     Sys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
     Sys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
-    Sys('EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR'),
-
-    Sys('JvtEfficiency'),
-
     Sys('MUON_EFF_STAT'),
-    Sys('MUON_EFF_STAT_LOWPT'),
     Sys('MUON_EFF_SYS'),
-    Sys('MUON_EFF_SYS_LOWPT'),
-    Sys('MUON_EFF_TrigStatUncertainty'),
-    Sys('MUON_EFF_TrigSystUncertainty'),
     Sys('MUON_ISO_STAT'),
     Sys('MUON_ISO_SYS'),
-
-    Sys('PH_EFF_ID_Uncertainty'),
-
+    Sys('MUON_BADMUON_STAT'),
+    Sys('MUON_BADMUON_SYS'),
+    Sys('MUON_TTVA_STAT'),
+    Sys('MUON_TTVA_SYS'),
     Sys('PRW_DATASF'),
+
+    #Sys('EL_EFF_ChargeIDSel_TOTAL_1NPCOR_PLUS_UNCOR'),
+    #Sys('EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR'),
+    #Sys('MUON_EFF_STAT_LOWPT'),
+    #Sys('MUON_EFF_SYS_LOWPT'),
+    #Sys('MUON_EFF_TrigStatUncertainty'),
+    #Sys('MUON_EFF_TrigSystUncertainty'),
+    #Sys('PH_EFF_LOWPTISO_Uncertainty'),
 ]
 
 syst_to_all = syst_jets +syst_met + syst_egamma + syst_muon + syst_weight
 
 # Theory Uncertainties
-
 ## Zgamma
 sigma_zgamma_srl = 0.0567
 sigma_zgamma_srh = 0.1154
@@ -397,6 +398,8 @@ if do_dd_syst:
     efake_sample.addSystematic(syst_feg)
     jfake_sample.addSystematic(syst_fjg)
 
+if do_mc_syst:
+    photonjet_sample.addSystematic(syst_gamjet_theo_all)
 
 
 
@@ -527,8 +530,6 @@ if do_validation:
 # Add theoretical systematics region specific
 if do_mc_syst:
 
-    photonjet_sample.addSystematic(syst_gamjet_theo_all)
-
     # SR
     for sc in signal_channels:
         if sc.name.endswith('L'):
@@ -540,9 +541,9 @@ if do_mc_syst:
             tg_syst  = syst_ttgamma_theo_srh
             zg_syst  = syst_zgamma_theo_srh
 
-        sc.getSample('wgamma')   .addSystematic(wg_syst)
-        sc.getSample('ttbarg')   .addSystematic(tg_syst)
-        sc.getSample('zllgamma') .addSystematic(zg_syst)
+        sc.getSample('wgamma')     .addSystematic(wg_syst)
+        sc.getSample('ttbarg')     .addSystematic(tg_syst)
+        sc.getSample('zllgamma')   .addSystematic(zg_syst)
         sc.getSample('znunugamma') .addSystematic(zg_syst)
 
 

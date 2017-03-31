@@ -518,13 +518,19 @@ def do_plot(plotname,
                 t.DrawLatex(0.60, 0.76, data_label)
 
     # Region line
-    if region_line is not None:
+    # if region_line is not None:
         
-        xline = float(region_line)
+        # xline = float(region_line)
+                
+    # l = ROOT.TLine(200, 0.01, 200, data.GetMaximum())
+    # l.SetLineWidth(2)
+    # l.SetLineStyle(2)
+    # l.Draw()
 
-        l = ROOT.TLine(xline, ymin, xline, ymax)
-        l.SetLineWidth(1)
-        l.Draw()
+    # l2 = ROOT.TArrow(200, data.GetMaximum(), 240, data.GetMaximum())
+    # l2.SetLineWidth(2)
+    # l2.SetLineStyle(2)
+    # l2.Draw()
 
 
     ratio_ylabel_size = dn_size
@@ -1001,19 +1007,19 @@ def do_plot_cmp(plotname,
             legxmin2 = 0.20
             legxmax2 = 0.53
     else:
-        legymin = 0.80
-        legymax = 0.94
+        legymin = 0.70
+        legymax = 0.88
 
         if legpos == 'left':
             legxmin1 = 0.20
             legxmax1 = 0.53
             legxmin2 = 0.65
-            legxmax2 = 0.92
+            legxmax2 = 0.88
         elif legpos == 'right' or legpos == 'top':
             legxmin2 = 0.20
             legxmax2 = 0.53
             legxmin1 = 0.65
-            legxmax1 = 0.92
+            legxmax1 = 0.88
 
     if len(histograms) > 5:
         legend1 = legend(legxmin1, legymin, legxmax1, legymax, columns=2)
