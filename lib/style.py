@@ -1,7 +1,6 @@
 # Style
-
 import ROOT
-from signalgrid import grid_m3_mu, grid_mu
+from signalgrid import *
 
 # Labels
 atlas_label = '' ##bf{#it{ATLAS}} Preliminary'
@@ -30,30 +29,35 @@ labels_dict['fakes']        = '#gamma fakes'
 
 mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}}'
 
+# GGM Herwig++ grid 
 for (m3, mu), (mgl, mn1) in grid_m3_mu.iteritems():
-
     name = 'GGM_M3_mu_%i_%i' % (m3, mu)
     
-    label = 'HW (%i, %i)' % (m3, mu) ##m_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
+    label = 'HW m_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
 
     labels_dict[name] = label
 
 for mu, mn1 in grid_mu.iteritems():
-
     name = 'GGM_mu_%i' % mu
     
-    label = '%s = %i GeV' % (mn1_text, mn1)
+    label = 'HW %s=%i GeV' % (mn1_text, mn1)
 
     labels_dict[name] = label
 
-labels_dict['GGM_GG_bhmix_1900_150'] = 'MG (1900, 150)'
-labels_dict['GGM_GG_bhmix_1900_250'] = 'MG (1900, 250)'
-labels_dict['GGM_GG_bhmix_1900_450'] = 'MG (1900, 450)'
-labels_dict['GGM_GG_bhmix_1900_650'] = 'MG (1900, 650)'
-labels_dict['GGM_GG_bhmix_1900_1450'] = 'MG (1900, 1450)'
-labels_dict['GGM_GG_bhmix_1900_1650'] = 'MG (1900, 1650)'
-labels_dict['GGM_GG_bhmix_1900_1810'] = 'MG (1900, 1810)'
-labels_dict['GGM_GG_bhmix_1900_1860'] = 'MG (1900, 1860)'
+# GGM MadGraph grid 
+for (m3, mu), (mgl, mn1) in mg_gg_grid.iteritems():
+    name = 'GGM_GG_bhmix_%i_%i' % (m3, mu)
+    
+    label = 'MG m_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
+
+    labels_dict[name] = label
+
+for mu, mn1 in mg_cn_grid.iteritems():
+    name = 'GGM_CN_bhmix_%i' % mu
+    
+    label = 'MG %s=%i GeV' % (mn1_text, mn1)
+
+    labels_dict[name] = label
 
 
 # Colours
@@ -112,6 +116,10 @@ colors_dict['GGM_GG_bhmix_1900_1650']  = '#fa3a92'
 colors_dict['GGM_GG_bhmix_1900_1810']  = '#8453fb'
 colors_dict['GGM_GG_bhmix_1900_1860']  = '#faa23a'
 
+colors_dict['GGM_CN_bhmix_150'] = '#059bfd' ##4e5de4'
+colors_dict['GGM_CN_bhmix_200'] = '#fd059b' #e44e5d'
+colors_dict['GGM_CN_bhmix_250'] = '#fd6705' 
+colors_dict['GGM_CN_bhmix_450'] = '#6021fa'
 
 # Plot config
 class PlotConf():

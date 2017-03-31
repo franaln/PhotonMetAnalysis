@@ -521,9 +521,8 @@ samples_dict = {
     'vjets': 'wjets + zlljets + znunujets',
 
     # diphoton backgrounds
-    'diphoton': 'mc15_13TeV.407013.Sherpa_CT10_2DP50_DirectPhotonFilter',
-
-    'vgammagamma': [
+    'diphoton': [
+        'mc15_13TeV.407013.Sherpa_CT10_2DP50_DirectPhotonFilter',
         'mc15_13TeV.407022.Sherpa_CT10_enugammagammaPt50GeV',
         'mc15_13TeV.407023.Sherpa_CT10_munugammagammaPt50GeV',
         'mc15_13TeV.407024.Sherpa_CT10_taunugammagammaPt50GeV',
@@ -715,6 +714,7 @@ samples_dict = {
     'GGM_CN_bhmix_200':  'mc15_13TeV.374402.MGPy8EG_A14N23LO_GGM_CN_bhmix_200',
     'GGM_CN_bhmix_250':  'mc15_13TeV.374403.MGPy8EG_A14N23LO_GGM_CN_bhmix_250',
     'GGM_CN_bhmix_450':  'mc15_13TeV.374404.MGPy8EG_A14N23LO_GGM_CN_bhmix_450',
+    'GGM_CN_bhmix_650':  'mc15_13TeV.374405.MGPy8EG_A14N23LO_GGM_CN_bhmix_650',
     'GGM_CN_bhmix_850':  'mc15_13TeV.374406.MGPy8EG_A14N23LO_GGM_CN_bhmix_850',
     'GGM_CN_bhmix_1050': 'mc15_13TeV.374407.MGPy8EG_A14N23LO_GGM_CN_bhmix_1050',
     'GGM_CN_bhmix_1250': 'mc15_13TeV.374408.MGPy8EG_A14N23LO_GGM_CN_bhmix_1250',

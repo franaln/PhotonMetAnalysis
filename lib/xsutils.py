@@ -73,6 +73,9 @@ def get_xs_did(did, fs=None):
     elif (did, fs) in _sig_xs_db:
         return _sig_xs_db[(did, fs)]
 
+    if did in range(373162, 373172):
+        return (0., 0.)
+
     raise Exception('ERROR: XS not found for DID=%s (FS=%s)' % (did, fs))
 
 
