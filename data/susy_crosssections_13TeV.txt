@@ -1793,30 +1793,30 @@ id/I:name/C:xsec/F:kfac/F:eff/F:relunc/F
 ################################################################################################################
 # Sherpa gamma+jet
 
-361039	Sherpa_CT10_SinglePhotonPt35_70_CVetoBVeto		34988.		1.	0.41028		1.
+361039	Sherpa_CT10_SinglePhotonPt35_70_CVetoBVeto		    34988.		1.	0.41028		1.
 361040	Sherpa_CT10_SinglePhotonPt35_70_CFilterBVeto		34986.		1.	0.48610		1.
-361041	Sherpa_CT10_SinglePhotonPt35_70_BFilter			35002.		1.	0.10752		1.
-361042	Sherpa_CT10_SinglePhotonPt70_140_CVetoBVeto		3129.		1.	0.39960		1.
+361041	Sherpa_CT10_SinglePhotonPt35_70_BFilter			    35002.		1.	0.10752		1.
+361042	Sherpa_CT10_SinglePhotonPt70_140_CVetoBVeto		    3129.		1.	0.39960		1.
 361043	Sherpa_CT10_SinglePhotonPt70_140_CFilterBVeto		3132.9		1.	0.48201		1.
-361044	Sherpa_CT10_SinglePhotonPt70_140_BFilter		3135.2		1.	0.11728		1.
+361044	Sherpa_CT10_SinglePhotonPt70_140_BFilter		    3135.2		1.	0.11728		1.
 361045	Sherpa_CT10_SinglePhotonPt140_280_CVetoBVeto		247.41		1.	0.41049		1.
 361046	Sherpa_CT10_SinglePhotonPt140_280_CFilterBVeto		247.39		1.	0.50284		1.
-361047	Sherpa_CT10_SinglePhotonPt140_280_BFilter		249.37		1.	0.12874		1.
+361047	Sherpa_CT10_SinglePhotonPt140_280_BFilter		    249.37		1.	0.12874		1.
 361048	Sherpa_CT10_SinglePhotonPt280_500_CVetoBVeto		13.648		1.	0.41834		1.
 361049	Sherpa_CT10_SinglePhotonPt280_500_CFilterBVeto		13.617		1.	0.47349		1.
-361050	Sherpa_CT10_SinglePhotonPt280_500_BFilter		13.874		1.	0.14065		1.
+361050	Sherpa_CT10_SinglePhotonPt280_500_BFilter		    13.874		1.	0.14065		1.
 361051	Sherpa_CT10_SinglePhotonPt500_1000_CVetoBVeto		0.92334		1.	0.37922		1.
 361052	Sherpa_CT10_SinglePhotonPt500_1000_CFilterBVeto		0.92185		1.	0.47149		1.
-361053	Sherpa_CT10_SinglePhotonPt500_1000_BFilter		0.93819		1.	0.14811		1.
+361053	Sherpa_CT10_SinglePhotonPt500_1000_BFilter		    0.93819		1.	0.14811		1.
 361054	Sherpa_CT10_SinglePhotonPt1000_2000_CVetoBVeto		0.018432	1.	0.37058		1.
 361055	Sherpa_CT10_SinglePhotonPt1000_2000_CFilterBVeto	0.018388	1.	0.46648		1.
-361056	Sherpa_CT10_SinglePhotonPt1000_2000_BFilter		0.019046	1.	0.15750		1.
+361056	Sherpa_CT10_SinglePhotonPt1000_2000_BFilter		    0.019046	1.	0.15750		1.
 361057	Sherpa_CT10_SinglePhotonPt2000_4000_CVetoBVeto		0.000079163	1.	0.36729		1.
 361058	Sherpa_CT10_SinglePhotonPt2000_4000_CFilterBVeto	0.000080515	1.	0.46642		1.
-361059	Sherpa_CT10_SinglePhotonPt2000_4000_BFilter		0.000082153	1.	0.1692		1.
-361060	Sherpa_CT10_SinglePhotonPt4000_CVetoBVeto		0.0000000024843	1.	0.40351		1.
-361061	Sherpa_CT10_SinglePhotonPt4000_CFilterBVeto		0.0000000025134	1.	0.41612		1.
-361062	Sherpa_CT10_SinglePhotonPt4000_BFilter			0.0000000025431	1.	0.14831		1.
+361059	Sherpa_CT10_SinglePhotonPt2000_4000_BFilter		    0.000082153	1.	0.1692		1.
+361060	Sherpa_CT10_SinglePhotonPt4000_CVetoBVeto		    0.0000000024843	1.	0.40351		1.
+361061	Sherpa_CT10_SinglePhotonPt4000_CFilterBVeto		    0.0000000025134	1.	0.41612		1.
+361062	Sherpa_CT10_SinglePhotonPt4000_BFilter			    0.0000000025431	1.	0.14831		1.
 
 # Systematic variations of Sherpa gamma+jet
 362800	Sherpa_CT10_SinglePhotonPt35_70_CVetoBVeto_ckkw15	3.1595E+04	1.0	4.1099E-01	1.0

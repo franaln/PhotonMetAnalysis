@@ -113,7 +113,7 @@ def main():
             'jfake',
             'efake',
             'diphoton',
-            'vgammagamma',
+#            'vgammagamma',
             ]
 
 
@@ -246,9 +246,9 @@ def main():
             h_bkg['tgamma'].SetName(h_bkg['tgamma'].GetName().replace('ttbarg', 'tgamma'))
             
             ## diphoton
-            if 'diphoton' in h_bkg:
-                h_bkg['diphoton'].Add(h_bkg['vgammagamma'], 1)
-                del h_bkg['vgammagamma']
+            # if 'diphoton' in h_bkg:
+            #     h_bkg['diphoton'].Add(h_bkg['vgammagamma'], 1)
+            #     del h_bkg['vgammagamma']
 
             ## fakes
             if not args.sepfakes:

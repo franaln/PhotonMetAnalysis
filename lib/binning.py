@@ -22,6 +22,7 @@ bins['jet_eta'] = (15, -3., 3.)
 bins['jet_phi'] = (34, -3.4, 3.4)
 
 ## met
+#bins['met_et']  = (32, 0, 800)
 bins['met_et']  = (0, 100, 200, 300, 400, 500, 800) #(10, 0., 1000.)
 bins['met_phi'] = (17, -3.4, 3.4)
 bins['met_soft_et']  = (20, 0., 1000.)
@@ -40,14 +41,10 @@ bins['dphi_gamjet']     = (17, 0., 3.4)
 bins['dphi_gammet']     = (17, 0., 3.4)
 bins['dphi'] = (17, 0., 3.4)
 
-bins['fabs(dphi_jetmet)']     = (17, 0., 3.4)
-bins['fabs(dphi_gamjet)']     = (17, 0., 3.4)
-bins['fabs(dphi_gammet)']     = (17, 0., 3.4)
-
 ## others
 bins['ht0']             = (25, 0., 5000.)
 bins['ht']              = (25, 0., 5000.)
-bins['meff']            = (30, 0., 6000.)
+bins['meff']            = (15, 0., 6000.)
 bins['rt1']             = (22, 0., 1.1)
 bins['rt2']             = (22, 0., 1.1)
 bins['rt3']             = (22, 0., 1.1)

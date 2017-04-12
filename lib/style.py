@@ -182,6 +182,8 @@ plots_conf['mgj']    = PlotConf('m_{#gammaj} [GeV]', 'Events / (BIN GeV)', 'righ
 plots_conf['mgjj']   = PlotConf('m_{#gammajj} [GeV]', 'Events / (BIN GeV)', 'right')
 plots_conf['mgjjj']  = PlotConf('m_{#gammajjj} [GeV]', 'Events / (BIN GeV)', 'right')
 
+plots_conf['rt4i']          = PlotConf('1 - R_{T}^{4}', 'Events / BIN', 'right', 0., 0.7)
+
 
 plots_conf['default']  = PlotConf()
 

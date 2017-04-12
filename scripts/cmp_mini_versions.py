@@ -15,32 +15,36 @@ parser = argparse.ArgumentParser(description='')
 
 parser.add_argument('-v', '--versions' , required=True)
 parser.add_argument('-s', '--samples', required=True)
+parser.add_argument('-r', '--regions')
 parser.add_argument('--scale', action='store_true')
 parser.add_argument('--plots', action='store_true')
 
 args = parser.parse_args()
 
-regions  = [
-    'CRQ',
-    'CRW',
-    'CRT',
-
-    'VRM1L',
-    'VRM2L',
-    'VRM3L',
-    'VRM1H',
-    'VRM2H',
-    'VRM3H',
-
-    'VRL1',
-    'VRL2',
-    'VRL3',
-    'VRL4',
-    'VRZ',
-    
-    'SRL',
-    'SRH',
-    ]
+if args.regions is not None:
+    regions = args.regions.split(',')
+else:
+    regions  = [
+        'CRQ',
+        'CRW',
+        'CRT',
+        
+        'VRM1L',
+        'VRM2L',
+        'VRM3L',
+        'VRM1H',
+        'VRM2H',
+        'VRM3H',
+        
+        'VRL1',
+        'VRL2',
+        'VRL3',
+        'VRL4',
+        'VRZ',
+        
+        'SRL',
+        'SRH',
+        ]
 
 colors = [
     'grey',

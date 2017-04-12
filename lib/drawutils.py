@@ -897,7 +897,10 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
         l.DrawLatex(tx, ty, ttext)
 
     outname = fix_output_name(plotname)
-    
+
+    can.RedrawAxis()
+    can.Update()
+
     can.SaveAs(outname+'.pdf')
 
 
