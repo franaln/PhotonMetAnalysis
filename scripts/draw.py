@@ -259,20 +259,10 @@ def main():
                 del h_bkg['efake']
                 del h_bkg['jfake']
 
-
             ## data
             h_data = None
             if args.data:
                 h_data = get_histogram(args.data, variable=variable, region=region_name, selection=selection, syst=syst, revert_cut=args.blind)
-
-
-            ## add overflow bins to the last bin
-            for hist in h_bkg.itervalues():
-                histogram_add_overflow_bin(hist)
-
-            if h_data is not None:
-                histogram_add_overflow_bin(h_data)
-
 
             ## signal
             h_signal = None
@@ -280,20 +270,17 @@ def main():
                 h_signal = OrderedDict()
 
                 if region.endswith('L'):
-                    signal1 = 'GGM_M3_mu_1900_250'
-                    signal2 = 'GGM_M3_mu_1900_650'
+                    signal1 = 'GGM_GG_bhmix_1900_450'
+                    signal2 = 'GGM_GG_bhmix_1900_650'
                 elif region.endswith('H'):
-                    signal1 = 'GGM_M3_mu_1900_1650'
-                    signal2 = 'GGM_M3_mu_1900_1850'
+                    signal1 = 'GGM_GG_bhmix_1900_1810'
+                    signal2 = 'GGM_GG_bhmix_1900_1860'
                 else:
-                    signal1 = 'GGM_M3_mu_1900_650'
-                    signal2 = 'GGM_M3_mu_1900_1650'
+                    signal1 = 'GGM_GG_bhmix_1900_650'
+                    signal2 = 'GGM_GG_bhmix_1900_1650'
                     
                 h_signal[signal1] = get_histogram(signal1, variable=variable, region=region_name, selection=selection, syst=syst)
                 h_signal[signal2] = get_histogram(signal2, variable=variable, region=region_name, selection=selection, syst=syst)
-
-                histogram_add_overflow_bin(h_signal[signal1])
-                histogram_add_overflow_bin(h_signal[signal2])
 
             
             varname = variable.replace('[', '').replace(']', '').replace('/', '_over_')
