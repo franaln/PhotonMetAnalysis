@@ -10,11 +10,11 @@ from miniutils import get_events
 from rootutils import *
 from drawutils import draw_grid_frame
 import regions as regions_
-from signalgrid import grid_m3_mu
+from signalgrid import mg_gg_grid
 
 
 parser = argparse.ArgumentParser(description='draw_signal_contamination')
-parser.add_argument('-r', dest='regions', help='regions')
+parser.add_argument('-r', dest='regions', help='regions', required=True)
 parser.add_argument('-o', dest='output_dir', default='.', help='Output dir')
 parser.add_argument('--ext', dest='extensions', default='pdf', help='')
 
@@ -22,13 +22,7 @@ args = parser.parse_args()
 
 backgrounds = analysis.backgrounds
 
-if args.regions:
-    regions = args.regions.split(',')
-else:
-    regions = [ cr + '_L' for cr in analysis.cr_regions ] + \
-        [ cr + '_H' for cr in analysis.cr_regions ] + \
-        [ vr + '_L' for vr in analysis.vr_regions ] + \
-        [ vr + '_H' for vr in analysis.vr_regions ] 
+regions = args.regions.split(',')
 
 set_atlas_style()
 set_palette()
@@ -41,10 +35,10 @@ for region in regions:
     for bkg in backgrounds:
         total_bkg += get_events(bkg, selection=selection, lumi='data').mean
 
-    gl_min = 1146
-    gl_max = 2050
+    gl_min = 1300
+    gl_max = 2500
     n1_min = 147
-    n1_max = 2050
+    n1_max = 2500
 
     gl_bins = (gl_max - gl_min) / 25
     n1_bins = (n1_max - n1_min) / 25
@@ -55,9 +49,9 @@ for region in regions:
 
     largest_cont = 0
 
-    for (m3, mu), (mgl, mn1) in grid_m3_mu.iteritems():
+    for (m3, mu), (mgl, mn1) in mg_gg_grid.iteritems():
 
-        name = 'GGM_M3_mu_%i_%i' % (m3, mu)
+        name = 'GGM_GG_bhmix_%i_%i' % (m3, mu)
 
         sig = get_events(name, selection=selection, lumi='data').mean
         contamination = round(sig/(sig+total_bkg) * 100, 2)

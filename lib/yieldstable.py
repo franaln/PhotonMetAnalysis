@@ -31,6 +31,7 @@ labels_latex_dict = {
     'vqqgamma': 'V($\\to$ qq)$+\\gamma$',
     'group_zllgamma_znunugamma': '$Z\gamma$',
     'group_diphoton_vgammagamma': '$\gamma\gamma / W\gamma\gamma / Z\gamma\gamma$',
+    'diphoton': '$\gamma\gamma / W\gamma\gamma / Z\gamma\gamma$',
 
     'efake15': '$e\\rightarrow\\gamma$ fakes',
     'jfake15': '$j\\rightarrow\\gamma$ fakes',

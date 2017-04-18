@@ -411,7 +411,7 @@ def _get_histogram(ds, **kwargs):
     use_lumiw   = kwargs.get('use_lumiw',   True)
     use_sfw     = kwargs.get('use_sfw',     True)
     use_mcw     = kwargs.get('use_mcw',     True)
-    use_purw    = kwargs.get('use_purw',    True) #False) 
+    use_purw    = kwargs.get('use_purw',    True) 
     use_mcveto  = kwargs.get('use_mcveto',  True)
 
     debug = kwargs.get('debug', False)
@@ -515,11 +515,11 @@ def _get_histogram(ds, **kwargs):
             selection = 'mcveto==0'
     
     # Hack to remove the weid jfake events
-    if 'jfake' in ds['name']:
-        if selection:
-            selection += '&& meff<4000'
-        else:
-            selection = 'meff<4000'
+    # if 'jfake' in ds['name']:
+    #     if selection:
+    #         selection += '&& meff<4000'
+    #     else:
+    #         selection = 'meff<4000'
 
     # change selection and variable for systematics
     if syst != 'Nom' and systematics_.affects_kinematics(syst):
@@ -618,7 +618,6 @@ def _get_histogram(ds, **kwargs):
         hist = htemp.Clone()
 
     hist.AddOverflowBin()
-
 
     htemp.Delete()
 

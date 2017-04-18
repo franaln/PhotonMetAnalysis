@@ -16,154 +16,16 @@ import regions
 from utils import mkdirp
 from rootutils import set_default_style, set_atlas_style, get_color
 from drawutils import draw_grid_frame
-from signalgrid import grid_m3_mu
+from signalgrid import mg_gg_grid
 
 ROOT.gROOT.SetBatch(1)
 ROOT.gSystem.Load('%s/lib/libSusyFitter.so' % os.getenv('HISTFITTER'))
 ROOT.gInterpreter.ProcessLine('#include "{0}/src/DrawUtils.h" '.format(os.getenv('HISTFITTER')))
 ROOT.gInterpreter.ProcessLine('#include "{0}/src/StatTools.h" '.format(os.getenv('HISTFITTER')))
 
-def mirror_borders(histo):
-
-    hist = histo.Clone()
-    numx = hist.GetNbinsX()
-    numy = hist.GetNbinsY()
-
-    val = 0
-    # corner points
-    hist.SetBinContent(0,0,hist.GetBinContent(1,1))
-    hist.SetBinContent(numx+1,numy+1,hist.GetBinContent(numx,numy))
-    hist.SetBinContent(numx+1,0,hist.GetBinContent(numx,1))
-    hist.SetBinContent(0,numy+1,hist.GetBinContent(1,numy))
-
-    for i in xrange(1, numx+1):
-        hist.SetBinContent(i,0,    hist.GetBinContent(i,1))
-        hist.SetBinContent(i,numy+1, hist.GetBinContent(i,numy))
-
-    for i in xrange(1, numy+1):
-        hist.SetBinContent(0,i,      hist.GetBinContent(1,i))
-        hist.SetBinContent(numx+1,i, hist.GetBinContent(numx,i))
-
-    return hist
-
-def add_borders(histo, name, title):
-
-    hist = histo.Clone()
-    nbinsx = hist.GetNbinsX()
-    nbinsy = hist.GetNbinsY()
-
-    xbinwidth = (hist.GetXaxis().GetBinCenter(nbinsx) - hist.GetXaxis().GetBinCenter(1)) / float(nbinsx-1)
-    ybinwidth = (hist.GetYaxis().GetBinCenter(nbinsy) - hist.GetYaxis().GetBinCenter(1)) / float(nbinsy-1)
-
-    xmin = hist.GetXaxis().GetBinCenter(0) - xbinwidth/2.
-    xmax = hist.GetXaxis().GetBinCenter(nbinsx+1) + xbinwidth/2.
-    ymin = hist.GetYaxis().GetBinCenter(0) - ybinwidth/2.
-    ymax = hist.GetYaxis().GetBinCenter(nbinsy+1) + ybinwidth/2.
-
-    hist2 = ROOT.TH2F(name, title, nbinsx+2, xmin, xmax, nbinsy+2, ymin, ymax)
-
-    for ibin1 in xrange(hist.GetNbinsX()+2):
-        for ibin2 in xrange(hist.GetNbinsY()+2):
-            hist2.SetBinContent(ibin1+1, ibin2+1, hist.GetBinContent(ibin1,ibin2))
-
-    return hist2
-
-def set_borders(histo, val):
-
-    hist = histo.Clone()
-    numx = hist.GetNbinsX()
-    numy = hist.GetNbinsY()
-
-    for i in xrange(numx+2):
-        hist.SetBinContent(i,0,val)
-        hist.SetBinContent(i,numy+1,val)
-
-    for i in xrange(numy+2):
-        hist.SetBinContent(0,i,val)
-        hist.SetBinContent(numx+1,i,val)
-
-    histCopy = hist.Clone()
-    return histCopy
-
-
-def fix_and_set_borders(hist, name, title, val):
-
-    hist0 = hist.Clone()
-
-    hist0c = mirror_borders(hist0).Clone()    # mirror values of border bins into overflow bins
-
-    hist1 = add_borders(hist0c, "hist1", "hist1").Clone()
-    # add new border of bins around original histogram,
-    # ... so 'overflow' bins become normal bins
-    hist1c = set_borders(hist1, val).Clone()
-    # set overflow bins to value 1
-
-    histX = add_borders(hist1c, "histX", "histX").Clone()
-    # add new border of bins around original histogram,
-    # ... so 'overflow' bins become normal bins
-
-    hist3 = histX.Clone()
-    hist3.SetName(name)
-    hist3.SetTitle(name)
-
-    return hist3 # this can be used for filled contour histograms
-
-
-def get_hist(file_name, hist_name):
-
-    file_ = ROOT.TFile(file_name)
-    hist = file_.Get(hist_name).Clone()
-    hist.SetName(hist_name)
-    hist.SetTitle(hist_name)
-    hist.SetDirectory(0)
-
-    file_.Close()
-
-    return hist
-
-
-def return_contour95(histo_name, file_name):
-
-    file_ = ROOT.TFile(file_name)
-    histo = file_.Get(histo_name)
-
-    histo.SetName(histo_name)
-    histo.SetTitle(histo_name)
-
-    histo = fix_and_set_borders(histo, histo_name, histo_name, 0).Clone()
-
-    histo.SetDirectory(0)
-    ROOT.SetOwnership(histo, False)
-
-    histo.SetContour(1)
-    histo.SetContourLevel(0, ROOT.TMath.NormQuantile(1-0.05))
-    histo.SetLineWidth(2)
-    histo.SetLineStyle(1)
-
-    return histo
-
-
-def convert_hist_to_graph(hist):
-
-    canvas = ROOT.TCanvas()
-    hist.Draw("CONT List")
-    canvas.Update()
-    contours = ROOT.TObjArray(ROOT.gROOT.GetListOfSpecials().FindObject("contours"))
-
-    lcontour1 = contours.At(0)
-    graph = lcontour1.First()
-
-    graph.SetLineColor(hist.GetLineColor())
-    graph.SetLineWidth(hist.GetLineWidth())
-    graph.SetLineStyle(hist.GetLineStyle())
-
-    return graph.Clone()
-
-
 
 def plot_exclusion(path, region, outdir):
 
-    #set_default_style()
     set_atlas_style()
 
     ROOT.gStyle.SetLegendFont(42)
@@ -202,10 +64,26 @@ def plot_exclusion(path, region, outdir):
     graph_sigclsu1s = convert_hist_to_graph(sigclsu1s)
     graph_sigclsd1s = convert_hist_to_graph(sigclsd1s)
 
-    # Colours
+    graph_exp, graph_exp_shade = make_exclusion_band(graph_sigp1expclsf, graph_sigclsd1s, graph_sigclsu1s)
+
+
+
+    # Style
     c_yellow = ROOT.TColor.GetColor('#ffe938')
     c_red    = ROOT.TColor.GetColor('#aa0000')
     c_blue   = ROOT.TColor.GetColor('#28373c')
+
+    ## expected 
+    set_style(graph_exp, color=c_blue, lwidth=2)
+    set_style(graph_exp_shade, color=c_yellow, fstyle=1001)
+
+    ## observed
+    set_style(graph_sigp1clsf, color=c_red, lwidth=3)
+
+    if sig_xs_syst:
+        set_style(graph_sigp1clsfLow, color=c_red, lwidth=2)
+        set_style(graph_sigp1clsfHigh, color=c_red, lwidth=2)
+
 
 
     frame = draw_grid_frame(xmin=1146, xmax=2550, ymin=147, ymax=2550) 
@@ -216,10 +94,10 @@ def plot_exclusion(path, region, outdir):
     leg1.SetNDC()
     leg1.SetTextSize(0.035)
     leg1.SetTextColor(1)
-    if args.datalabel is not None:
-        leg1.DrawLatex(0.15, 0.7, args.datalabel)
-    else:
-        leg1.DrawLatex(0.15, 0.7, style.data_label)
+    # if args.datalabel is not None:
+    #     leg1.DrawLatex(0.15, 0.7, args.datalabel)
+    # else:
+    #     leg1.DrawLatex(0.15, 0.7, style.data_label)
 
     # if style.atlas_label:
     #     leg1.SetTextSize(0.04)
@@ -243,7 +121,7 @@ def plot_exclusion(path, region, outdir):
     leg3.DrawLatex(0.15, 0.63, region_text)
 
     # Legend
-    leg  = ROOT.TLegend(0.15, 0.77, 0.49, 0.92)
+    leg  = ROOT.TLegend(0.15, 0.77, 0.6, 0.92)
     leg.SetFillColor(0)
     leg.SetBorderSize(0)
 
@@ -268,57 +146,25 @@ def plot_exclusion(path, region, outdir):
         elif args.bestsr:
             leg4.DrawLatex(textx, texty, 'Labels indicate best-expected SR')
 
-    # leg2 = ROOT.TLatex()
-    # leg2.SetNDC()
-    # leg2.SetTextSize(0.03)
-    # leg2.SetTextColor(1)
-    # leg2.DrawLatex(0.17, 0.75, "All limits at 95% CL")
+    leg2 = ROOT.TLatex()
+    leg2.SetNDC()
+    leg2.SetTextSize(0.03)
+    leg2.SetTextColor(1)
+    leg2.DrawLatex(0.17, 0.75, "All limits at 95% CL")
 
-    graph_sigp1clsf.SetFillColor(ROOT.kWhite)
-    graph_sigp1clsf.SetFillStyle(3003)
-    graph_sigp1clsf.SetLineColor(c_red)
-    graph_sigp1clsf.SetLineStyle(1)
-    graph_sigp1clsf.SetLineWidth(3)
 
-    if sig_xs_syst:
-        graph_sigp1clsfHigh.SetFillColor(ROOT.kWhite)
-        graph_sigp1clsfHigh.SetFillStyle(3003)
-        graph_sigp1clsfHigh.SetLineColor(c_red)
-        graph_sigp1clsfHigh.SetLineStyle(3)
-        graph_sigp1clsfHigh.SetLineWidth(2)
-        
-        graph_sigp1clsfLow.SetFillColor(ROOT.kWhite)
-        graph_sigp1clsfLow.SetFillStyle(3003)
-        graph_sigp1clsfLow.SetLineColor(c_red)
-        graph_sigp1clsfLow.SetLineStyle(3)
-        graph_sigp1clsfLow.SetLineWidth(2)
-
-    sigp1expclsf.SetLineColor(c_blue)
-    sigp1expclsf.SetLineStyle(1)
-    sigp1expclsf.SetLineWidth(2)
-
-    sigp1clsf.SetLineWidth(3)
-    sigclsu1s.SetFillColor(ROOT.kWhite)
-    sigclsd1s.SetFillColor(c_yellow)
-
-    graph_sigp1expclsf.SetFillColor(c_yellow)
-    graph_sigp1expclsf.SetFillStyle(1001)
-    graph_sigp1expclsf.SetLineColor(c_blue)
-    graph_sigp1expclsf.SetLineStyle(7)
-    graph_sigp1expclsf.SetLineWidth(2)
-
-    # Load run 1 limit
-    # if ',' in region:
-    #     f = ROOT.TFile.Open(os.environ['SUSY_ANALYSIS'] + '/results/limit_run1_gln1.root')
-    #     limit_run1    = f.Get('clsf_obs')
-    #     leg.AddEntry(limit_run1, 'ATLAS 8 TeV, 20.3 fb^{-1}', 'F')
+    # # Load ICHEP
+    # f = ROOT.TFile.Open(os.environ['SUSY_ANALYSIS'] + '/data/limit_run2_gln1_ichep2016.root')
+    # limit_ichep    = f.Get('clsf_obs')
+    # leg.AddEntry(limit_ichep, 'Observed limit, ATLAS 13 TeV 13.3 fb^{-1} (ICHEP 2016)', 'F')
 
 
     if not args.onlyexp:
         obs_entry = leg.AddEntry(graph_sigp1clsf, "Observed limit (#pm1 #sigma^{SUSY}_{theory})", "LF")
-    leg.AddEntry(graph_sigp1expclsf, "Expected limit (#pm1 #sigma_{exp})", "LF")
-    
+    leg.AddEntry(graph_sigp1expclsf, "Expected limit 40 fb^{-1} (#pm1 #sigma_{exp})", "LF")
+
     leg.Draw()
+
 
     if not args.onlyexp and sig_xs_syst:
         ROOT.gPad.Update()
@@ -347,24 +193,25 @@ def plot_exclusion(path, region, outdir):
 
 
     # Plot
-    sigclsd1s.Draw("same cont0")
-    sigclsu1s.Draw("same cont0")
+    ## expected
+    graph_exp.Draw("same l")
+    graph_exp_shade.Draw("same f")
 
-    graph_sigp1expclsf.Draw("same l")
-
+    ## observed
     if not args.onlyexp:
         graph_sigp1clsf.Draw('same l')
         if sig_xs_syst:
             graph_sigp1clsfHigh.Draw("same l")
             graph_sigp1clsfLow.Draw("same l")
 
-    # plot Run 1 limit
-    # if ',' in region:
-    #     limit_run1.SetLineWidth(2)
-    #     limit_run1.SetLineColor(get_color('#b9b7b7'))
-    #     limit_run1.SetFillColor(get_color('#c6c4c4'))
-    #     limit_run1.Draw('f same')
-    #     limit_run1.Draw('l same')
+
+    # # plot Run 1 limit
+    # # if ',' in region:
+    # limit_ichep.SetLineWidth(2)
+    # limit_ichep.SetLineColor(get_color('#b9b7b7'))
+    # limit_ichep.SetFillColor(get_color('#c6c4c4'))
+    # limit_ichep.Draw('f same')
+    # limit_ichep.Draw('l same')
 
 
     # Redraw axis and update frame
@@ -375,10 +222,6 @@ def plot_exclusion(path, region, outdir):
     output_tag = ''
 
     if args.obscls or args.expcls:
-        # if sig_xs_syst:
-        #     file_name    = '%s/Output_fixSigXSecNominal_hypotest__1_harvest_list.root' % path
-        # else:
-        #     file_name    = '%s/Output_hypotest__1_harvest_list.root' % path
 
         l_region = ROOT.TLatex()
         l_region.SetTextSize(0.014)
@@ -446,6 +289,13 @@ def plot_exclusion(path, region, outdir):
                 lp.SetTextColor(ROOT.kGray+3)
                 lp.DrawLatex(mgl, mn1, "#bullet")
 
+
+        lp.SetTextSize(0.02)
+        lp.SetTextColor(ROOT.kGray+3)
+        lp.DrawLatex(1260, 1950, "#bullet     Current grid")
+        lp.SetTextColor(ROOT.kRed-4)
+        lp.DrawLatex(1260, 1850, "#times    Extension")
+    
 
     frame.SaveAs(path+'/limitPlot_%s%s.pdf' % (region.replace(',', '_'), output_tag))
 
@@ -587,7 +437,7 @@ def create_listfiles(path, region):
         jsonfile = inputfile.replace('hypotest.root', 'hypotest__1_harvest_list.json')
         listfile = jsonfile.replace('.json', '')
 
-        format = "hypo_GGM_M3_mu_%f_%f"
+        format = "hypo_GGM_GG_bhmix_%f_%f"
         interpretation = "m3:mu"
 
         outputfile = ROOT.CollectAndWriteHypoTestResults(inputfile, format, interpretation, '1', True, output_dir)
@@ -642,7 +492,7 @@ def hack_tree(textfile, tree):
     file_.Close()
 
     # create and save new tree with masses
-    newfile = ROOT.TFile(textfile+'_hack.root', "recreate");
+    newfile = ROOT.TFile(textfile+'_masses.root', "recreate");
     newtree = tree.CloneTree(0) # Do no copy the data yet
 
     mgl = array('i', [0]) 
@@ -657,7 +507,7 @@ def hack_tree(textfile, tree):
         #     print 'weird point: (%s, %s), %.2f, %.2f, %.2f' % (row.m3, row.mu, row.CLs, row.CLsexp, row.clsu1s)
         #     #continue
         try:
-            mgl[0], mn1[0] = mass_dict[(int(row.m3), int(row.mu))]
+            mgl[0], mn1[0] = mg_gg_grid[(int(row.m3), int(row.mu))]
         except:
             continue
 
@@ -712,14 +562,13 @@ def create_histograms(path, textfile, input_hist):
     from summary_harvest_tree_description import harvesttree
 
     xystr = 'mn1:mgl'
-    #xystr = 'mu:m3'
 
     # get the harvested tree
     tree = harvesttree(textfile)
 
     hack_tree(textfile, tree)
 
-    f = ROOT.TFile(textfile+'_hack.root')
+    f = ROOT.TFile(textfile+'_masses.root')
     tree = f.Get('tree')
 
     if tree == 0:
@@ -885,7 +734,6 @@ if __name__ == '__main__':
 
     if os.path.exists('%s/Output_fixSigXSecNominal_hypotest__1_harvest_list' % first_path):
         sig_xs_syst = True
-
 
 
     # Combine hypotest files in one: take last path as output

@@ -1,4 +1,8 @@
 import ROOT
+from array import array
+
+ROOT.gROOT.SetBatch(1)
+
 from rootutils import *
 from statutils import *
 
@@ -763,14 +767,10 @@ def do_plot(plotname,
 
         # remove the point from the plot if zero
         max_bins = ratio_z[0].GetNbinsX()
-        for bin_ in xrange(max_bins):
+        for bx in xrange(1, max_bins+1):
 
-            if 'rt4' in variable or 'dphi_gamjet' in variable:
-                imin = 1
-                imax = bin_
-            else:
-                imin = bin_
-                imax = max_bins
+            imin = bx
+            imax = max_bins
 
             b = sm_total.Integral(imin, imax)
 
@@ -780,7 +780,7 @@ def do_plot(plotname,
 
                 z = get_significance(s, b, 0.3)
 
-                ratio_z[i].SetBinContent(bin_, z)
+                ratio_z[i].SetBinContent(bx, z)
 
         for i, name in enumerate(names):
             set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=style.colors_dict[name])
@@ -1196,3 +1196,209 @@ def do_plot_cmp(plotname,
 
 
     can.Print(plotname+'.pdf')
+
+
+## Limits
+def mirror_borders(histo):
+
+    hist = histo.Clone()
+    numx = hist.GetNbinsX()
+    numy = hist.GetNbinsY()
+
+    val = 0
+    # corner points
+    hist.SetBinContent(0,0,hist.GetBinContent(1,1))
+    hist.SetBinContent(numx+1,numy+1,hist.GetBinContent(numx,numy))
+    hist.SetBinContent(numx+1,0,hist.GetBinContent(numx,1))
+    hist.SetBinContent(0,numy+1,hist.GetBinContent(1,numy))
+
+    for i in xrange(1, numx+1):
+        hist.SetBinContent(i,0,    hist.GetBinContent(i,1))
+        hist.SetBinContent(i,numy+1, hist.GetBinContent(i,numy))
+
+    for i in xrange(1, numy+1):
+        hist.SetBinContent(0,i,      hist.GetBinContent(1,i))
+        hist.SetBinContent(numx+1,i, hist.GetBinContent(numx,i))
+
+    return hist
+
+def add_borders(histo, name, title):
+
+    hist = histo.Clone()
+    nbinsx = hist.GetNbinsX()
+    nbinsy = hist.GetNbinsY()
+
+    xbinwidth = (hist.GetXaxis().GetBinCenter(nbinsx) - hist.GetXaxis().GetBinCenter(1)) / float(nbinsx-1)
+    ybinwidth = (hist.GetYaxis().GetBinCenter(nbinsy) - hist.GetYaxis().GetBinCenter(1)) / float(nbinsy-1)
+
+    xmin = hist.GetXaxis().GetBinCenter(0) - xbinwidth/2.
+    xmax = hist.GetXaxis().GetBinCenter(nbinsx+1) + xbinwidth/2.
+    ymin = hist.GetYaxis().GetBinCenter(0) - ybinwidth/2.
+    ymax = hist.GetYaxis().GetBinCenter(nbinsy+1) + ybinwidth/2.
+
+    hist2 = ROOT.TH2F(name, title, nbinsx+2, xmin, xmax, nbinsy+2, ymin, ymax)
+
+    for ibin1 in xrange(hist.GetNbinsX()+2):
+        for ibin2 in xrange(hist.GetNbinsY()+2):
+            hist2.SetBinContent(ibin1+1, ibin2+1, hist.GetBinContent(ibin1,ibin2))
+
+    return hist2
+
+
+
+def set_borders(histo, val):
+
+    hist = histo.Clone()
+    numx = hist.GetNbinsX()
+    numy = hist.GetNbinsY()
+
+    for i in xrange(numx+2):
+        hist.SetBinContent(i,0,val)
+        hist.SetBinContent(i,numy+1,val)
+
+    for i in xrange(numy+2):
+        hist.SetBinContent(0,i,val)
+        hist.SetBinContent(numx+1,i,val)
+
+    histCopy = hist.Clone()
+    return histCopy
+
+
+def fix_and_set_borders(hist, name, title, val):
+
+    hist0 = hist.Clone()
+
+    hist0c = mirror_borders(hist0).Clone()    # mirror values of border bins into overflow bins
+
+    hist1 = add_borders(hist0c, "hist1", "hist1").Clone()
+    # add new border of bins around original histogram,
+    # ... so 'overflow' bins become normal bins
+    hist1c = set_borders(hist1, val).Clone()
+    # set overflow bins to value 1
+
+    histX = add_borders(hist1c, "histX", "histX").Clone()
+    # add new border of bins around original histogram,
+    # ... so 'overflow' bins become normal bins
+
+    hist3 = histX.Clone()
+    hist3.SetName(name)
+    hist3.SetTitle(name)
+
+    return hist3 # this can be used for filled contour histograms
+
+
+def return_contour95(hist_name, file_name):
+
+    file_ = ROOT.TFile(file_name)
+    hist  = file_.Get(hist_name)
+
+    hist.SetName(hist_name)
+    hist.SetTitle(hist_name)
+
+    hist = fix_and_set_borders(hist, hist_name, hist_name, 0).Clone()
+
+    hist.SetDirectory(0)
+    ROOT.SetOwnership(hist, False)
+
+    hist.SetContour(1)
+    hist.SetContourLevel(0, ROOT.TMath.NormQuantile(1-0.05))
+    hist.SetLineWidth(2)
+    hist.SetLineStyle(1)
+
+    return hist
+
+
+def convert_hist_to_graph(hist):
+
+    canvas = ROOT.TCanvas()
+    hist.Draw("CONT List")
+    canvas.Update()
+    contours = ROOT.TObjArray(ROOT.gROOT.GetListOfSpecials().FindObject("contours"))
+
+    lcontour1 = contours.At(0)
+    graph = lcontour1.First()
+
+    graph.SetLineColor(hist.GetLineColor())
+    graph.SetLineWidth(hist.GetLineWidth())
+    graph.SetLineStyle(hist.GetLineStyle())
+
+    return graph.Clone()
+
+
+def make_exclusion_band(g_nom, g_up, g_dn):
+    '''
+    g_nom:  TGraph contour for the nominal expected significance
+    g_up :  TGraph contour for the +1sigma uncertainty expected significance
+    g_dn :  TGraph contour for the -1sigma uncertainty expected significance
+    '''
+
+    nbins   = int(max(g_nom.GetN(), g_up.GetN(), g_dn.GetN()))
+    n_nom   = int(g_nom.GetN())
+    n_up    = int(g_up.GetN())
+    n_dn    = int(g_dn.GetN())
+    
+    x_nom, y_nom  = [], []
+    x_up, y_up    = [], []
+    x_dn, y_dn    = [], []
+
+    # fill nominal points
+    for i in xrange(n_nom):
+        x, y = ROOT.Double(0), ROOT.Double(0)
+        g_nom.GetPoint(i, x, y)
+        x_nom.append(x)
+        y_nom.append(y)
+
+    # check that nominal array has the required number of points
+    if n_nom < nbins:
+        for i in xrange(n_nom, nbins) :
+            x_nom.append(x_nom[n_nom-1])
+            y_nom.append(y_nom[n_nom-1])
+    
+    # fill the up-variation points
+    for i in xrange(n_up) :
+        x, y = ROOT.Double(0), ROOT.Double(0)
+        g_up.GetPoint(i, x, y)
+        x_up.append(x)
+        y_up.append(y)
+
+    # check that the up array has the required number of points
+    if n_up < nbins:
+        for i in xrange(n_up, nbins):
+            x_up.append(x_up[n_up-1])
+            y_up.append(y_up[n_up-1])
+    
+    # fill the down-variation points
+    for i in xrange(n_dn):
+        x, y = ROOT.Double(0), ROOT.Double(0)
+        g_dn.GetPoint(i, x, y)
+        x_dn.append(x)
+        y_dn.append(y)
+
+    # check that the down array has the required number of points
+    if n_dn < nbins:
+        for i in xrange(n_dn, nbins):
+            x_dn.append(x_dn[n_dn-1])
+            y_dn.append(y_dn[n_dn-1])
+
+    # concatenate the up and down arrays to make a complete
+    # array for a single TGraph for the outer bounds of the band
+    x = x_up + x_dn
+    y = y_up + y_dn
+
+    # make the values into an array of doubles so that the
+    # TGraph receives the Double_t* 
+    x_nom_arr  = array('d', x_nom)
+    y_nom_arr  = array('d', y_nom)
+    x_arr      = array('d', x)
+    y_arr      = array('d', y)
+
+    gr       = ROOT.TGraph(nbins, x_nom_arr, y_nom_arr)
+    gr_shade = ROOT.TGraph(nbins, x_arr, y_arr)
+    
+    for i in xrange(nbins):
+        # set the points for the "upper semi-circle" of the band
+        gr_shade.SetPoint(i, x_up[i], y_up[i])
+        # set the points for the "lower semi-circle" of the band
+        gr_shade.SetPoint(nbins+i, x_dn[nbins-i-1], y_dn[nbins-i-1])
+
+    return gr, gr_shade

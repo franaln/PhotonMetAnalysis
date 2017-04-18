@@ -336,6 +336,7 @@ sigma_zgamma_crq = 0.0620
 sigma_zgamma_crw = 0.0714
 sigma_zgamma_crt = 0.6891
 sigma_zgamma_vrl = 0.1572
+sigma_zgamma_vrz = 0.0565
 
 syst_zgamma_theo_srl = Systematic("theoSysZG", 1, 1+sigma_zgamma_srl, 1-sigma_zgamma_srl, "user", "userOverallSys")
 syst_zgamma_theo_srh = Systematic("theoSysZG", 1, 1+sigma_zgamma_srh, 1-sigma_zgamma_srh, "user", "userOverallSys")
@@ -343,6 +344,7 @@ syst_zgamma_theo_crq = Systematic("theoSysZG", 1, 1+sigma_zgamma_crq, 1-sigma_zg
 syst_zgamma_theo_crw = Systematic("theoSysZG", 1, 1+sigma_zgamma_crw, 1-sigma_zgamma_crw, "user", "userOverallSys")
 syst_zgamma_theo_crt = Systematic("theoSysZG", 1, 1+sigma_zgamma_crt, 1-sigma_zgamma_crt, "user", "userOverallSys")
 syst_zgamma_theo_vrl = Systematic("theoSysZG", 1, 1+sigma_zgamma_vrl, 1-sigma_zgamma_vrl, "user", "userOverallSys")
+syst_zgamma_theo_vrz = Systematic("theoSysZG", 1, 1+sigma_zgamma_vrz, 1-sigma_zgamma_vrz, "user", "userOverallSys")
 
 ## gamjet
 sigma_gamjet_all = 0.29 #0.57
@@ -532,11 +534,11 @@ if do_mc_syst:
 
     # SR
     for sc in signal_channels:
-        if sc.name.endswith('L'):
+        if 'SRL' in sc.name:
             wg_syst  = syst_wgamma_theo_srl
             tg_syst  = syst_ttgamma_theo_srl
             zg_syst  = syst_zgamma_theo_srl
-        elif sc.name.endswith('H'):
+        elif 'SRH' in sc.name:
             wg_syst  = syst_wgamma_theo_srh
             tg_syst  = syst_ttgamma_theo_srh
             zg_syst  = syst_zgamma_theo_srh
@@ -571,6 +573,10 @@ if do_mc_syst:
             vr.getSample('zllgamma')  .addSystematic(syst_zgamma_theo_vrl)
             vr.getSample('znunugamma').addSystematic(syst_zgamma_theo_vrl)
             vr.getSample('ttbarg')    .addSystematic(syst_ttgamma_theo_vrl)
+
+        elif 'VRZ' in vr.name:
+            vr.getSample('zllgamma')  .addSystematic(syst_zgamma_theo_vrz)
+            vr.getSample('znunugamma').addSystematic(syst_zgamma_theo_vrz)
 
         elif vr.name.endswith('L'):
             vr.getSample('wgamma')     .addSystematic(syst_wgamma_theo_srl)
