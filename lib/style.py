@@ -147,7 +147,7 @@ plots_conf['ph_pt']        = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / BIN GeV'
 plots_conf['ph_eta']       = PlotConf('Photon #eta', 'Events / BIN GeV', 'right')
 plots_conf['ph_phi']       = PlotConf('Photon #phi', 'Events / BIN GeV', 'right')
 plots_conf['ph_iso']       = PlotConf('E_{T}^{iso} - 0.022 #times  p_{T} [GeV]', 'Events / (BIN GeV)', 'right')
-plots_conf['ph_pt[0]']     = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right', logx=True)
+plots_conf['ph_pt[0]']     = PlotConf('p_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['ph_eta[0]']    = PlotConf('Photon #eta', 'Events / BIN GeV', 'right')
 plots_conf['ph_etas2[0]']  = PlotConf('Photon #eta_{s2}', 'Events / BIN GeV', 'right')
 plots_conf['ph_phi[0]']    = PlotConf('Photon #phi', 'Events / BIN GeV', 'right')

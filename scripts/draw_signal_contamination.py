@@ -40,8 +40,8 @@ for region in regions:
     n1_min = 147
     n1_max = 2500
 
-    gl_bins = (gl_max - gl_min) / 25
-    n1_bins = (n1_max - n1_min) / 25
+    gl_bins = (gl_max - gl_min) / 30
+    n1_bins = (n1_max - n1_min) / 30
 
     hmap = ROOT.TH2F('hmap', 'hmap', gl_bins, gl_min, gl_max, n1_bins, n1_min, n1_max)
     hmap.SetDirectory(0)
@@ -59,16 +59,20 @@ for region in regions:
         if contamination > largest_cont:
             largest_cont = contamination
 
+        if contamination < 0.001:
+            contamination = 0.001
+
         hmap.Fill(mgl, mn1, contamination)
 
 
-    frame = draw_grid_frame() 
-    frame.SetRightMargin(0.15)
+    frame = draw_grid_frame(800, 800, gl_min, gl_max, n1_min, n1_max) 
+    frame.SetRightMargin(0.12)
 
     hmap.SetContour(999)
     hmap.GetZaxis().SetRangeUser(0, 100)
+    hmap.GetZaxis().SetLabelSize(0.03)
     hmap.SetMarkerStyle(21)
-    hmap.SetMarkerSize(100)
+    hmap.SetMarkerSize(200)
     hmap.Draw('pcolzsame')
 
     l = ROOT.TLatex()

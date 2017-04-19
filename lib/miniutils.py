@@ -784,7 +784,7 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False,
         for s in ds:
 
             f = ROOT.TFile.Open(s['path'])
-            htmp = f.Get('cutflow_w')
+            htmp = f.Get('cutflow')
 
             # Weight
             lumi = get_lumi(lumi)
@@ -802,9 +802,12 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False,
             f.Close()
         
 
-        pre_cuts = h_preselection.GetNbinsX()
+        pre_cuts = h_preselection.GetNbinsX() - 1
         new_h = ROOT.TH1F('cutflow', 'cutflow', len(cuts)+pre_cuts, 0.5, len(cuts)+pre_cuts+0.5)
         for b in xrange(pre_cuts):
+            if h_preselection.GetXaxis().GetBinLabel(b+1) == 'Skim':
+                continue
+
             new_h.SetBinContent(b+1, h_preselection.GetBinContent(b+1))
             new_h.GetXaxis().SetBinLabel(b+1, h_preselection.GetXaxis().GetBinLabel(b+1))
         

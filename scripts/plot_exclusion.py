@@ -86,7 +86,7 @@ def plot_exclusion(path, region, outdir):
 
 
 
-    frame = draw_grid_frame(xmin=1146, xmax=2550, ymin=147, ymax=2550) 
+    frame = draw_grid_frame(xmin=1340, xmax=2550, ymin=147, ymax=2550) 
 
     # Create the text in the plot
     # DATA info

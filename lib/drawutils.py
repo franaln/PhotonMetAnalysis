@@ -67,7 +67,6 @@ def draw_boxpie(m3, mu, *brs):
         box.Draw()
 
 
-
 def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ymax=n1max):
 
     canvas = ROOT.TCanvas('', '', xsize, ysize)
@@ -88,8 +87,8 @@ def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ym
     frame.SetTitle('')
 
     canvas.SetTicks()
-    canvas.SetLeftMargin(0.10)
-    canvas.SetBottomMargin(0.1)
+    canvas.SetLeftMargin(0.12)
+    canvas.SetBottomMargin(0.09)
     canvas.SetRightMargin(0.05)
     canvas.SetTopMargin(0.05)
 
@@ -101,8 +100,9 @@ def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ym
     frame.GetYaxis().SetTitleSize(0.033)
     frame.GetXaxis().SetLabelSize(0.033)
     frame.GetYaxis().SetLabelSize(0.033)
+    frame.GetZaxis().SetLabelSize(0.02)
     frame.GetXaxis().SetTitleOffset(1.3)
-    frame.GetYaxis().SetTitleOffset(1.5)
+    frame.GetYaxis().SetTitleOffset(1.6)
 
     frame.GetXaxis().SetNdivisions(10, 3, 0)
     frame.GetYaxis().SetNdivisions(10, 5, 0)
