@@ -116,11 +116,11 @@ def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ym
     fl.SetLineColor(ROOT.kGray+2)
     fl.Draw()
 
-    flabel = ROOT.TLatex(xmax-250, ymax-200, '%s > m_{#tilde{g}}' % mn1_text)
+    flabel = ROOT.TLatex(xmax-280, ymax-200, '%s > m_{#tilde{g}}' % mn1_text)
     ROOT.SetOwnership(flabel, False)
     flabel.SetTextSize(0.02)
     flabel.SetTextColor(ROOT.kGray+2)
-    flabel.SetTextAngle(20)
+    flabel.SetTextAngle(24)
     flabel.Draw()
 
     # Redraw axis and update canvas
@@ -712,15 +712,15 @@ def do_plot(plotname,
 
         err_band_stat = ROOT.TGraphAsymmErrors(sm_total.GetNbinsX())
 
-        for bin_ in xrange(sm_total.GetNbinsX()):
+        for b in xrange(1,sm_total.GetNbinsX()+1):
 
-            x    = sm_total.GetBinCenter(bin_+1)
-            xerr = sm_total.GetBinWidth(bin_+1)/2
+            x    = sm_total.GetBinCenter(b)
+            xerr = 0.5*sm_total.GetBinWidth(b)
 
-            sm_y     = sm_total.GetBinContent(bin_+1)
+            sm_y = sm_total.GetBinContent(b)
 
-            sm_stat_high = sm_total_stat.GetBinError(bin_+1)
-            sm_stat_low  = sm_total_stat.GetBinError(bin_+1)
+            sm_stat_high = sm_total_stat.GetBinError(b)
+            sm_stat_low  = sm_total_stat.GetBinError(b)
 
             try:
                 stat_low  = sm_stat_low/sm_y
@@ -732,8 +732,8 @@ def do_plot(plotname,
             except ZeroDivisionError:
                 stat_high = 0.0
 
-            err_band_stat.SetPoint(bin_, x, 1.)
-            err_band_stat.SetPointError(bin_, xerr, xerr, stat_low, stat_high)
+            err_band_stat.SetPoint(b-1, x, 1.)
+            err_band_stat.SetPointError(b-1, xerr, xerr, stat_low, stat_high)
 
 
         err_band_stat.SetLineWidth(2)
@@ -829,7 +829,7 @@ def do_plot(plotname,
 
 def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
                zmin=None, zmax=None, xmin=None, xmax=None, ymin=None, ymax=None,
-               drawopts='colz', text=None):
+               drawopts='colz', text=None, extensions=['pdf',]):
 
     if 'text' in drawopts:
         for bx in xrange(hist.GetNbinsX()):
@@ -901,8 +901,9 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     can.RedrawAxis()
     can.Update()
 
-    can.SaveAs(outname+'.pdf')
-
+    for ext in extensions:
+        can.SaveAs(outname+'.'+ext)
+        
 
 def do_plot_cmp(plotname, 
                 variable, 
@@ -910,10 +911,12 @@ def do_plot_cmp(plotname,
                 do_ratio=True, 
                 ratio_type='ratio',
                 ratio_cmp=None,
+                ratio_text='Ratio',
                 normalize=False,
                 logy=True,
                 conf=None,
-                text=''):
+                text='',
+                extensions=['pdf',]):
     
 
     if isinstance(histograms, dict):
@@ -1101,10 +1104,11 @@ def do_plot_cmp(plotname,
 
 
     if text:
-        ltext = ROOT.TLatex(legxmin2, (legymax+legymin)/2, text)
+        ltext = ROOT.TLatex(0.1, 0.95, text)
         ROOT.SetOwnership(ltext, False)
         ltext.SetNDC()
         ltext.SetTextSize(0.03)
+        ltext.SetTextFont(42)
         ltext.SetTextColor(ROOT.kBlack)
         ltext.Draw() 
 
@@ -1174,7 +1178,7 @@ def do_plot_cmp(plotname,
         if ratio_type == 'diff':
             ratios[0].GetYaxis().SetTitle('Rel. diff.')
         else:
-            ratios[0].GetYaxis().SetTitle('Ratio')
+            ratios[0].GetYaxis().SetTitle(ratio_text)
         ratios[0].GetYaxis().CenterTitle()
         ratios[0].GetYaxis().SetLabelSize(ratio_ylabel_size)
         ratios[0].GetYaxis().SetTitleSize(ratio_ytitle_size)
@@ -1183,19 +1187,22 @@ def do_plot_cmp(plotname,
         ratios[0].GetYaxis().SetTitleOffset(0.3)
         ratios[0].GetYaxis().SetLabelOffset(0.01)
 
-        ratios[0].Draw('hist')
-        for ratio in ratios[1:]:
-            ratio.Draw('hist same')
-            
         firstbin = ratios[0].GetXaxis().GetFirst()
         lastbin  = ratios[0].GetXaxis().GetLast()
         xmax     = ratios[0].GetXaxis().GetBinUpEdge(lastbin)
         xmin     = ratios[0].GetXaxis().GetBinLowEdge(firstbin)
 
+
+        ratios[0].Draw('hist')
+
         draw_ratio_lines(xmin, xmax)
 
+        for ratio in ratios:
+            ratio.Draw('hist same')
+            
 
-    can.Print(plotname+'.pdf')
+    for ext in extensions:
+        can.Print(plotname+'.'+ext)
 
 
 ## Limits

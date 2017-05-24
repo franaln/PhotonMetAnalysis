@@ -11,6 +11,7 @@ import multidraw
 
 import xsutils
 import systematics as systematics_
+import regions as regions_
 
 # config
 import analysis
@@ -31,6 +32,9 @@ ROOT.gInterpreter.Declare(open(os.environ['SUSY_ANALYSIS'] + '/lib/variables.cxx
 variable_aliases = {
     'photontype': 'photontype(ph_truth_type[0], ph_truth_origin[0])',
     'rt4i': '1-rt4',
+
+    'm_jetjet': 'm_inv(jet_pt[0], jet_eta[0], jet_phi[0], jet_e[0], jet_pt[1], jet_eta[1], jet_phi[1], jet_e[1])',
+
 }
 
 # --------
@@ -366,7 +370,6 @@ def get_mini(name, **kwargs):
 def is_2d_variable(variable):
     return ':' in variable and not '::' in variable
 
-
 def get_escaped_variable(variable):
     return variable.replace(':', '_').replace('/', '').replace('(', '').replace(')', '')
 
@@ -417,6 +420,15 @@ def _get_histogram(ds, **kwargs):
     debug = kwargs.get('debug', False)
 
     is_mc = (ds['project'] == 'mc15_13TeV')
+
+    original_selection = selection
+
+    is_srl, is_srh = False, False
+    if selection == regions_.SRL or selection == regions_.SRLichep:
+        is_srl = True
+    elif selection == regions_.SRH:
+        is_srh = True
+    
 
     #-----------
     # File/Chain
@@ -514,6 +526,9 @@ def _get_histogram(ds, **kwargs):
         else:
             selection = 'mcveto==0'
     
+    if int(version) >= 56:
+        selection = '%s && pass_g140==1' % selection
+
     # Hack to remove the weid jfake events
     # if 'jfake' in ds['name']:
     #     if selection:
@@ -578,6 +593,7 @@ def _get_histogram(ds, **kwargs):
         elif syst == 'FjgHigh':
             w_list.append('weight_fjg_up')
 
+
     if not scale:
         w_str = ''
     else:
@@ -627,6 +643,7 @@ def _get_histogram(ds, **kwargs):
 def get_histogram(name, **kwargs):
 
     variable   = kwargs.get('variable', 'cuts')
+    selection  = kwargs.get('selection', '')
     region     = kwargs.get('region', 'SR')
     syst       = kwargs.get('syst', 'Nom')
     rootfile   = kwargs.get('rootfile', None)
@@ -715,6 +732,13 @@ def get_histogram(name, **kwargs):
 
     hist.SetName(hname)
     hist.SetTitle(hname)
+
+    # Fix jfake in SRs
+    is_srl, is_srh = False, False
+    if selection == regions_.SRL or selection == regions_.SRLichep:
+        is_srl = True
+    elif selection == regions_.SRH:
+        is_srh = True
     
     return hist
 

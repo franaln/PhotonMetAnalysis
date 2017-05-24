@@ -105,7 +105,7 @@ def latexfitresults(filename, region_list, sample_list):
     tablenumbers['names'] = region_list
 
     # make a list of channelCat calls for every region
-    regionCatList = [ 'channelCat==channelCat::' + region.Data() for region in regionFullNameList]
+    regionCatList = [ 'channelCat==channelCat::' + region.Data() for region in regionFullNameList ]
   
     # retrieve number of observed (=data) events per region
     regionDatasetList = [data_set.reduce(regioncat) for regioncat in regionCatList]
@@ -480,9 +480,9 @@ def yieldstable(workspace, samples, channels, output_name, table_name, is_cr=Fal
         tablep.add_row(rowp)
         tablep.add_line()
 
-
     tablel.save_tex(output_name)
 
+    # save html
     with open(output_name.replace('.tex', '.html'), 'w+') as f:
         f.write(tablep.get_html_string())
 

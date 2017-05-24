@@ -27,7 +27,7 @@ labels_dict['diphoton']     = '#gamma#gamma/W#gamma#gamma/Z#gamma#gamma'
 labels_dict['others']       = 'Others'
 labels_dict['fakes']        = '#gamma fakes'
 
-mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}}'
+mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.6]{#lower[-0.6]{#scale[0.6]{0}}}}'
 
 # GGM Herwig++ grid 
 for (m3, mu), (mgl, mn1) in grid_m3_mu.iteritems():
@@ -48,14 +48,14 @@ for mu, mn1 in grid_mu.iteritems():
 for (m3, mu), (mgl, mn1) in mg_gg_grid.iteritems():
     name = 'GGM_GG_bhmix_%i_%i' % (m3, mu)
     
-    label = 'MG m_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
+    label = 'm_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
 
     labels_dict[name] = label
 
 for mu, mn1 in mg_cn_grid.iteritems():
     name = 'GGM_CN_bhmix_%i' % mu
     
-    label = 'MG %s=%i GeV' % (mn1_text, mn1)
+    label = '%s=%i GeV' % (mn1_text, mn1)
 
     labels_dict[name] = label
 
@@ -63,12 +63,12 @@ for mu, mn1 in mg_cn_grid.iteritems():
 # Colours
 colors_dict = dict()
 colors_dict['data']        = ROOT.kBlack
-colors_dict['photonjet']   = '#E24A33' # '#e34f38' #'#E24A33' #'#e55e49' 
-colors_dict['gamjet']      = '#e34f38' #'#E24A33' #'#e55e49' 
-colors_dict['wgamma']      = '#fcdd5d' #'#f7fab5'
+colors_dict['photonjet']   = '#e55e49'
+colors_dict['gamjet']      = '#e55e49'
+colors_dict['wgamma']      = '#fcdd5d'
 colors_dict['zllgamma']    = '#f7fab4'
 colors_dict['znunugamma']  = '#f7fab5'
-colors_dict['zgamma']      = '#b599cc'  #'#c485f8'
+colors_dict['zgamma']      = '#b599cc'
 colors_dict['tgamma']      = '#32b43c' 
 colors_dict['ttbarg']      = '#32b43c' 
 colors_dict['vgamma']      = '#f8f59b' 
@@ -79,7 +79,7 @@ colors_dict['wjets']       = '#BCBC93'
 colors_dict['zjets']       = '#36BDBD'
 colors_dict['vjets']       = '#a4cee6'
 colors_dict['ttbar']       = '#32b422'
-colors_dict['diphoton']    = '#ffa04d' ##'#e5ac49'
+colors_dict['diphoton']    = '#ffa04d'
 colors_dict['vgammagamma'] = '#e5ac49'
 colors_dict['others']      = '#676363'
 colors_dict['fakes']       = '#348ABD'
@@ -169,10 +169,11 @@ plots_conf['dphi_gamjet']  = PlotConf('#Delta#phi(#gamma, jet)', 'Events', 'top'
 plots_conf['dphi_gammet']  = PlotConf('#Delta#phi(#gamma, E_{T}^{miss})', 'Events', 'top', logy=True)
 plots_conf['avgmu']        = PlotConf('<#mu>', 'Events', 'right', logy=False)
 plots_conf['ht+met_et']    = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
-plots_conf['meff']         = PlotConf('m_{eff} [GeV]', 'Events / BIN GeV', 'right')
+plots_conf['meff']         = PlotConf('m_{eff} [GeV]', 'Events', 'right')
 plots_conf['ph_pt[0]+met_et'] = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['stgam']        = PlotConf('S_{T}^{#gamma} [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['mt']           = PlotConf('M_{T}', 'Events / BIN', 'right')
+plots_conf['mt_gam']       = PlotConf('M_{T}(#gamma,E_{T}^{miss})', 'Events / BIN', 'right')
 
 plots_conf['met_soft_et']  = PlotConf('E_{T}^{miss} Soft Term [GeV]', 'Events / BIN GeV', 'right')
 plots_conf['met_gam_et']   = PlotConf('E_{T}^{miss} Photon Term [GeV]', 'Events / BIN GeV', 'right')

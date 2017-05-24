@@ -23,7 +23,7 @@ bins['jet_phi'] = (34, -3.4, 3.4)
 
 ## met
 #bins['met_et']  = (32, 0, 800)
-bins['met_et']  = (0, 100, 200, 300, 400, 500, 800) #(10, 0., 1000.)
+bins['met_et']  = (0, 100, 200, 300, 400, 500, 800) 
 bins['met_phi'] = (17, -3.4, 3.4)
 bins['met_soft_et']  = (20, 0., 1000.)
 bins['met_soft_phi'] = (17, -3.4, 3.4)
@@ -44,7 +44,7 @@ bins['dphi'] = (17, 0., 3.4)
 ## others
 bins['ht0']             = (25, 0., 5000.)
 bins['ht']              = (25, 0., 5000.)
-bins['meff']            = (15, 0., 6000.)
+bins['meff']            = (12, 0., 6000.)
 bins['rt1']             = (22, 0., 1.1)
 bins['rt2']             = (22, 0., 1.1)
 bins['rt3']             = (22, 0., 1.1)
@@ -71,7 +71,7 @@ bins['ht+met_et-ph_pt'] = (60, 0, 6000.)
 bins['ht-ph_pt[0]'] = (25, 0, 5000.)
 
 bins['mt']  = (50, 0, 2500.)
-bins['mt_gam']  = (50, 0, 500.)
+bins['mt_gam']  = (60, 0, 1500.)
 bins['mt2'] = (50, 0, 15000.)
 bins['stgam'] = (25, 0, 5000.)
 
@@ -91,3 +91,6 @@ bins['met_et/meff']  = (20, 0., 1.)
 bins['met_et/ht']  = (40, 0., 2.)
 
 bins['photontype'] = (4, 0, 4)
+
+
+bins['m_jetjet'] = (16, 0, 400)
