@@ -100,7 +100,7 @@ def latexfitresults(filename, region_list, sample_list):
         sys.exit(1)
 
     # define set, for all names/yields to be saved in
-    tablenumbers = {}
+    tablenumbers = dict()
 
     tablenumbers['names'] = region_list
 
@@ -113,7 +113,7 @@ def latexfitresults(filename, region_list, sample_list):
         data.SetName("data_" + region_list[index])
         data.SetTitle("data_" + region_list[index])
     
-    nobs_regionList = [ data.sumEntries() for data in regionDatasetList]
+    nobs_regionList = [ data.sumEntries() for data in regionDatasetList ]
 
     tablenumbers['nobs'] = nobs_regionList
 
@@ -121,28 +121,21 @@ def latexfitresults(filename, region_list, sample_list):
     # FROM HERE ON OUT WE CALCULATE THE FITTED NUMBER OF EVENTS __AFTER__ THE FIT
     
     #get a list of pdf's and variables per region
-    pdfinRegionList = [ Util.GetRegionPdf(w, region)  for region in region_list]
-    varinRegionList =  [ Util.GetRegionVar(w, region) for region in region_list]
+    pdfinRegionList = [ Util.GetRegionPdf(w, region) for region in region_list]
+    varinRegionList = [ Util.GetRegionVar(w, region) for region in region_list]
   
-    # if splitBins=True get the list of Nbins, binMax and binMin; make a list of new region names for each bin
-    varNbinsInRegionList =  [] 
-    varBinLowInRegionList = []  
-    varBinHighInRegionList =  [] 
+    varNbinsInRegionList      = [] 
+    varBinLowInRegionList     = []  
+    varBinHighInRegionList    = [] 
     rangeNameBinsInRegionList = [] 
   
-    # if blinded=True, set all numbers of observed events to -1
-    # if blinded: 
-    #     for index, nobs in enumerate(nobs_regionListWithBins):
-    #         nobs_regionListWithBins[index] = -1
-    # tablenumbers['nobs'] = nobs_regionListWithBins
-
-
     #  get a list of RooRealSumPdf per region (RooRealSumPdf is the top-pdf per region containing all samples)
     rrspdfinRegionList = []
     for index, pdf in enumerate(pdfinRegionList):
         if not pdf:
             print "WARNING: pdf is NULL for index {0}".format(index)
             continue
+
         prodList = pdf.pdfList()
         foundRRS = 0
 
@@ -150,14 +143,14 @@ def latexfitresults(filename, region_list, sample_list):
             if prodList[idx].InheritsFrom("RooRealSumPdf"):
                 rrspdfInt =  prodList[idx].createIntegral(ROOT.RooArgSet(varinRegionList[index]))
                 rrspdfinRegionList.append(rrspdfInt)
-
                 foundRRS += 1
-        if foundRRS >1 or foundRRS==0:
+
+        if foundRRS > 1 or foundRRS == 0:
             print " \n\n WARNING: ", pdf.GetName(), " has ", foundRRS, " instances of RooRealSumPdf"
             print pdf.GetName(), " component list:", prodList.Print("v")
     
     # calculate total pdf number of fitted events and error
-    nFittedInRegionList =  [ pdf.getVal() for index, pdf in enumerate(rrspdfinRegionList)]
+    nFittedInRegionList      = [ pdf.getVal() for index, pdf in enumerate(rrspdfinRegionList)]
     pdfFittedErrInRegionList = [ Util.GetPropagatedError(pdf, resultAfterFit, True) for pdf in rrspdfinRegionList]
 
     tablenumbers['TOTAL_FITTED_bkg_events']        =  nFittedInRegionList
@@ -177,12 +170,13 @@ def latexfitresults(filename, region_list, sample_list):
             sampleInRegionVal = 0.
             sampleInRegionError = 0.
 
-            try: ##if sampleInRegion is not None:
+            try: 
                 sampleInRegionVal = sampleInRegion.getVal()
                 sampleInRegionError = Util.GetPropagatedError(sampleInRegion, resultAfterFit, True) 
                 sampleInAllRegions.add(sampleInRegion)
             except:
                 print " \n YieldsTable.py: WARNING: sample =", sampleName, " non-existent (empty) in region =", region, "\n"
+
             nSampleInRegionVal.append(sampleInRegionVal)
             nSampleInRegionError.append(sampleInRegionError)
       
@@ -218,7 +212,7 @@ def latexfitresults(filename, region_list, sample_list):
             continue
         prodList = pdf.pdfList()
         foundRRS = 0
-        for idx in range(prodList.getSize()):
+        for idx in xrange(prodList.getSize()):
             if prodList[idx].InheritsFrom("RooRealSumPdf"):
                 rrspdfInt =  prodList[idx].createIntegral(ROOT.RooArgSet(varinRegionList[index]))
                 rrspdfinRegionList.append(rrspdfInt)
@@ -232,7 +226,7 @@ def latexfitresults(filename, region_list, sample_list):
     nExpInRegionList =  [ pdf.getVal() for index, pdf in enumerate(rrspdfinRegionList)]
     pdfExpErrInRegionList = [ Util.GetPropagatedError(pdf, resultBeforeFit, True)  for pdf in rrspdfinRegionList]
   
-    tablenumbers['TOTAL_MC_EXP_BKG_events']    =  nExpInRegionList
+    tablenumbers['TOTAL_MC_EXP_BKG_events'] =  nExpInRegionList
     tablenumbers['TOTAL_MC_EXP_BKG_err']    =  pdfExpErrInRegionList
   
     # calculate the fitted number of events and propagated error for each requested sample, by splitting off each sample pdf
@@ -260,7 +254,7 @@ def latexfitresults(filename, region_list, sample_list):
             nMCSampleInRegionError.append(MCSampleInRegionError)
 
         tablenumbers['MC_exp_events_'+sampleName] = nMCSampleInRegionVal
-        tablenumbers['MC_exp_err_'+sampleName] = nMCSampleInRegionError
+        tablenumbers['MC_exp_err_'+sampleName]    = nMCSampleInRegionError
 
     # sort the tablenumbers set
     map_listofkeys = tablenumbers.keys()
@@ -275,12 +269,10 @@ def yieldstable(workspace, samples, channels, output_name, table_name, is_cr=Fal
         show_before_fit=True
         normalization_factors = get_normalization_factors(workspace)
 
-    #sample_str = samples.replace(",","_")
     from cmdLineUtils import cmdStringToListOfLists
     samples_list = cmdStringToListOfLists(samples)
 
     regions_list = [ '%s_cuts' % r for r in channels.split(",") ]
-    #samples_list = samples.split(",")
 
     # call the function to calculate the numbers, or take numbers from pickle file  
     if workspace.endswith(".pickle"):

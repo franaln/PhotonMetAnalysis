@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 import os
 import sys
 import ROOT
@@ -42,10 +44,9 @@ with open(text_file_path, 'w+') as f:
         val = obj.GetBinContent(1)
         err = obj.GetBinError(1)
 
-        lout = '{0: <100}          {1:.2f}  {2:.2f}\n'.format(name, val, err)
+        lout = '{0: <80}          {1:.6f}  {2:.6f}\n'.format(name, val, err)
 
         f.write(lout)
-        # f.write('%50s          %.4f          %.2f\n' % (name, val, err))
 
 
 fin.Close()
