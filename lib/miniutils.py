@@ -98,9 +98,19 @@ def num(s):
     except ValueError:
         return float(s)
 
+
+# def _split_selection(selection):
+#     # s = s.strip()
+#     # if s.startswith('(') and s.endswith(')'):
+#     #     s = s[1:-1]
+
+#     for i, s in enumerate(selection):
+#         if '&' and selection[s+1] == '&&':
+
 def split_selection(s):
+
     selection = []
-    
+
     for cut in s.split('&&'):
         cut = cut.strip()
         if cut.startswith('(') and cut.endswith(')'):
@@ -424,7 +434,7 @@ def _get_histogram(ds, **kwargs):
     original_selection = selection
 
     is_srl, is_srh = False, False
-    if selection == regions_.SRL or selection == regions_.SRLichep:
+    if selection == regions_.SRL200 or selection == regions_.SRL300:
         is_srl = True
     elif selection == regions_.SRH:
         is_srh = True
@@ -462,7 +472,7 @@ def _get_histogram(ds, **kwargs):
         else:
             htemp = ROOT.TH1D(hname, hname, *binning)
         htemp.Sumw2()
-        # htemp.SetBinErrorOption(ROOT.TH1.kPoisson)
+        htemp.SetBinErrorOption(ROOT.TH1.kPoisson)
 
     # Variable
     if ':' in variable and '::' not in variable:
@@ -526,15 +536,11 @@ def _get_histogram(ds, **kwargs):
         else:
             selection = 'mcveto==0'
     
-    if int(version) >= 56:
-        selection = '%s && pass_g140==1' % selection
-
-    # Hack to remove the weid jfake events
-    # if 'jfake' in ds['name']:
-    #     if selection:
-    #         selection += '&& meff<4000'
-    #     else:
-    #         selection = 'meff<4000'
+    try:
+        if int(version) >= 56:
+            selection = '%s && pass_g140==1' % selection
+    except:
+        pass
 
     # change selection and variable for systematics
     if syst != 'Nom' and systematics_.affects_kinematics(syst):
@@ -735,7 +741,7 @@ def get_histogram(name, **kwargs):
 
     # Fix jfake in SRs
     is_srl, is_srh = False, False
-    if selection == regions_.SRL or selection == regions_.SRLichep:
+    if selection == regions_.SRL200 or selection == regions_.SRL300:
         is_srl = True
     elif selection == regions_.SRH:
         is_srh = True
@@ -846,30 +852,26 @@ def get_cutflow(sample, selection='', scale=True, lumi=None, preselection=False,
 
 
 ## Multi
-def _get_histograms(ds, **kwargs):
+def _get_multi_events(ds, **kwargs):
 
-    variables   = kwargs.get('variable', ['cuts',])
+    """
+    get number of events for a given sample (ds)
+    and some regions/selections and a number of systematics variations
+    """
+
     regions     = kwargs.get('regions', ['SR', ])
     selections  = kwargs.get('selections', ['',])
     systematics = kwargs.get('systematics', ['Nom',])
     scale      = kwargs.get('scale', True)
-    truth      = kwargs.get('truth', False)
     lumi_str   = kwargs.get('lumi', None)
-    binning    = kwargs.get('binning', None)
     version    = kwargs.get('version', None)
     fs         = kwargs.get('fs', None)
-    year       = kwargs.get('year', None)
-
-    do_remove_var = kwargs.get('remove_var', False)
-    do_revert_cut = kwargs.get('revert_cut', False)
 
     use_lumiw   = kwargs.get('use_lumiw',   True)
     use_sfw     = kwargs.get('use_sfw',     True)
     use_mcw     = kwargs.get('use_mcw',     True)
     use_purw    = kwargs.get('use_purw',    True) #False) 
     use_mcveto  = kwargs.get('use_mcveto',  True)
-
-    debug = kwargs.get('debug', False)
 
     is_mc = (ds['project'] == 'mc15_13TeV')
 
@@ -889,175 +891,104 @@ def _get_histograms(ds, **kwargs):
     #---------------------------------------------
     draw_list = []
     histograms = []
-    for _variable in variables:
-        for region, _selection in zip(regions, selections):
-            
-            for syst in systematics:
-                variable = _variable
-                selection = _selection
-                systname = syst
-    
-                if binning is None:
-                    binning = get_binning(variable)
 
-                if fs is not None:
-                    hname = 'h%s_%s%s_%s_obs_%s' % (ds['did'], fs, systname, region, get_escaped_variable(variable))
+    variable = 'cuts'
+    binning = (1, 0.5, 1.5)
+
+    for region, selection_ in zip(regions, selections):
+        for syst in systematics:
+            selection = selection_
+            systname = syst
+
+            # name to avoid the ROOT warning, not used
+            if fs is not None:
+                hname = 'h%s_%s%s_%s_obs_cuts' % (ds['did'], fs, systname, region)
+            else:
+                hname = 'h%s%s_%s_obs_cuts' % (ds['did'], systname, region)
+
+            htemp = ROOT.TH1D(hname, hname, *binning)
+            htemp.Sumw2()
+
+            # Selection
+            if is_mc and fs is not None:
+                if selection:
+                    selection = selection + ' && fs==%s' % fs
                 else:
-                    # to avoid the ROOT warning, not using this name anyway
-                    hname = 'h%s%s_%s_obs_%s' % (ds['did'], systname, region, get_escaped_variable(variable))
+                    selection = 'fs==%s' % fs
 
-                if len(binning) > 3:
-                    htemp = ROOT.TH1D(hname, hname, len(binning)-1, array('d', binning))
+            if is_mc and use_mcveto:
+                if selection:
+                    selection = '%s && mcveto==0' % selection
                 else:
-                    htemp = ROOT.TH1D(hname, hname, *binning)
-                htemp.Sumw2()
+                    selection = 'mcveto==0'
 
-                # Variable
-                variable = variable_aliases.get(variable, variable) # check if alias
+            # change selection and variable for systematics
+            if syst != 'Nom' and systematics_.affects_kinematics(syst):
+                for var in systematics_.get_affected_variables(syst):
+                    selection = replace_var(selection, var, '%s_%s' % (var, syst))
+                    
+            # Weights
+            w_list = []
+            if is_mc:
+                # lumi weight
+                if use_lumiw:
+                    w_list.append('%s' % lumi_weight)
 
-                #-----------
-                # Selection
-                #-----------
-                # # reverse variable cut to blind region
-                # if do_revert_cut and variable in selection and not variable == 'cuts':
-                #     new_cuts = []
+                # mc weight
+                if use_mcw:
+                    w_list.append('weight_mc')
 
-                #     for cut in selection.split('&&'):
-                #         if split_cut(cut)[0] == variable:
-                #             new_cuts.append(revert_cut(cut))
-                #         else:
-                #             new_cuts.append(cut)
-
-                #     selection = '&&'.join(new_cuts)
-
-                # elif do_revert_cut and variable not in selection and variable != 'cuts':
-                #     return None
-
-                # # remove variable from selection if n-1
-                # elif do_remove_var and variable in selection and not variable == 'cuts':
-                #     selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
-    
-                # if do_remove_var and (':' in variable):
-                #     if varx in selection:
-                #         selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == varx ])
-                #     if vary in selection:
-                #         selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == vary ])
-
-                # # check aliases: FIX for complex selection
-                # if selection and '(' not in selection:
-                #     cuts = selection.split('&&')
-                #     for cut in cuts:
-                #         vcut = split_cut(cut)[0]
-                #         if vcut in variable_aliases:
-                #             selection = selection.replace(vcut, variable_aliases.get(vcut, vcut))
-
-                # if is_mc and fs is not None:
-                #     if selection:
-                #         selection = selection + ' && fs==%s' % fs
-                #     else:
-                #         selection = 'fs==%s' % fs
-
-                # if year is not None:
-                #     if selection:
-                #         selection = selection + ' && year==%s' % year
-                #     else:
-                #         selection = 'year==%s' % year
-    
-                if is_mc and use_mcveto:
-                    if selection:
-                        selection = '%s && mcveto==0' % selection
+                # scale factors (btag SF is already included (?))
+                if use_sfw:
+                    if syst != 'Nom' and systematics_.affects_weight(syst) and not 'PRW_DATASF' in syst:
+                        w_list.append('weight_sf_%s' % syst)
                     else:
-                        selection = 'mcveto==0'
+                        w_list.append('weight_sf')
 
-                # # Hack to remove the weid jfake events
-                # if 'jfake' in ds['name']:
-                #     if selection:
-                #         selection += '&& meff<4000'
-                #     else:
-                #         selection = 'meff<4000'
+                # pile-up
+                if use_purw:
+                    if 'PRW_DATASF__1down' == syst:
+                        w_list.append('weight_pu_down')
+                    elif 'PRW_DATASF__1up' == syst:
+                        w_list.append('weight_pu_up')
+                    else:
+                        w_list.append('weight_pu')
 
-                # change selection and variable for systematics
-                if syst != 'Nom' and systematics_.affects_kinematics(syst):
-                    for var in systematics_.get_affected_variables(syst):
-                        selection = replace_var(selection, var, '%s_%s' % (var, syst))
+            elif 'efake' in ds['name']:
+                if syst == 'Nom':
+                    w_list.append('weight_feg')
+                elif syst == 'EFAKE_SYST__1down':
+                    w_list.append('weight_feg_dn')
+                elif syst == 'EFAKE_SYST__1up':
+                    w_list.append('weight_feg_up')
+
+            elif 'jfake' in ds['name']:
+                if syst == 'Nom':
+                    w_list.append('weight_fjg')
+                elif syst == 'JFAKE_SYST__1down':
+                    w_list.append('weight_fjg_dn')
+                elif syst == 'JFAKE_SYST__1up':
+                    w_list.append('weight_fjg_up')
+
+            if not scale:
+                w_str = ''
+            else:
+                w_str = '*'.join(w_list)
+
+            # Create histogram
+            varexp = ''
+            if selection and w_str:
+                varexp = '(%s)*(%s)' % (selection, w_str)
+            elif selection:
+                varexp = selection
+            elif scale:
+                varexp = w_str
+
+            histograms.append(htemp)
+            draw_list.append((hname, '1', varexp))
             
-                if variable in systematics_.get_affected_variables(syst):
-                    variable = variable.replace(var, '%s_%s' % (var, syst))
-        
 
-                #---------
-                # Weights
-                #---------
-                w_list = []
-                if is_mc:
-                    # lumi weight
-                    if use_lumiw:
-                        w_list.append('%s' % lumi_weight)
-
-                    # mc weight
-                    if use_mcw:
-                        w_list.append('weight_mc')
-
-                    # scale factors (btag SF is already included (?))
-                    if use_sfw:
-                        if syst != 'Nom' and systematics_.affects_weight(syst) and not 'PRW_DATASF' in syst:
-                            w_list.append('weight_sf_%s' % syst)
-                        else:
-                            w_list.append('weight_sf')
-
-                    # pile-up
-                    if use_purw:
-                        if 'PRW_DATASF__1down' == syst:
-                            w_list.append('weight_pu_down')
-                        elif 'PRW_DATASF__1up' == syst:
-                            w_list.append('weight_pu_up')
-                        else:
-                            w_list.append('weight_pu')
-
-                elif 'efake' in ds['name']:
-                    if syst == 'Nom':
-                        w_list.append('weight_feg')
-                    elif syst == 'FegLow':
-                        w_list.append('weight_feg_dn')
-                    elif syst == 'FegHigh':
-                        w_list.append('weight_feg_up')
-
-                elif 'jfake' in ds['name']:
-                    if syst == 'Nom':
-                        w_list.append('weight_fjg')
-                    elif syst == 'FjgLow':
-                        w_list.append('weight_fjg_dn')
-                    elif syst == 'FjgHigh':
-                        w_list.append('weight_fjg_up')
-
-                if not scale:
-                    w_str = ''
-                else:
-                    w_str = '*'.join(w_list)
-
-                #-----------------
-                # Create histogram
-                #-----------------
-                varexp = ''
-                if selection and w_str:
-                    varexp = '(%s)*(%s)' % (selection, w_str)
-                elif selection:
-                    varexp = selection
-                elif scale:
-                    varexp = w_str
-
-                if debug:
-                    print 'DEBUG (get_histogram):', hname, variable, varexp
-
-                histograms.append(htemp)
-
-                if variable == 'cuts':
-                    draw_list.append((hname, '1', varexp))
-                else:
-                    draw_list.append((hname, variable, varexp))
-
-
-    # Project all
+    # Use MutiDraw to project all histograms
     tree.MultiDraw(*draw_list)
 
     for hist in histograms:
@@ -1068,14 +999,17 @@ def _get_histograms(ds, **kwargs):
     return histograms
 
 
-def get_histograms(name, **kwargs):
+def get_multi_events(name, **kwargs):
 
-    variables   = kwargs.get('variables', ['cuts',])
+    """
+    get number of events for a given sample (name)
+    and some regions/selections and a number of systematics variations
+    """
+
     regions     = kwargs.get('regions', ['SR',])
     selections  = kwargs.get('selections', ['',])
-    systematics       = kwargs.get('systematics', ['Nom',])
+    systematics = kwargs.get('systematics', ['Nom',])
 
-    rootfile   = kwargs.get('rootfile', None)
     ptag       = kwargs.get('ptag', None)
     version    = kwargs.get('version', None)
 
@@ -1084,15 +1018,11 @@ def get_histograms(name, **kwargs):
     # from name
     datasets = get_sample_datasets(name, version, ptag)
 
-    if datasets is None:
-        return _get_histogram(ds, **kwargs)
-
-
     histograms = []
                                  
     for ds in datasets:
 
-        hists = _get_histograms(ds, **kwargs)
+        hists = _get_multi_events(ds, **kwargs)
 
         if not histograms:
             for h in hists:
@@ -1102,34 +1032,29 @@ def get_histograms(name, **kwargs):
                 hall.Add(hnew, 1)
 
     # fix histograms names
-    hdict = dict()
+    hlist = []
     hidx = 0
-    for variable in variables:
-        for region, selection in zip(regions, selections):
-            for syst in systematics:
+    for region, selection in zip(regions, selections):
+        for syst in systematics:
                 
-                if name.startswith('data'):
-                    hname = 'h%s_%s_obs_%s' % (name, region, variable.replace(':', '_'))
-                else:
-                    if syst != 'Nom':
-                        syst = syst.replace('Up', 'High').replace('Down', 'Low')
-                        syst = syst.replace('__1up', 'High').replace('__1down', 'Low')
+            # histogram name (should be unique!)
+            if name.startswith('data'):
+                hname = 'h%s_%s_obs_cuts' % (name, region)
+            else:
+                if syst != 'Nom':
+                    syst = syst.replace('Up', 'High').replace('Down', 'Low')
+                    syst = syst.replace('__1up', 'High').replace('__1down', 'Low')
+                    
+                hname = 'h%s%s_%s_obs_cuts' % (name, syst, region)
 
-                    hname = 'h%s%s_%s_obs_%s' % (name, syst, region, variable.replace(':', '_'))
+            hist = histograms[hidx].Clone()
 
-                histograms[hidx].SetName(hname)
-                histograms[hidx].SetTitle(hname)
+            error = ROOT.Double(0.0)
+            integral = hist.IntegralAndError(1, hist.GetNbinsX()+1, error)
+               
+            hlist.append( (hname, integral, error) )
+            
+            hidx += 1
 
-                # hist = histograms[hidx].Clone()
-                # if variable == 'cuts':
-                #     error = ROOT.Double(0.0)
-                #     integral = histograms[hidx].IntegralAndError(1, hist.GetNbinsX()+1, error)
-                
-                #     hist.SetBinContent(1, integral)
-                #     hist.SetBinError(1, error)
-                
-                hdict[hname] = histograms[hidx]
 
-                hidx += 1
-
-    return hdict
+    return hlist

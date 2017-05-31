@@ -49,7 +49,7 @@ userArg = [ i.replace('"', '') for i in configMgr.userArg.split() ]
 args = parser.parse_args(userArg)
 print "Parsed user args %s" % str(args)
 
-hist_file  = args.hist_file 
+hist_file     = args.hist_file 
 signal_region = args.signal_region
 do_validation = args.val 
 use_mc_bkgs   = args.mc 
@@ -67,11 +67,11 @@ do_signal_theory_unc = args.sigxs
 variable = 'cuts'
 binning  = (1, 0.5, 1.5) 
 
-configMgr.writeXML = False  #for debugging
+configMgr.writeXML = True  #for debugging
 
 #--- Flags to control which fit is executed
 useStat = True
-configMgr.blindSR = False #True
+configMgr.blindSR = True
 configMgr.blindCR = False
 configMgr.blindVR = False
 configMgr.useSignalInBlindedData = False
@@ -137,10 +137,7 @@ regions = [
     'VRM1L', 'VRM2L', 'VRM3L', 
     'VRM1H', 'VRM2H', 'VRM3H', 
     
-    'VRL1', 'VRL2', 'VRL3', 'VRL4', 'VRZ',
-    'VRLW1', 'VRLT1', 'VRLW3', 'VRLT3',
-
-    'VRE',
+    'VRL1', 'VRL2', 'VRL3', 'VRL4', 'VRE',
     ]
 
 regions += srs
@@ -203,11 +200,16 @@ else: # should be 'data'
     efake_sample = Sample("efake", color("efake"))
     jfake_sample = Sample("jfake", color("jfake"))
 
+# efake_sample.setNormFactor("mu_efake", 1., 0., 10.)
+# jfake_sample.setNormFactor("mu_jfake", 1., 0., 10.)
+
+
 # Data
 data_sample = Sample(data_name, ROOT.kBlack)
 data_sample.setData()
 
 # stat uncertainty
+data_sample.setStatConfig(useStat)
 wjets_sample.setStatConfig(useStat)
 zjets_sample.setStatConfig(useStat)
 wgamma_sample.setStatConfig(useStat)
@@ -219,6 +221,9 @@ photonjet_sample.setStatConfig(useStat)
 multijet_sample.setStatConfig(useStat)
 diphoton_sample.setStatConfig(useStat)
 vqqgamma_sample.setStatConfig(useStat)
+
+efake_sample.setStatConfig(False)
+jfake_sample.setStatConfig(False)
 
 if use_mc_bkgs:
     bkg_samples = [
@@ -252,15 +257,15 @@ data_samples = [data_sample,]
 # ------------
 configMgr.nomName = 'Nom'
 
-def Sys(name='', kind='overallSys'):
+def HistSys(name='', kind='overallSys'):
     return Systematic(name, nom_name, '_'+name+'Up', '_'+name+'Down', 'tree', kind)
 
 # Detector uncertainties
 syst_jets = [
-    Sys('JET_EtaIntercalibration_NonClosure'),
-    Sys('JET_GroupedNP_1'),
-    Sys('JET_GroupedNP_2'),
-    Sys('JET_GroupedNP_3'),
+    HistSys('JET_EtaIntercalibration_NonClosure'),
+    HistSys('JET_GroupedNP_1'),
+    HistSys('JET_GroupedNP_2'),
+    HistSys('JET_GroupedNP_3'),
 
     # Sys('JET_Rtrk_Baseline_Kin'),
     # Sys('JET_Rtrk_Baseline_Sub'),
@@ -271,7 +276,7 @@ syst_jets = [
     # Sys('JET_Rtrk_Tracking_Kin'),
     # Sys('JET_Rtrk_Tracking_Sub'),
 
-    Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NP__1up', '', 'tree', 'histoSysOneSide'),
+    Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NPUp', '', 'tree', 'histoSysOneSide'),
 ]
 
 syst_btagging = []
@@ -279,54 +284,87 @@ syst_btagging = []
 syst_met = [
     Systematic('MET_SoftTrk_ResoPara', nom_name, '_MET_SoftTrk_ResoParaUp', '', 'tree', 'histoSysOneSide'),
     Systematic('MET_SoftTrk_ResoPerp', nom_name, '_MET_SoftTrk_ResoPerpUp', '', 'tree', 'histoSysOneSide'),
-    Systematic('MET_SoftTrk_Scale', nom_name, '_MET_SoftTrk_ScaleUp', '_MET_SoftTrk_ScaleDown', 'tree', 'overallSys'),
+    Systematic('MET_SoftTrk_Scale',    nom_name, '_MET_SoftTrk_ScaleUp', '_MET_SoftTrk_ScaleDown', 'tree', 'overallSys'),
 ]
 
 syst_egamma = [
-    Sys("EG_RESOLUTION_ALL"),
-    Sys("EG_SCALE_ALL"),
-    Sys('PH_Iso_DDonoff'),
+    HistSys("EG_RESOLUTION_ALL"),
+    HistSys("EG_SCALE_ALL"),
+    Systematic('PH_Iso_DDonoff', nom_name, '_PH_Iso_DDonoff', '', 'tree', 'histoSysOneSide'),
 ]
 
 syst_muon = [
-    Sys("MUON_SCALE"),
-    Sys("MUON_MS"),
-    Sys("MUON_ID"),
-    Sys("MUON_SAGITTA_RESBIAS"),
-    Sys("MUON_SAGITTA_RHO"),
+    HistSys("MUON_SCALE"),
+    HistSys("MUON_MS"),
+    HistSys("MUON_ID"),
+    HistSys("MUON_SAGITTA_RESBIAS"),
+    HistSys("MUON_SAGITTA_RHO"),
 ]
 
-# Fake photon backgrounds
-syst_feg = Systematic('Feg', nom_name, '_FegUp', '_FegDown', 'tree', 'overallSys')
-syst_fjg = Systematic('Fjg', nom_name, '_FjgUp', '_FjgDown', 'tree', 'overallSys')
-
 syst_weight = [
-    Sys('PH_EFF_ID_Uncertainty'),
-    Sys('JET_JvtEfficiency'),
-    Sys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
-    Sys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
-    Sys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
-    Sys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
-    Sys('MUON_EFF_STAT'),
-    Sys('MUON_EFF_SYS'),
-    Sys('MUON_ISO_STAT'),
-    Sys('MUON_ISO_SYS'),
-    Sys('MUON_BADMUON_STAT'),
-    Sys('MUON_BADMUON_SYS'),
-    Sys('MUON_TTVA_STAT'),
-    Sys('MUON_TTVA_SYS'),
-    Sys('PRW_DATASF'),
+    HistSys('PH_EFF_ID_Uncertainty'),
+    HistSys('JET_JvtEfficiency'),
+    HistSys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('MUON_EFF_STAT'),
+    HistSys('MUON_EFF_SYS'),
+    HistSys('MUON_ISO_STAT'),
+    HistSys('MUON_ISO_SYS'),
+    # HistSys('MUON_BADMUON_STAT'),
+    # HistSys('MUON_BADMUON_SYS'),
+    HistSys('MUON_TTVA_STAT'),
+    HistSys('MUON_TTVA_SYS'),
+    HistSys('PRW_DATASF'),
 
-    #Sys('EL_EFF_ChargeIDSel_TOTAL_1NPCOR_PLUS_UNCOR'),
-    #Sys('EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR'),
-    #Sys('MUON_EFF_STAT_LOWPT'),
-    #Sys('MUON_EFF_SYS_LOWPT'),
-    #Sys('MUON_EFF_TrigStatUncertainty'),
-    #Sys('MUON_EFF_TrigSystUncertainty'),
-    #Sys('PH_EFF_LOWPTISO_Uncertainty'),
+    #HistSys('EL_EFF_ChargeIDSel_TOTAL_1NPCOR_PLUS_UNCOR'),
+    #HistSys('EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR'),
+    #HistSys('MUON_EFF_STAT_LOWPT'),
+    #HistSys('MUON_EFF_SYS_LOWPT'),
+    #HistSys('MUON_EFF_TrigStatUncertainty'),
+    #HistSys('MUON_EFF_TrigHistSystUncertainty'),
+    #HistSys('PH_EFF_LOWPTISO_Uncertainty'),
 ]
 
 syst_to_all = syst_jets +syst_met + syst_egamma + syst_muon + syst_weight
+
+# Fake photon backgrounds
+## e->g
+syst_feg      = HistSys('EFAKE_SYST')
+syst_stat_feg = HistSys('EFAKE_STAT')
+
+# sigma_stat_feg_crq = 0.1609
+# sigma_stat_feg_crw = 0.0424
+# sigma_stat_feg_crt = 0.0244
+
+# sigma_stat_feg_srl200 = 0.3125
+# sigma_stat_feg_srl300 = 0.4286
+# sigma_stat_feg_srh    = 1.
+
+# syst_stat_feg_crq = Systematic('FegStat', 1., 1-sigma_stat_feg_crq, 1+sigma_stat_feg_crq, 'user', 'userOverallSys')
+# syst_stat_feg_crw = Systematic('FegStat', 1., 1-sigma_stat_feg_crw, 1+sigma_stat_feg_crw, 'user', 'userOverallSys')
+# syst_stat_feg_crt = Systematic('FegStat', 1., 1-sigma_stat_feg_crt, 1+sigma_stat_feg_crt, 'user', 'userOverallSys')
+
+# syst_stat_feg_srl200 = Systematic('FegStat', 1., 1-sigma_stat_feg_srl200, 1+sigma_stat_feg_srl200, 'user', 'userOverallSys')
+# syst_stat_feg_srl300 = Systematic('FegStat', 1., 1-sigma_stat_feg_srl300, 1+sigma_stat_feg_srl300, 'user', 'userOverallSys')
+# syst_stat_feg_srh    = Systematic('FegStat', 1., 1-sigma_stat_feg_srh,    1+sigma_stat_feg_srh,    'user', 'userOverallSys')
+
+## j->g
+syst_fjg      = HistSys('JFAKE_SYST')
+syst_stat_fjg = HistSys('JFAKE_STAT')
+
+# sigma_stat_fjg_crq = 0.2684
+# sigma_stat_fjg_crw = 0.1222
+# sigma_stat_fjg_crt = 0.1699
+
+# syst_stat_fjg_crq = Systematic('FjgStat', 1., 1-sigma_stat_fjg_crq, 1+sigma_stat_fjg_crq, 'user', 'userOverallSys')
+# syst_stat_fjg_crw = Systematic('FjgStat', 1., 1-sigma_stat_fjg_crw, 1+sigma_stat_fjg_crw, 'user', 'userOverallSys')
+# syst_stat_fjg_crt = Systematic('FjgStat', 1., 1-sigma_stat_fjg_crt, 1+sigma_stat_fjg_crt, 'user', 'userOverallSys')
+
+# syst_stat_fjg_srl200 = Systematic('FjgStat', 1., 0.001, 2.,     'user', 'userOverallSys')
+# syst_stat_fjg_srl300 = Systematic('FjgStat', 1., 0.001, 6.2857, 'user', 'userOverallSys')
+# syst_stat_fjg_srh    = Systematic('FjgStat', 1., 0.001, 50.,    'user', 'userOverallSys')
 
 # Theory Uncertainties
 ## Zgamma
@@ -347,7 +385,7 @@ syst_zgamma_theo_vrl = Systematic("theoSysZG", 1, 1+sigma_zgamma_vrl, 1-sigma_zg
 syst_zgamma_theo_vrz = Systematic("theoSysZG", 1, 1+sigma_zgamma_vrz, 1-sigma_zgamma_vrz, "user", "userOverallSys")
 
 ## gamjet
-sigma_gamjet_all = 0.29 #0.57
+sigma_gamjet_all = 0.29 
 
 syst_gamjet_theo_all  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_all, 1-sigma_gamjet_all, "user", "userOverallSys")
 
@@ -368,22 +406,22 @@ syst_wgamma_theo_crt = Systematic("theoSysWG", 1, 1+sigma_wgamma_crt, 1-sigma_wg
 syst_wgamma_theo_vrl = Systematic("theoSysWG", 1, 1+sigma_wgamma_vrl, 1-sigma_wgamma_vrl, "user", "userOverallSys")
 
 ## ttgamma
-sigma_ttgamma_srl = 0.2839
-sigma_ttgamma_srh = 0.3305
-sigma_ttgamma_crq = 0.2134
-sigma_ttgamma_crw = 0.1317
-sigma_ttgamma_crt = 0.0987
-sigma_ttgamma_vrl = 0.19
+sigma_tgamma_srl = 0.2839
+sigma_tgamma_srh = 0.3305
+sigma_tgamma_crq = 0.2134
+sigma_tgamma_crw = 0.1317
+sigma_tgamma_crt = 0.0987
+sigma_tgamma_vrl = 0.19
 
-syst_ttgamma_theo_srl = Systematic("theoSysTG", 1, 1+sigma_ttgamma_srl, 1-sigma_ttgamma_srl, "user", "userOverallSys")
-syst_ttgamma_theo_srh = Systematic("theoSysTG", 1, 1+sigma_ttgamma_srh, 1-sigma_ttgamma_srh, "user", "userOverallSys")
-syst_ttgamma_theo_crq = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crq, 1-sigma_ttgamma_crq, "user", "userOverallSys")
-syst_ttgamma_theo_crw = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crw, 1-sigma_ttgamma_crw, "user", "userOverallSys")
-syst_ttgamma_theo_crt = Systematic("theoSysTG", 1, 1+sigma_ttgamma_crt, 1-sigma_ttgamma_crt, "user", "userOverallSys")
-syst_ttgamma_theo_vrl = Systematic("theoSysTG", 1, 1+sigma_ttgamma_vrl, 1-sigma_ttgamma_vrl, "user", "userOverallSys")
+syst_tgamma_theo_srl = Systematic("theoSysTG", 1, 1+sigma_tgamma_srl, 1-sigma_tgamma_srl, "user", "userOverallSys")
+syst_tgamma_theo_srh = Systematic("theoSysTG", 1, 1+sigma_tgamma_srh, 1-sigma_tgamma_srh, "user", "userOverallSys")
+syst_tgamma_theo_crq = Systematic("theoSysTG", 1, 1+sigma_tgamma_crq, 1-sigma_tgamma_crq, "user", "userOverallSys")
+syst_tgamma_theo_crw = Systematic("theoSysTG", 1, 1+sigma_tgamma_crw, 1-sigma_tgamma_crw, "user", "userOverallSys")
+syst_tgamma_theo_crt = Systematic("theoSysTG", 1, 1+sigma_tgamma_crt, 1-sigma_tgamma_crt, "user", "userOverallSys")
+syst_tgamma_theo_vrl = Systematic("theoSysTG", 1, 1+sigma_tgamma_vrl, 1-sigma_tgamma_vrl, "user", "userOverallSys")
 
 ## signal
-sigXsec      = Sys('SigXSec')
+sigXsec = HistSys('SigXSec')
 
 
 # Add Sample Specific Systematics (apparently it's needed to add these systs to the samples *BEFORE* adding them to the FitConfig
@@ -399,6 +437,9 @@ if do_detector_syst:
 if do_dd_syst:
     efake_sample.addSystematic(syst_feg)
     jfake_sample.addSystematic(syst_fjg)
+
+    efake_sample.addSystematic(syst_stat_feg)
+    jfake_sample.addSystematic(syst_stat_fjg)
 
 if do_mc_syst:
     photonjet_sample.addSystematic(syst_gamjet_theo_all)
@@ -440,10 +481,6 @@ measLumiError = 0.032 # Moriond: 3.2% (3.% for 2016 and 2.1% for 2015)
 
 meas = fitconfig.addMeasurement(measName, measLumi, measLumiError)
 
-if useStat:
-    fitconfig.statErrThreshold = 0.05 #low stat error now (as in 2L-paper13)
-else:
-    fitconfig.statErrThreshold = None
 
 meas.addPOI('mu_SIG')
 meas.addParamSetting('Lumi', True)
@@ -451,7 +488,6 @@ meas.addParamSetting('Lumi', True)
 constraint_channels = []
 validation_channels = []
 signal_channels     = []
-
 
 # ---------------
 # Signal regions 
@@ -463,8 +499,7 @@ if myFitType != FitType.Background and len(srs) > 1:
 
 # create SR channel and add them to signal_channels
 for sr in srs:
-    SR = fitconfig.addChannel(variable, [sr], *binning)
-    signal_channels.append(SR)
+    signal_channels.append(fitconfig.addChannel(variable, [sr], *binning))
 
 # -----------------
 #  Control regions 
@@ -506,23 +541,11 @@ if do_validation:
     VRL2  = fitconfig.addChannel(variable, ['VRL2'], *binning)
     VRL3  = fitconfig.addChannel(variable, ['VRL3'], *binning)
     VRL4  = fitconfig.addChannel(variable, ['VRL4'], *binning)
-    VRZ   = fitconfig.addChannel(variable, ['VRZ'], *binning)
-
-    VRLW1  = fitconfig.addChannel(variable, ['VRLW1'], *binning)
-    VRLT1  = fitconfig.addChannel(variable, ['VRLT1'], *binning)
-    VRLW3  = fitconfig.addChannel(variable, ['VRLW3'], *binning)
-    VRLT3  = fitconfig.addChannel(variable, ['VRLT3'], *binning)
 
     validation_channels.append(VRL1)
     validation_channels.append(VRL2)
     validation_channels.append(VRL3)
     validation_channels.append(VRL4)
-    validation_channels.append(VRZ)
-
-    validation_channels.append(VRLW1)
-    validation_channels.append(VRLT1)
-    validation_channels.append(VRLW3)
-    validation_channels.append(VRLT3)
 
     VRE  = fitconfig.addChannel(variable, ['VRE'], *binning)
     validation_channels.append(VRE)
@@ -536,11 +559,11 @@ if do_mc_syst:
     for sc in signal_channels:
         if 'SRL' in sc.name:
             wg_syst  = syst_wgamma_theo_srl
-            tg_syst  = syst_ttgamma_theo_srl
+            tg_syst  = syst_tgamma_theo_srl
             zg_syst  = syst_zgamma_theo_srl
         elif 'SRH' in sc.name:
             wg_syst  = syst_wgamma_theo_srh
-            tg_syst  = syst_ttgamma_theo_srh
+            tg_syst  = syst_tgamma_theo_srh
             zg_syst  = syst_zgamma_theo_srh
 
         sc.getSample('wgamma')     .addSystematic(wg_syst)
@@ -548,15 +571,24 @@ if do_mc_syst:
         sc.getSample('zllgamma')   .addSystematic(zg_syst)
         sc.getSample('znunugamma') .addSystematic(zg_syst)
 
+        # if 'SRL200' in sc.name:
+        #     sc.getSample('efake').addSystematic(syst_stat_feg_srl200)
+        #     sc.getSample('jfake').addSystematic(syst_stat_fjg_srl200)
+        # elif 'SRL300' in sc.name:
+        #     sc.getSample('efake').addSystematic(syst_stat_feg_srl300)
+        #     sc.getSample('jfake').addSystematic(syst_stat_fjg_srl300)
+        # elif 'SRH' in sc.name:
+        #     sc.getSample('efake').addSystematic(syst_stat_feg_srh)
+        #     sc.getSample('jfake').addSystematic(syst_stat_fjg_srh)
 
     # CR
     CRQ.getSample('wgamma').addSystematic(syst_wgamma_theo_crq)
     CRW.getSample('wgamma').addSystematic(syst_wgamma_theo_crw)
     CRT.getSample('wgamma').addSystematic(syst_wgamma_theo_crt)
 
-    CRQ.getSample('ttbarg').addSystematic(syst_ttgamma_theo_crq)
-    CRW.getSample('ttbarg').addSystematic(syst_ttgamma_theo_crw)
-    CRT.getSample('ttbarg').addSystematic(syst_ttgamma_theo_crt)
+    CRQ.getSample('ttbarg').addSystematic(syst_tgamma_theo_crq)
+    CRW.getSample('ttbarg').addSystematic(syst_tgamma_theo_crw)
+    CRT.getSample('ttbarg').addSystematic(syst_tgamma_theo_crt)
 
     CRQ.getSample('zllgamma').addSystematic(syst_zgamma_theo_crq)
     CRW.getSample('zllgamma').addSystematic(syst_zgamma_theo_crw)
@@ -566,13 +598,22 @@ if do_mc_syst:
     CRW.getSample('znunugamma').addSystematic(syst_zgamma_theo_crw)
     CRT.getSample('znunugamma').addSystematic(syst_zgamma_theo_crt)
 
+    # CRQ.getSample('efake').addSystematic(syst_stat_feg_crq)
+    # CRW.getSample('efake').addSystematic(syst_stat_feg_crw)
+    # CRT.getSample('efake').addSystematic(syst_stat_feg_crt)
+
+    # CRQ.getSample('jfake').addSystematic(syst_stat_fjg_crq)
+    # CRW.getSample('jfake').addSystematic(syst_stat_fjg_crw)
+    # CRT.getSample('jfake').addSystematic(syst_stat_fjg_crt)
+
     # VR
     for vr in validation_channels:
+
         if 'VRL' in vr.name:
             vr.getSample('wgamma')    .addSystematic(syst_wgamma_theo_vrl)
             vr.getSample('zllgamma')  .addSystematic(syst_zgamma_theo_vrl)
             vr.getSample('znunugamma').addSystematic(syst_zgamma_theo_vrl)
-            vr.getSample('ttbarg')    .addSystematic(syst_ttgamma_theo_vrl)
+            vr.getSample('ttbarg')    .addSystematic(syst_tgamma_theo_vrl)
 
         elif 'VRZ' in vr.name:
             vr.getSample('zllgamma')  .addSystematic(syst_zgamma_theo_vrz)
@@ -582,28 +623,35 @@ if do_mc_syst:
             vr.getSample('wgamma')     .addSystematic(syst_wgamma_theo_srl)
             vr.getSample('zllgamma')   .addSystematic(syst_zgamma_theo_srl)
             vr.getSample('znunugamma') .addSystematic(syst_zgamma_theo_srl)
-            vr.getSample('ttbarg')     .addSystematic(syst_ttgamma_theo_srl)
+            vr.getSample('ttbarg')     .addSystematic(syst_tgamma_theo_srl)
         elif vr.name.endswith('H'):        
             vr.getSample('wgamma')     .addSystematic(syst_wgamma_theo_srh)
             vr.getSample('zllgamma')   .addSystematic(syst_zgamma_theo_srh)
             vr.getSample('znunugamma') .addSystematic(syst_zgamma_theo_srh)
-            vr.getSample('ttbarg')     .addSystematic(syst_ttgamma_theo_srh)
-
-        # FIX: vr.getSample('zgamma').addSystematic(syst_gamjet_theo_sr) 
+            vr.getSample('ttbarg')     .addSystematic(syst_tgamma_theo_srh)
 
 
 # Add CR/VR/SR 
-fitconfig.setBkgConstrainChannels(constraint_channels)
+fitconfig.addBkgConstrainChannels(constraint_channels)
 
 if myFitType == FitType.Background: 
-    for sr in signal_channels:
-        validation_channels.append(sr) #--- Define SR as validation region.
+    if do_validation:
+        validation_channels += signal_channels #--- Define SR as validation region.
+        fitconfig.addValidationChannels(validation_channels)
+    else:
+        fitconfig.addValidationChannels(signal_channels)
+
 else:
-    fitconfig.setSignalChannels(signal_channels) #--- Define SR as signal region.
+    fitconfig.addSignalChannels(signal_channels) #--- Define SR as signal region.
 
-if do_validation:
-    fitconfig.setValidationChannels(validation_channels)
+    
 
+# Stat uncertainties
+fitconfig.statErrThreshold = 0.01
+fitconfig.statStatErrorType('Poisson')
+
+# meas.addParamSetting("mu_efake", True, 1) # fix efake BKG
+# meas.addParamSetting("mu_jfake", True, 1) # fix jfake BKG
 
 if myFitType == FitType.Exclusion:
 
