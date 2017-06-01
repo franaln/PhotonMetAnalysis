@@ -56,3 +56,20 @@ int photontype(int truth_type, int truth_origin)
 
   return type;
 }
+
+
+float m_inv(float pt1, float eta1, float phi1, float e1, float pt2, float eta2, float phi2, float e2)
+{
+
+  TLorentzVector tlv1;
+  TLorentzVector tlv2;
+
+  tlv1.SetPtEtaPhiE(pt1, eta1, phi1, e1);
+  tlv2.SetPtEtaPhiE(pt2, eta2, phi2, e2);
+
+  TLorentzVector tlv = tlv1 + tlv2;
+
+  return tlv.M();
+}
+
+

@@ -295,7 +295,7 @@ def systable(workspace, samples, channels, output_name):
     tablel.add_line()
 
     # print sqrt(N_obs) - for comparison with total systematic
-    row = ['Total statistical $(\\sqrt{N_{\\rm exp}})$',]
+    row = ['Total statistical $(\\sqrt{N_\\mathrm{exp}})$',]
     for region in chan_list:
         row.append("$\\pm %.2f$" % chan_sys[region]['sqrtnfitted'])
 

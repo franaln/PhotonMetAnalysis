@@ -17,9 +17,9 @@ mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[0.8]{#scale[0.6]{1}}} #kern[-1.41
 
 # Grid plot size
 glmin = 1146
-glmax = 2100 #2400
+glmax = 2400 #2400
 n1min = 147
-n1max = 2100 #2400
+n1max = 2400 #2400
 
 
 def draw_box(x, y, size=1, color='blue'):
@@ -131,8 +131,8 @@ def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ym
 
 def grid_histogram(name):
 
-    gl_bins = (glmax - glmin) / 25
-    n1_bins = (n1max - n1min) / 25
+    gl_bins = (glmax - glmin) / 50 #25
+    n1_bins = (n1max - n1min) / 50 #25
 
     hist = ROOT.TH2F(name, name, gl_bins, glmin, glmax, n1_bins, n1min, n1max)
 

@@ -71,7 +71,7 @@ def main():
     if args.hf_options is not None:
         hf_extra_options = args.hf_options
 
-    cmd = 'HistFitter.py -u \'"%s"\' -w -f -V -F bkg %s %s' % (options, hf_extra_options, configfile)
+    cmd = 'HistFitter.py -u \'"%s"\' -w -f -V -D corrMatrix -F bkg %s %s' % (options, hf_extra_options, configfile)
     run_cmd(cmd, logfile='hf.log', stdout=True)
 
     # mv logfile

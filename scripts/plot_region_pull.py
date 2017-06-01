@@ -7,6 +7,7 @@ ROOT.gROOT.SetBatch(1)
 import os
 import sys
 import math
+import copy
 import argparse
 import subprocess
 import pickle
@@ -21,7 +22,8 @@ import analysis
 
 parser = argparse.ArgumentParser(description='plot regions pull')
     
-parser.add_argument('--ws', dest='workspace', required=True, help='Input workspace')
+parser.add_argument('--ws', dest='workspace', help='Input workspace')
+parser.add_argument('--pickle', dest='pickle_filename', help='Input pickle file')
 parser.add_argument('-o', dest='output_dir', default='.', help='Output dir')
 parser.add_argument('-r', dest='regions', help='regions')
 parser.add_argument('--unblind', action='store_true', help='Unblind! (use with caution)')
@@ -211,6 +213,7 @@ def make_hist_pull_plot(samples, regions, results):
             exp_total_up = 0
             exp_total_dn = 0
 
+        #print region , n_obs, n_exp, pull
         regions_pull.append((region, pull))
 
         #bkg components
@@ -263,7 +266,7 @@ def make_hist_pull_plot(samples, regions, results):
     hdata.SetMinimum(0.05)
 
     # Plot
-    c = ROOT.TCanvas("c",'', 1000, 600);
+    c = ROOT.TCanvas("c",'', 1200, 600);
 
     c.SetFrameFillColor(ROOT.kWhite)
 
@@ -294,7 +297,7 @@ def make_hist_pull_plot(samples, regions, results):
     cdown.SetTicky(1)
     cdown.SetTopMargin   (0.003)
     cdown.SetRightMargin (0.02)
-    cdown.SetBottomMargin(0.20)
+    cdown.SetBottomMargin(0.22)
     cdown.SetLeftMargin  (0.08)
     cdown.Draw()
 
@@ -314,7 +317,6 @@ def make_hist_pull_plot(samples, regions, results):
     merged_bkgs['fakes'] = to_merge['efake'] + to_merge['jfake']
     merged_bkgs['wgamma'] = to_merge['wgamma']
     merged_bkgs['zgamma'] = to_merge['zllgamma'] + to_merge['znunugamma']
-    merged_bkgs['diphoton'] = to_merge['diphoton'] + to_merge['vgammagamma']
 
     if 'vqqgamma' in merged_bkgs:
         merged_bkgs['vgamma'] += to_merge['vqqgamma']
@@ -352,11 +354,10 @@ def make_hist_pull_plot(samples, regions, results):
     legymin = 0.53
     legymax = 0.85
 
-    legxmin = 0.53
+    legxmin = 0.65
     legxmax = 0.91
 
     legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
-    legend2 = legend(legxmin, legymin-.15, legxmax-0.035, legymin -.01)
 
     for name, hist in merged_bkgs.iteritems():
         legend1.AddEntry(hist, labels_dict[name], 'f')
@@ -391,9 +392,16 @@ def make_hist_pull_plot(samples, regions, results):
 
     t.DrawLatex(0.15, 0.80, style.atlas_label)
     t.DrawLatex(0.15, 0.72, text)
-    #t.DrawLatex(0.15, 0.64, region_name) #.replace('L', '{L}').replace('H', '{H}'))
 
     legend1.Draw()
+
+    lr = ROOT.TLine()
+    #lr.SetLineWidth(2)
+    #lr.SetLineColor(ROOT.kGray+2)
+    lr.SetLineStyle(3)
+    lr.DrawLine( 3, 0.05,  3, 2000)
+    lr.DrawLine(14, 0.05, 14, 2000)
+
 
     cup.RedrawAxis()
 
@@ -403,13 +411,20 @@ def make_hist_pull_plot(samples, regions, results):
     frame = get_frame(npar)
     for b in xrange(1, hdata.GetNbinsX()+1):
         label = hdata.GetXaxis().GetBinLabel(b)
-        if 'SRi' in label:
-            label = label.replace('SRi', 'SR')
+        # if 'SRi' in label:
+        #     label = label.replace('SRi', 'SR')
 
-        if label.endswith('L'):
-            label = label[:-1]+'_{L}'
-        elif label.endswith('H'):
-            label = label[:-1]+'_{H}'
+        if label == 'SRL200':
+            label = 'SR_{L}^{200}'
+        elif label == 'SRL300':
+            label = 'SR_{L}^{300}'
+        elif label == 'SRH':
+            label = 'SR_{H}'
+
+        # elif label.endswith('L'):
+        #     label = label[:-1]+'_{L}'
+        # elif label.endswith('H'):
+        #     label = label[:-1]+'_{H}'
 
         frame.GetXaxis().SetBinLabel(b, label)
 
@@ -429,8 +444,11 @@ def make_hist_pull_plot(samples, regions, results):
     l1.Draw()
     l2.Draw()
 
-
     allp = get_boxes(regions_pull, frame, True)
+
+    # lr.DrawLine( 3, -max_pull,  3, max_pull)
+    # lr.DrawLine(14, -max_pull, 14, max_pull)
+
     
     for ext in args.extensions.split(','):
         c.Print(args.output_dir+'/pull_regions.' + ext)
@@ -440,14 +458,21 @@ def make_hist_pull_plot(samples, regions, results):
 
 
 
+
 # Run YieldsTable.py with all regions and samples requested
-pickle_filename = "yield_all.pickle"
-
 samples = ','.join(backgrounds)
+if args.workspace is not None:
+    pickle_filename = "yield_all.pickle"
 
-cmd = "YieldsTable.py -c %s -s %s -w %s -o yield_all.tex" % (",".join(regions), samples, workspace)
-print cmd
-subprocess.call(cmd, shell=True)
+    yieldstable(workspace, samples, ','.join(regions), pickle_filename.replace('pickle', 'tex'), 'All Regions', unblind=False)
+
+else:
+    pickle_filename = args.pickle_filename
+#cmd = "YieldsTable.py -c %s -s %s -w %s -o yield_all.tex" % (",".join(regions), samples, workspace)
+#print cmd
+#subprocess.call(cmd, shell=True)
+
+
 picklefile = open(pickle_filename,'rb')
 
 mydict = pickle.load(picklefile)
@@ -458,10 +483,13 @@ for region in mydict["names"]:
 
     index = mydict["names"].index(region)
 
+    print region, index,  mydict["TOTAL_FITTED_bkg_events"][index]
+
     n_obs = mydict["nobs"][index]
     n_exp = mydict["TOTAL_FITTED_bkg_events"][index]
 
     exp_syst = mydict["TOTAL_FITTED_bkg_events_err"][index]
+
 
     n_exp_components = []
     for sam in samples.split(","):
@@ -470,7 +498,8 @@ for region in mydict["names"]:
         else:
             n_exp_components.append((sam, 0.))
 
-    results.append((region, n_obs, n_exp, exp_syst, n_exp_components))
+
+    results.append((region.replace('_cuts', ''), n_obs, n_exp, exp_syst, n_exp_components))
 
 
 #pull
