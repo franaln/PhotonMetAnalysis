@@ -71,7 +71,7 @@ configMgr.writeXML = True  #for debugging
 
 #--- Flags to control which fit is executed
 useStat = True
-configMgr.blindSR = True
+configMgr.blindSR = False
 configMgr.blindCR = False
 configMgr.blindVR = False
 configMgr.useSignalInBlindedData = False
@@ -460,7 +460,7 @@ elif myFitType == FitType.Discovery:
 
     unitary_sample = Sample('Unitary', ROOT.kViolet+5)
     unitary_sample.setNormFactor('mu_SIG', 1, 0, 10)
-    unitary_sample.buildHisto([1,], 'SR', '0.5')
+    # unitary_sample.buildHisto([1,], signal_region, '0.5')
 
     fitconfig.addSamples(unitary_sample)
     fitconfig.setSignalSample(unitary_sample)
