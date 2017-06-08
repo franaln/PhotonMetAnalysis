@@ -32,19 +32,8 @@ PhotonMetAnalysis
 
 ## Analysis: bkg-only fit / plots / table / webpage
 
-    do_analsys.py
+    do_analysis.py
 
 
 
 
-## Limits
-
-* Using batch
-    ```
-    ...
-    ``` 
-
-* Exclusion plot
-    ```
-    plot_exclusion.py --list --cont --plot <PATH>
-    ```
