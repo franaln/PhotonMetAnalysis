@@ -662,24 +662,24 @@ if myFitType == FitType.Exclusion:
     except NameError:
         sigSamples = None
 
-    for sid in sigSamples:
-        m3, mu = sid.split('_')
-        points.append((int(m3), int(mu)))
+    # for sid in sigSamples:
+    #     m3, mu = sid.split('_')
+    #     points.append((int(m3), int(mu)))
     
-    for (m3, mu) in points:
-        print "Adding fit config for sample (%d, %d)" % (m3, mu)
-        exclfit = configMgr.addFitConfigClone(fitconfig, "GGM_M3_mu_%d_%d" % (m3, mu))
+    for sig in sigSamples:
+        print "Adding fit config for sample %s" % sig ##(%d, %d)" % (m3, mu)
+        exclfit = configMgr.addFitConfigClone(fitconfig, sig) ##"GGM_M3_mu_%d_%d" % (m3, mu))
 
-        sigSample = Sample("GGM_M3_mu_%d_%d" % (m3, mu), ROOT.kOrange+3)
-        sigSample.setNormByTheory()
-        sigSample.setStatConfig(useStat)
-        sigSample.setNormFactor("mu_SIG", 1., 0., 5.)
+        sig_sample = Sample(sig, ROOT.kOrange+3) ##"GGM_M3_mu_%d_%d" % (m3, mu), ROOT.kOrange+3)
+        sig_sample.setNormByTheory()
+        sig_sample.setStatConfig(useStat)
+        sig_sample.setNormFactor("mu_SIG", 1., 0., 5.)
 
         if do_signal_theory_unc:
             configMgr.fixSigXSec = True
-            sigSample.addSystematic(sigXsec) #--- Special uncertainty. Theory variations (creates extra files)
+            sig_sample.addSystematic(sigXsec) #--- Special uncertainty. Theory variations (creates extra files)
 
-        exclfit.addSamples(sigSample)
-        exclfit.setSignalSample(sigSample)
+        exclfit.addSamples(sig_sample)
+        exclfit.setSignalSample(sig_sample)
         exclfit.setSignalChannels(signal_channels)
 
