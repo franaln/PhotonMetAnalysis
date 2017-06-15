@@ -61,7 +61,7 @@ def _create_xs_db():
 
 def get_did(name):
     sample = samples_dict[name]
-    return sample.split('.')[1]
+    return int(sample.split('.')[1])
 
 def get_xs_did(did, fs=None):
 
@@ -78,6 +78,10 @@ def get_xs_did(did, fs=None):
 
     raise Exception('ERROR: XS not found for DID=%s (FS=%s)' % (did, fs))
 
+
+def get_xs_name(name, fs=None):
+    did = get_did(name)
+    return get_xs_did(did, fs)
 
 def get_xs(par1, par2=None, fs=None):
 

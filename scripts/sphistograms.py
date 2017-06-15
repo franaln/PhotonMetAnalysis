@@ -12,13 +12,11 @@ import sys
 import argparse
 import re
 from functools import partial
-from rootutils import RootFile
 
-import analysis 
 import miniutils
 import systematics as systematics_
 import regions as regions_
-from xsutils import get_xs
+from xsutils import get_xs_name
 
 fzero = 0.0001
 
@@ -58,12 +56,14 @@ def sphistograms():
     samples = args.samples.split(',')
     if 'signal' in samples:
         samples.remove('signal')
-        samples.extend(analysis.signal)
+        from signalgrid import mg_gg_grid
+        signal = [ 'GGM_GG_bhmix_%i_%i' % (m3, mu) for (m3, mu) in mg_gg_grid.keys() ]
+        samples.extend(signal)
 
     # Systematics
     do_detector_syst = args.detsyst or args.syst
-    do_dd_syst       = args.ddsyst or args.syst
-    do_mc_syst       = args.mcsyst or args.syst
+    do_dd_syst       = args.ddsyst  or args.syst
+    do_mc_syst       = args.mcsyst  or args.syst
     
     ## high-low systematics
     systematics_expHL = systematics_.get_high_low_systematics()
@@ -112,8 +112,13 @@ def sphistograms():
 
         # Detector systematics
         if do_detector_syst:
+
+
                     
-            if not sample.startswith('efake') and not sample.startswith('jfake') and not 'data' in sample:
+            if (not sample.startswith('efake') and 
+                not sample.startswith('jfake') and 
+                not 'data' in sample and 
+                not 'GGM' in sample):
 
                 # one side systematics
                 for syst in systematics_expOS:
@@ -201,6 +206,28 @@ def sphistograms():
                     hlist.append(('hefakeEFAKE_STATHigh_%s_obs_cuts' % rname, mean+unc, 0.))
 
 
+        # MC SUSY signal
+        elif 'GGM' in sample:
+            
+            for (hname, mean, unc) in histograms:
+
+                hlist.append((hname, mean, unc))
+                
+                if 'Nom' in hname:
+
+                    xs, unc = get_xs_name(sample, 2)
+
+                    mean_dn = mean * (1-unc)
+                    mean_up = mean * (1+unc)
+
+                    e_dn = unc * (1-unc)
+                    e_up = unc * (1+unc)
+
+                    hlist.append((hname.replace('Nom', 'SigXSecLow'),  mean_dn, e_dn))
+                    hlist.append((hname.replace('Nom', 'SigXSecHigh'), mean_up, e_up))
+
+
+
         # MC
         else:
 
@@ -209,26 +236,6 @@ def sphistograms():
                 rname = hname.split('_')[1]
                 
                 hlist.append((hname, mean, unc))
-
-                # Fix one side systematics
-                # for syst in systematics_expOS:
-                #     syst = syst.replace('__1up', '')
-
-                #     if syst in hname:
-                #         if 'High' in hname:
-                #             nom_name = hname.replace(syst+'High', 'Nom')
-                #             name_up = hname #.replace(syst, syst+'High')
-                #             name_dn = name_up.replace('High', 'Low')
-                #         else:
-                #             nom_name = hname.replace(syst, 'Nom')
-                #             name_up = hname.replace(syst, syst+'High')
-                #             name_dn = name_up.replace('High', 'Low')
-
-                #             histograms[name_up] = hist.Clone(name_up)
-                #             del histograms[hname]
-
-                #         h_dn = histograms[nom_name].Clone(name_dn)
-                #         histograms[name_dn] = h_dn
 
 
         
