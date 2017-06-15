@@ -5,7 +5,7 @@ import os
 import argparse
 import subprocess
 
-from mass_dict import mass_dict
+from signalgrid import mg_gg_grid
 
 
 pwd = os.getcwd().strip()+"/"
@@ -78,8 +78,6 @@ echo '========================'
         subprocess.call(cmd, shell=True)
 
 
-
-
 def main():
 
     parser = argparse.ArgumentParser(description='run limit (batch)')
@@ -87,11 +85,11 @@ def main():
     parser.add_argument('-i', dest='histfile', help='Input file with histograms', required=True)
     parser.add_argument('-o', dest='output', help='Output directory for results', required=True)
     parser.add_argument('-c', dest='configfile', default=os.path.join(os.environ['SUSY_ANALYSIS'], 'lib/PhotonMet_HistFitter_config.py'), help='HF configfile')
-    parser.add_argument('--sr', dest='region', help='SRL, SRH, SRinclL or SRinclH', required=True)
+    parser.add_argument('--sr', dest='region', help='Signal region name', required=True)
     parser.add_argument('--hf',  dest='hf_options', help='HF extra options')
-    parser.add_argument('--queue',  default='8nh', help='Batch queue (8nh|1nd|...)')
+    parser.add_argument('--queue',  default='8nh', help='Batch queue (8nh|1nd|...) (default = 8nh)')
     parser.add_argument('--nosyst', action='store_true', help='No systematics')
-    parser.add_argument('--data', default='data', help='data|data15|data16')
+    parser.add_argument('--data', default='data', help='data|data15|data16 (default = data)')
     parser.add_argument('--asimov',  action='store_true', help='Use asimov aprox.')
     parser.add_argument('--ntoys',  default='5000', help='Number of toys (By default use toys)')
     parser.add_argument('--dry', action='store_true', help='Dry run (not submit to batch)')
@@ -133,9 +131,9 @@ def main():
         
         requested_points.extend(lines)
 
-    for (m3, mu) in mass_dict.iterkeys():
+    for (m3, mu) in mg_gg_grid.iterkeys():
 
-        point = '%d_%d' % (m3, mu)
+        point = 'GGM_GG_bhmix_%d_%d' % (m3, mu)
 
         if requested_points and point not in requested_points:
             continue

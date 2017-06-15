@@ -24,7 +24,7 @@ with open(text_file_path) as f:
 
     for line in lines:
 
-        if not line:
+        if not line or line.startswith('#'):
             continue
         
         name, val, err = line.split()

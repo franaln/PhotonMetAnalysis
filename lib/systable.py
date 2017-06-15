@@ -72,6 +72,61 @@ systdict = {
     'mu_w': '$\\mu_{w}$',
 }
 
+systdict_root = {
+
+    'alpha_JET_EtaIntercalibration_NonClosure': 'Jet eta intercalibration non-closure',
+    'alpha_JET_GroupedNP_1': 'Jet energy scale NP1',
+    'alpha_JET_GroupedNP_2': 'Jet energy scale NP2',
+    'alpha_JET_GroupedNP_3': 'Jet energy scale NP3',
+
+    'alpha_JET_JER_SINGLE_NP': 'Jet energy resolution',
+
+    'alpha_MET_SoftTrk_ResoPara': 'MET SoftTrk resolution (Para)',
+    'alpha_MET_SoftTrk_ResoPerp': 'MET SoftTrk resolution (Perp)',
+    'alpha_MET_SoftTrk_Scale':    'MET SoftTrk scale',
+
+    'alpha_EG_RESOLUTION_ALL': 'e/#gamma resolution',
+    'alpha_EG_SCALE_ALL':      'e/#gamma scale',
+
+    'alpha_PH_Iso_DDonoff': 'Photon isolation',
+
+    'alpha_MUON_SCALE': 'Muon scale',
+    'alpha_MUON_MS': 'Muon MS',
+    'alpha_MUON_ID': 'Muon ID',
+    'alpha_MUON_SAGITTA_RESBIAS': 'Muon SAGITTA ResBias',
+    'alpha_MUON_SAGITTA_RHO': 'Muon SAGITTA RHO...',
+
+    'alpha_PH_EFF_ID_Uncertainty': 'Photon ID',
+    'alpha_JET_JvtEfficiency': 'JVT efficiency',
+    'alpha_EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron ID eff.',
+    'alpha_EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron iso. eff.',
+    'alpha_EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron reco. eff.',
+    'alpha_EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron trigger eff.',
+
+    'alpha_MUON_EFF_STAT': 'Muon efficiency stat.',
+    'alpha_MUON_EFF_SYS': 'Muon efficiency syst.',
+    'alpha_MUON_ISO_STAT': 'Muon isolation stat.',
+    'alpha_MUON_ISO_SYS': 'Muon isolation syst.',
+    'alpha_MUON_TTVA_STAT': 'Muon TTVA stat.',
+    'alpha_MUON_TTVA_SYS': 'Muon TTVA syst.',
+    'alpha_PRW_DATASF': 'Pile-up re-weighting',
+
+    'alpha_EFAKE_SYST': 'e#rightarrow#gamma fakes syst.',
+    'alpha_EFAKE_STAT': 'e#rightarrow#gamma fakes stat.',
+
+    'alpha_JFAKE_SYST': 'jet#rightarrow#gamma fakes syst.',
+    'alpha_JFAKE_STAT': 'jet#rightarrow#gamma fakes stat.',
+
+    'alpha_theoSysZG': 'Z#gamma theo. syst.',
+    'alpha_theoSysWG': 'W#gamma theo. syst.',
+    'alpha_theoSysTG': 't#bar{t}#gamma theo. syst.',
+    'alpha_theoSysGJ': '#gamma + jets theo. syst.',
+
+    'mu_q': '#mu_{q}',
+    'mu_t': '#mu_{t}',
+    'mu_w': '#mu_{w}',
+}
+
 
 def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
     """
@@ -183,24 +238,6 @@ def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
         par = w.var(parname)
         par.setConstant()
 
-    # if several systematatic/parameters are pre-defined in namemap, they will be floated together
-    # or in other words, one will get the error due to all pre-defined systematics
-    # else, float each parameter one by one and calculate the error due to it
-    #   if namemap:
-    #   for key in namemap.keys():
-    #     print namemap[key]
-    #     for parname in namemap[key]:
-    #       par = w.var(parname)
-    #       par.setConstant(False)
-    #       pass
-    #     sysError  = Util.GetPropagatedError(pdfInRegion, result, doAsym)
-    #     regSys['syserr_'+key] =  sysError
-    #     for idx in range(fpf.getSize()):
-    #       parname = fpf[idx].GetName()
-    #       par = w.var(parname)
-    #       par.setConstant()
-    #       pass
-    # else: 
     for idx in xrange(fpf.getSize()):
         parname = fpf[idx].GetName()
         par = w.var(parname)
@@ -283,11 +320,6 @@ def systable(workspace, samples, channels, output_name):
 
     # print the total fitted (after fit) number of events
     row = ['Total background expectation',]
-    # for region in chan_list:
-    #     tableline += " & " + region.replace('_','\_') + "           "   
-    #   tableline += ''' \\\\
-    # \\noalign{\\smallskip}\\hline\\noalign{\\smallskip}
-    # %%'''
     for region in chan_list:
         row.append("$%.2f$"  % chan_sys[region]['nfitted'])
 
@@ -317,6 +349,7 @@ def systable(workspace, samples, channels, output_name):
     m_listofkeys = sorted(d.iterkeys(), key=lambda k: d[k], reverse=True)
 
     for name in m_listofkeys:
+
         if name not in skip_list:
             
             printname = name
@@ -366,3 +399,6 @@ def systable(workspace, samples, channels, output_name):
 
 
     tablel.save_tex(output_name)
+
+
+

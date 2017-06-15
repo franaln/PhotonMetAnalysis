@@ -26,6 +26,7 @@ def main():
     parser.add_argument('--mc', action='store_true', help='Use MC backgrounds')
     parser.add_argument('--data', default='data', help='data|data15|data16')
 
+
     if len(sys.argv) < 2:
         parser.print_usage()
         sys.exit(1)
@@ -71,7 +72,7 @@ def main():
     if args.hf_options is not None:
         hf_extra_options = args.hf_options
 
-    cmd = 'HistFitter.py -u \'"%s"\' -w -f -V -D corrMatrix -F bkg %s %s' % (options, hf_extra_options, configfile)
+    cmd = 'HistFitter.py -u \'"%s"\' -w -f -V -F bkg %s %s' % (options, hf_extra_options, configfile)
     run_cmd(cmd, logfile='hf.log', stdout=True)
 
     # mv logfile
