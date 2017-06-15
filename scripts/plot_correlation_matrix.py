@@ -14,7 +14,7 @@ from systable import systdict_root as systdict
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-w', dest='workspace_file', required=True, help='Workspace file')
-parser.add_argument('-o', dest='output_dir', required=True, help='output directory')
+parser.add_argument('-o', dest='output', required=True, help='Output file')
 
 args = parser.parse_args()
 
@@ -114,9 +114,13 @@ set_atlas_style()
 
 s = array('d', [0.00, 0.25, 0.50, 0.75, 1.00])
 
-r = array('d', [ 20./255, 112./255, 204./255, 112./255,  20./255])
-g = array('d', [ 79./255, 142./255, 204./255, 142./255,  79./255])
-b = array('d', [235./255, 168./255, 102./255, 168./255, 235./255])
+# r = array('d', [ 20./255, 112./255, 204./255, 112./255,  20./255])
+# g = array('d', [ 79./255, 142./255, 204./255, 142./255,  79./255])
+# b = array('d', [235./255, 168./255, 102./255, 168./255, 235./255])
+
+r = array('d', [ 20./255, 100./255, 179./255, 100./255,  20./255])
+g = array('d', [ 79./255, 148./255, 217./255, 148./255,  79./255])
+b = array('d', [235./255, 187./255, 140./255, 187./255, 235./255])
 
 ROOT.TColor.CreateGradientColorTable(len(s), s, r, g, b, 999)
 ROOT.gStyle.SetNumberContours(999)
@@ -138,7 +142,7 @@ else:
 
 if   num_pars<5:    labelSize = 0.05
 elif num_pars<10:   labelSize = 0.04
-elif num_pars<20:   labelSize = 0.025
+elif num_pars<20:   labelSize = 0.028
 elif num_pars<40:   labelSize = 0.02
 else:               labelSize = 0.015
 
@@ -148,12 +152,13 @@ h_corr.GetXaxis().LabelsOption("v")
 
 h_corr.SetContour(999)
 h_corr.GetZaxis().SetRangeUser(-1, 1)
-h_corr.GetZaxis().SetLabelSize(labelSize*1.2)
+h_corr.GetZaxis().SetLabelSize(labelSize)
+h_corr.GetZaxis().SetLabelOffset(0.01)
 
 set_style(h_corr)
 
 h_corr.Draw("colz");
 h_corr.Draw("textsame");
 
-c_corr.SaveAs("%s/corr_matrix.pdf" % args.output_dir)
+c_corr.SaveAs(args.output)
 
