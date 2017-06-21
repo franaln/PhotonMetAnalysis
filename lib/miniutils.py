@@ -536,11 +536,12 @@ def _get_histogram(ds, **kwargs):
         else:
             selection = 'mcveto==0'
     
-    try:
-        if int(version) >= 56:
-            selection = '%s && pass_g140==1' % selection
-    except:
-        pass
+    # try:
+    #     if int(version) >= 56:
+    # if not 'pass_g' in selection:
+    #     selection = '%s && pass_g140==1' % selection
+    # except:
+    #     #     pass
 
     # change selection and variable for systematics
     if syst != 'Nom' and systematics_.affects_kinematics(syst):
@@ -921,6 +922,8 @@ def _get_multi_events(ds, **kwargs):
                     selection = '%s && mcveto==0' % selection
                 else:
                     selection = 'mcveto==0'
+
+            # selection = '%s && pass_g140==1' % selection
 
             # change selection and variable for systematics
             if syst != 'Nom' and systematics_.affects_kinematics(syst):
