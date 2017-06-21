@@ -1,6 +1,11 @@
 PhotonMetAnalysis
 =================
 
+## Requirements
+
+ROOT, HistFitter, rootutils
+
+
 ## Install HistFitter
 
     # svn co svn+ssh://svn.cern.ch/reps/atlasphys-susy/Physics/SUSY/Analyses/HistFitter/tags/HistFitter-00-00-53 HistFitter

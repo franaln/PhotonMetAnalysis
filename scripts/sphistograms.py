@@ -152,7 +152,7 @@ def sphistograms():
             if 'SRL200' in regions:
                 hlist.append(('hjfakeNom_SRL200_obs_cuts',  0.35, 0.35))
                 hlist.append(('hjfakeJFAKE_STATLow_SRL200_obs_cuts',  fzero, fzero))
-                hlist.append(('hjfakeJFAKE_STATHigh_SRL200_obs_cuts', fzero, fzero))
+                hlist.append(('hjfakeJFAKE_STATHigh_SRL200_obs_cuts', 0.70, fzero))
                 hlist.append(('hjfakeJFAKE_SYSTLow_SRL200_obs_cuts',  0.27, 0.27))
                 hlist.append(('hjfakeJFAKE_SYSTHigh_SRL200_obs_cuts', 0.43, 0.43))
 
