@@ -43,7 +43,7 @@ parser.add_argument('--asimov', action='store_true')
 parser.add_argument('--ntoys', type=int, default=5000)
 parser.add_argument('--npoints', type=int, default=1)
 parser.add_argument('--sigxs', action='store_true')
-parser.add_argument('--lumi', type=float)
+parser.add_argument('--lumi', type=float, default=1.0)
 
 userArg = [ i.replace('"', '') for i in configMgr.userArg.split() ]
 args = parser.parse_args(userArg)
@@ -57,7 +57,6 @@ use_mc_bkgs   = args.mc
 do_detector_syst = args.detsyst or args.syst
 do_dd_syst       = args.ddsyst or args.syst
 do_mc_syst       = args.mcsyst or args.syst
-
 
 data_name = args.data
 
@@ -200,9 +199,6 @@ else: # should be 'data'
     efake_sample = Sample("efake", color("efake"))
     jfake_sample = Sample("jfake", color("jfake"))
 
-# efake_sample.setNormFactor("mu_efake", 1., 0., 10.)
-# jfake_sample.setNormFactor("mu_jfake", 1., 0., 10.)
-
 
 # Data
 data_sample = Sample(data_name, ROOT.kBlack)
@@ -334,37 +330,9 @@ syst_to_all = syst_jets +syst_met + syst_egamma + syst_muon + syst_weight
 syst_feg      = HistSys('EFAKE_SYST')
 syst_stat_feg = HistSys('EFAKE_STAT')
 
-# sigma_stat_feg_crq = 0.1609
-# sigma_stat_feg_crw = 0.0424
-# sigma_stat_feg_crt = 0.0244
-
-# sigma_stat_feg_srl200 = 0.3125
-# sigma_stat_feg_srl300 = 0.4286
-# sigma_stat_feg_srh    = 1.
-
-# syst_stat_feg_crq = Systematic('FegStat', 1., 1-sigma_stat_feg_crq, 1+sigma_stat_feg_crq, 'user', 'userOverallSys')
-# syst_stat_feg_crw = Systematic('FegStat', 1., 1-sigma_stat_feg_crw, 1+sigma_stat_feg_crw, 'user', 'userOverallSys')
-# syst_stat_feg_crt = Systematic('FegStat', 1., 1-sigma_stat_feg_crt, 1+sigma_stat_feg_crt, 'user', 'userOverallSys')
-
-# syst_stat_feg_srl200 = Systematic('FegStat', 1., 1-sigma_stat_feg_srl200, 1+sigma_stat_feg_srl200, 'user', 'userOverallSys')
-# syst_stat_feg_srl300 = Systematic('FegStat', 1., 1-sigma_stat_feg_srl300, 1+sigma_stat_feg_srl300, 'user', 'userOverallSys')
-# syst_stat_feg_srh    = Systematic('FegStat', 1., 1-sigma_stat_feg_srh,    1+sigma_stat_feg_srh,    'user', 'userOverallSys')
-
 ## j->g
 syst_fjg      = HistSys('JFAKE_SYST')
 syst_stat_fjg = HistSys('JFAKE_STAT')
-
-# sigma_stat_fjg_crq = 0.2684
-# sigma_stat_fjg_crw = 0.1222
-# sigma_stat_fjg_crt = 0.1699
-
-# syst_stat_fjg_crq = Systematic('FjgStat', 1., 1-sigma_stat_fjg_crq, 1+sigma_stat_fjg_crq, 'user', 'userOverallSys')
-# syst_stat_fjg_crw = Systematic('FjgStat', 1., 1-sigma_stat_fjg_crw, 1+sigma_stat_fjg_crw, 'user', 'userOverallSys')
-# syst_stat_fjg_crt = Systematic('FjgStat', 1., 1-sigma_stat_fjg_crt, 1+sigma_stat_fjg_crt, 'user', 'userOverallSys')
-
-# syst_stat_fjg_srl200 = Systematic('FjgStat', 1., 0.001, 2.,     'user', 'userOverallSys')
-# syst_stat_fjg_srl300 = Systematic('FjgStat', 1., 0.001, 6.2857, 'user', 'userOverallSys')
-# syst_stat_fjg_srh    = Systematic('FjgStat', 1., 0.001, 50.,    'user', 'userOverallSys')
 
 # Theory Uncertainties
 ## Zgamma
@@ -458,13 +426,14 @@ if myFitType == FitType.Background:
 elif myFitType == FitType.Discovery:
     fitconfig = configMgr.addFitConfig('DiscoveryFit')
 
-    unitary_sample = Sample('Unitary', ROOT.kViolet+5)
-    unitary_sample.setNormFactor('mu_SIG', 1, 0, 10)
-    # unitary_sample.buildHisto([1,], signal_region, '0.5')
+    discovery_sample = Sample('Discovery', ROOT.kViolet+5)
+    discovery_sample.setNormByTheory()
+    discovery_sample.setNormFactor('mu_SIG', 1., 0., 10.)
 
-    fitconfig.addSamples(unitary_sample)
-    fitconfig.setSignalSample(unitary_sample)
-    
+    fitconfig.addSamples(discovery_sample)
+    fitconfig.setSignalSample(discovery_sample)
+
+
 # Exclusion fit
 elif myFitType == FitType.Exclusion:
     fitconfig = configMgr.addFitConfig('ExclusionFit')
