@@ -46,10 +46,8 @@ def get_region_color(region):
 
 
 def get_poisson_error(obs):
-
     posError = ROOT.TMath.ChisquareQuantile(1. - (1. - 0.68)/2. , 2.* (obs + 1.)) / 2. - obs - 1
     negError = obs - ROOT.TMath.ChisquareQuantile((1. - 0.68)/2., 2.*obs) / 2
-
     return (posError, negError)
 
 
@@ -65,9 +63,7 @@ def make_box(color=ROOT.kGray+1, offset=0, pull=-1, horizontal=False):
     elif pull < -max_pull:
         pull = -max_pull+0.05
 
-
     box = ROOT.TBox(0.1+offset, miny, 0.9+offset, pull)
-
     box.SetFillColor(color)
     box.SetLineColor(color)
 
@@ -133,7 +129,6 @@ def get_boxes(regions_pull, frame, horizontal=False):
     return allp
 
 
-
 def make_hist_pull_plot(samples, regions, results):
 
     ROOT.gStyle.SetOptStat(0000)
@@ -164,7 +159,7 @@ def make_hist_pull_plot(samples, regions, results):
             if info[0] == region:
                 break
 
-        name = region.replace(" ","") #.replace('SRi', 'SR')
+        name = region.replace(" ","")
 
         n_obs = info[1]
         n_exp = info[2]
@@ -314,7 +309,7 @@ def make_hist_pull_plot(samples, regions, results):
 
     merged_bkgs['gamjet'] = to_merge['photonjet']
     merged_bkgs['tgamma'] = to_merge['ttbarg'] #+ to_merge['ttbarghad'] to_merge['topgamma'] + 
-    merged_bkgs['fakes'] = to_merge['efake'] + to_merge['jfake']
+    merged_bkgs['fakes']  = to_merge['efake'] + to_merge['jfake']
     merged_bkgs['wgamma'] = to_merge['wgamma']
     merged_bkgs['zgamma'] = to_merge['zllgamma'] + to_merge['znunugamma']
 
@@ -374,7 +369,6 @@ def make_hist_pull_plot(samples, regions, results):
     hdata.GetXaxis().SetLabelSize(0.00)
     hdata.GetYaxis().SetLabelSize(0.05)
 
-
     # current
     hdata.Draw('p')
     stack.Draw("histsame")
@@ -402,35 +396,18 @@ def make_hist_pull_plot(samples, regions, results):
     lr.DrawLine( 3, 0.05,  3, 2000)
     lr.DrawLine(14, 0.05, 14, 2000)
 
-
     cup.RedrawAxis()
 
+    # Down plot (pulls)
     cdown.cd()
 
-    # Draw frame with pulls
     frame = get_frame(npar)
     for b in xrange(1, hdata.GetNbinsX()+1):
         label = hdata.GetXaxis().GetBinLabel(b)
-        # if 'SRi' in label:
-        #     label = label.replace('SRi', 'SR')
-
-        if label == 'SRL200':
-            label = 'SR_{L}^{200}'
-        elif label == 'SRL300':
-            label = 'SR_{L}^{300}'
-        elif label == 'SRH':
-            label = 'SR_{H}'
-
-        # elif label.endswith('L'):
-        #     label = label[:-1]+'_{L}'
-        # elif label.endswith('H'):
-        #     label = label[:-1]+'_{H}'
-
         frame.GetXaxis().SetBinLabel(b, label)
 
     frame.GetXaxis().SetLabelSize(0.15)
     frame.Draw()
-
 
     l1 = ROOT.TLine(0, -1., npar, -1.)
     l2 = ROOT.TLine(0,  1., npar,  1.)
@@ -448,7 +425,6 @@ def make_hist_pull_plot(samples, regions, results):
 
     # lr.DrawLine( 3, -max_pull,  3, max_pull)
     # lr.DrawLine(14, -max_pull, 14, max_pull)
-
     
     for ext in args.extensions.split(','):
         c.Print(args.output_dir+'/pull_regions.' + ext)
@@ -468,9 +444,6 @@ if args.workspace is not None:
 
 else:
     pickle_filename = args.pickle_filename
-#cmd = "YieldsTable.py -c %s -s %s -w %s -o yield_all.tex" % (",".join(regions), samples, workspace)
-#print cmd
-#subprocess.call(cmd, shell=True)
 
 
 picklefile = open(pickle_filename,'rb')

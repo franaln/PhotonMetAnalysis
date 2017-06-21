@@ -66,6 +66,8 @@ def latexfitresults(filename, region_list, sample_list):
     f = ROOT.TFile.Open(filename)
     w = f.Get('w')
 
+    doAsym = True
+
     if w is None:
         print "ERROR : Cannot open workspace : w"
         sys.exit(1)
@@ -151,7 +153,7 @@ def latexfitresults(filename, region_list, sample_list):
     
     # calculate total pdf number of fitted events and error
     nFittedInRegionList      = [ pdf.getVal() for index, pdf in enumerate(rrspdfinRegionList)]
-    pdfFittedErrInRegionList = [ Util.GetPropagatedError(pdf, resultAfterFit, True) for pdf in rrspdfinRegionList]
+    pdfFittedErrInRegionList = [ Util.GetPropagatedError(pdf, resultAfterFit, doAsym) for pdf in rrspdfinRegionList]
 
     tablenumbers['TOTAL_FITTED_bkg_events']        =  nFittedInRegionList
     tablenumbers['TOTAL_FITTED_bkg_events_err']    =  pdfFittedErrInRegionList
@@ -172,7 +174,7 @@ def latexfitresults(filename, region_list, sample_list):
 
             try: 
                 sampleInRegionVal = sampleInRegion.getVal()
-                sampleInRegionError = Util.GetPropagatedError(sampleInRegion, resultAfterFit, True) 
+                sampleInRegionError = Util.GetPropagatedError(sampleInRegion, resultAfterFit, doAsym) 
                 sampleInAllRegions.add(sampleInRegion)
             except:
                 print " \n YieldsTable.py: WARNING: sample =", sampleName, " non-existent (empty) in region =", region, "\n"
@@ -224,7 +226,7 @@ def latexfitresults(filename, region_list, sample_list):
 
     # calculate total pdf number of expected events and error
     nExpInRegionList =  [ pdf.getVal() for index, pdf in enumerate(rrspdfinRegionList)]
-    pdfExpErrInRegionList = [ Util.GetPropagatedError(pdf, resultBeforeFit, True)  for pdf in rrspdfinRegionList]
+    pdfExpErrInRegionList = [ Util.GetPropagatedError(pdf, resultBeforeFit, doAsym)  for pdf in rrspdfinRegionList]
   
     tablenumbers['TOTAL_MC_EXP_BKG_events'] =  nExpInRegionList
     tablenumbers['TOTAL_MC_EXP_BKG_err']    =  pdfExpErrInRegionList
@@ -245,7 +247,7 @@ def latexfitresults(filename, region_list, sample_list):
 
             try:
                 MCSampleInRegionVal = MCSampleInRegion.getVal()
-                MCSampleInRegionError = Util.GetPropagatedError(MCSampleInRegion, resultBeforeFit, True) 
+                MCSampleInRegionError = Util.GetPropagatedError(MCSampleInRegion, resultBeforeFit, doAsym) 
                 MCSampleInAllRegions.add(MCSampleInRegion)
             except:
                 print " \n WARNING: sample=", sampleName, " non-existent (empty) in region=",region
