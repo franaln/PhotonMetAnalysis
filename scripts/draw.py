@@ -269,10 +269,10 @@ def main():
             if args.signal:
                 h_signal = OrderedDict()
 
-                if region.endswith('L'):
+                if 'SRL' in region:
                     signal1 = 'GGM_GG_bhmix_1900_450'
                     signal2 = 'GGM_GG_bhmix_1900_650'
-                elif region.endswith('H'):
+                elif 'SRH' in region:
                     signal1 = 'GGM_GG_bhmix_1900_1810'
                     signal2 = 'GGM_GG_bhmix_1900_1860'
                 else:

@@ -205,7 +205,7 @@ data_sample = Sample(data_name, ROOT.kBlack)
 data_sample.setData()
 
 # stat uncertainty
-data_sample.setStatConfig(useStat)
+#data_sample.setStatConfig(useStat)
 wjets_sample.setStatConfig(useStat)
 zjets_sample.setStatConfig(useStat)
 wgamma_sample.setStatConfig(useStat)
@@ -220,6 +220,10 @@ vqqgamma_sample.setStatConfig(useStat)
 
 efake_sample.setStatConfig(False)
 jfake_sample.setStatConfig(False)
+# efake_sample.setNormByTheory(False)
+# jfake_sample.setNormByTheory(False)
+
+data_samples = [data_sample,]
 
 if use_mc_bkgs:
     bkg_samples = [
@@ -245,7 +249,6 @@ else:
         diphoton_sample,
         ]
 
-data_samples = [data_sample,]
 
 
 # ------------
@@ -257,82 +260,78 @@ def HistSys(name='', kind='overallSys'):
     return Systematic(name, nom_name, '_'+name+'Up', '_'+name+'Down', 'tree', kind)
 
 # Detector uncertainties
-syst_jets = [
+syst_to_all = [
+
+    # egamma
+    HistSys("EG_RESOLUTION_ALL"),
+    HistSys("EG_SCALE_ALL"),
+
+    #HistSys('EL_EFF_ChargeIDSel_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
+    #HistSys('EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
+    Systematic('PH_Iso_DDonoff', nom_name, '_PH_Iso_DDonoff', '', 'tree', 'histoSysOneSide'),
+    HistSys('PH_EFF_ID_Uncertainty'),
+    # HistSys('PH_EFF_LOWPTISO_Uncertainty'),
+
+    # jets
+
     HistSys('JET_EtaIntercalibration_NonClosure'),
     HistSys('JET_GroupedNP_1'),
     HistSys('JET_GroupedNP_2'),
     HistSys('JET_GroupedNP_3'),
 
-    # Sys('JET_Rtrk_Baseline_Kin'),
-    # Sys('JET_Rtrk_Baseline_Sub'),
-    # Sys('JET_Rtrk_Modelling_Kin'),
-    # Sys('JET_Rtrk_Modelling_Sub'),
-    # Sys('JET_Rtrk_TotalStat_Kin'),
-    # Sys('JET_Rtrk_TotalStat_Sub'),
-    # Sys('JET_Rtrk_Tracking_Kin'),
-    # Sys('JET_Rtrk_Tracking_Sub'),
-
     Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NPUp', '', 'tree', 'histoSysOneSide'),
-]
 
-syst_btagging = []
+    HistSys('JET_JvtEfficiency'),
 
-syst_met = [
+    # # flavour-tagging
+    # HistSys('FT_EFF_B_systematics'),
+    # HistSys('FT_EFF_C_systematics'),
+    # HistSys('FT_EFF_Light_systematics'),
+    # HistSys('FT_EFF_extrapolation'),
+    # HistSys('FT_EFF_extrapolation_from_charm'),
+
+    # met 
     Systematic('MET_SoftTrk_ResoPara', nom_name, '_MET_SoftTrk_ResoParaUp', '', 'tree', 'histoSysOneSide'),
     Systematic('MET_SoftTrk_ResoPerp', nom_name, '_MET_SoftTrk_ResoPerpUp', '', 'tree', 'histoSysOneSide'),
     Systematic('MET_SoftTrk_Scale',    nom_name, '_MET_SoftTrk_ScaleUp', '_MET_SoftTrk_ScaleDown', 'tree', 'overallSys'),
-]
 
-syst_egamma = [
-    HistSys("EG_RESOLUTION_ALL"),
-    HistSys("EG_SCALE_ALL"),
-    Systematic('PH_Iso_DDonoff', nom_name, '_PH_Iso_DDonoff', '', 'tree', 'histoSysOneSide'),
-]
-
-syst_muon = [
+    # muon 
     HistSys("MUON_SCALE"),
     HistSys("MUON_MS"),
     HistSys("MUON_ID"),
     HistSys("MUON_SAGITTA_RESBIAS"),
     HistSys("MUON_SAGITTA_RHO"),
-]
-
-syst_weight = [
-    HistSys('PH_EFF_ID_Uncertainty'),
-    HistSys('JET_JvtEfficiency'),
-    HistSys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
-    HistSys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
-    HistSys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
-    HistSys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
     HistSys('MUON_EFF_STAT'),
     HistSys('MUON_EFF_SYS'),
     HistSys('MUON_ISO_STAT'),
     HistSys('MUON_ISO_SYS'),
-    # HistSys('MUON_BADMUON_STAT'),
-    # HistSys('MUON_BADMUON_SYS'),
+    HistSys('MUON_BADMUON_STAT'),
+    HistSys('MUON_BADMUON_SYS'),
     HistSys('MUON_TTVA_STAT'),
     HistSys('MUON_TTVA_SYS'),
-    HistSys('PRW_DATASF'),
-
-    #HistSys('EL_EFF_ChargeIDSel_TOTAL_1NPCOR_PLUS_UNCOR'),
-    #HistSys('EL_EFF_TriggerEff_TOTAL_1NPCOR_PLUS_UNCOR'),
     #HistSys('MUON_EFF_STAT_LOWPT'),
     #HistSys('MUON_EFF_SYS_LOWPT'),
     #HistSys('MUON_EFF_TrigStatUncertainty'),
     #HistSys('MUON_EFF_TrigHistSystUncertainty'),
-    #HistSys('PH_EFF_LOWPTISO_Uncertainty'),
+
+    # pile-up
+    HistSys('PRW_DATASF'),
+
 ]
 
-syst_to_all = syst_jets +syst_met + syst_egamma + syst_muon + syst_weight
 
 # Fake photon backgrounds
 ## e->g
 syst_feg      = HistSys('EFAKE_SYST')
-syst_stat_feg = HistSys('EFAKE_STAT')
+syst_stat_feg = Systematic('EFAKE_STAT', nom_name, nom_name, nom_name, 'tree', 'shapeStat', constraint='Poisson')
 
 ## j->g
 syst_fjg      = HistSys('JFAKE_SYST')
-syst_stat_fjg = HistSys('JFAKE_STAT')
+syst_stat_fjg = Systematic('JFAKE_STAT', nom_name, nom_name, nom_name, 'tree', 'shapeStat', constraint='Poisson')
 
 # Theory Uncertainties
 ## Zgamma
@@ -433,13 +432,16 @@ elif myFitType == FitType.Discovery:
     fitconfig.addSamples(discovery_sample)
     fitconfig.setSignalSample(discovery_sample)
 
-
 # Exclusion fit
 elif myFitType == FitType.Exclusion:
     fitconfig = configMgr.addFitConfig('ExclusionFit')
 
 
 fitconfig.addSamples(bkg_samples + data_samples)
+
+# Stat uncertainties
+fitconfig.statErrThreshold = 0.001
+fitconfig.statStatErrorType('Poisson')
 
 # Measurement
 measName = "BasicMeasurement"
@@ -540,16 +542,6 @@ if do_mc_syst:
         sc.getSample('zllgamma')   .addSystematic(zg_syst)
         sc.getSample('znunugamma') .addSystematic(zg_syst)
 
-        # if 'SRL200' in sc.name:
-        #     sc.getSample('efake').addSystematic(syst_stat_feg_srl200)
-        #     sc.getSample('jfake').addSystematic(syst_stat_fjg_srl200)
-        # elif 'SRL300' in sc.name:
-        #     sc.getSample('efake').addSystematic(syst_stat_feg_srl300)
-        #     sc.getSample('jfake').addSystematic(syst_stat_fjg_srl300)
-        # elif 'SRH' in sc.name:
-        #     sc.getSample('efake').addSystematic(syst_stat_feg_srh)
-        #     sc.getSample('jfake').addSystematic(syst_stat_fjg_srh)
-
     # CR
     CRQ.getSample('wgamma').addSystematic(syst_wgamma_theo_crq)
     CRW.getSample('wgamma').addSystematic(syst_wgamma_theo_crw)
@@ -566,14 +558,6 @@ if do_mc_syst:
     CRQ.getSample('znunugamma').addSystematic(syst_zgamma_theo_crq)
     CRW.getSample('znunugamma').addSystematic(syst_zgamma_theo_crw)
     CRT.getSample('znunugamma').addSystematic(syst_zgamma_theo_crt)
-
-    # CRQ.getSample('efake').addSystematic(syst_stat_feg_crq)
-    # CRW.getSample('efake').addSystematic(syst_stat_feg_crw)
-    # CRT.getSample('efake').addSystematic(syst_stat_feg_crt)
-
-    # CRQ.getSample('jfake').addSystematic(syst_stat_fjg_crq)
-    # CRW.getSample('jfake').addSystematic(syst_stat_fjg_crw)
-    # CRT.getSample('jfake').addSystematic(syst_stat_fjg_crt)
 
     # VR
     for vr in validation_channels:
@@ -614,11 +598,6 @@ else:
     fitconfig.addSignalChannels(signal_channels) #--- Define SR as signal region.
 
     
-
-# Stat uncertainties
-fitconfig.statErrThreshold = 0.01
-fitconfig.statStatErrorType('Poisson')
-
 # meas.addParamSetting("mu_efake", True, 1) # fix efake BKG
 # meas.addParamSetting("mu_jfake", True, 1) # fix jfake BKG
 
@@ -630,10 +609,6 @@ if myFitType == FitType.Exclusion:
         sigSamples
     except NameError:
         sigSamples = None
-
-    # for sid in sigSamples:
-    #     m3, mu = sid.split('_')
-    #     points.append((int(m3), int(mu)))
     
     for sig in sigSamples:
         print "Adding fit config for sample %s" % sig ##(%d, %d)" % (m3, mu)

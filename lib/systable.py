@@ -10,6 +10,7 @@ except:
     import pickle
 
 from latextable import LatexTable
+from yieldstable import labels_latex_dict
 
 ROOT.gSystem.Load('%s/lib/libSusyFitter.so' % os.getenv('HISTFITTER'))
 ROOT.gInterpreter.ProcessLine('#include "{0}/src/Utils.h" '.format(os.getenv('HISTFITTER')))
@@ -23,7 +24,6 @@ systdict = {
     'alpha_JET_GroupedNP_1': 'Jet energy scale NP1',
     'alpha_JET_GroupedNP_2': 'Jet energy scale NP2',
     'alpha_JET_GroupedNP_3': 'Jet energy scale NP3',
-
     'alpha_JET_JER_SINGLE_NP': 'Jet energy resolution',
 
     'alpha_MET_SoftTrk_ResoPara': 'MET SoftTrk resolution (Para)',
@@ -145,13 +145,13 @@ def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
     workspacename = 'w'
     w = Util.GetWorkspaceFromFile(filename,workspacename)
     if w is None:
-        print "ERROR : Cannot open workspace : ", workspacename
+        print "ERROR : Cannot open workspace:", workspacename
         sys.exit(1) 
 
     #pickup RooExpandedFitResult from workspace with name resultName (either before or after fit)
     result = w.obj(resultName)
     if result is None:
-        print "ERROR : Cannot open fit result ", resultName
+        print "ERROR : Cannot open fit result", resultName
         sys.exit(1)
 
     # load workspace snapshot related to resultName (=set all parameters to values after fit)
@@ -161,7 +161,7 @@ def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
     # pick up dataset from workspace
     data_set = w.data(dataname)
     if data_set is None:
-        print "ERROR : Cannot open dataset : ", "data_set"
+        print "ERROR : Cannot open dataset: ", "data_set"
         sys.exit(1)
       
     #pick up channel category (RooCategory) from workspace
@@ -231,20 +231,19 @@ def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
     # calculate error per (floating) parameter in fitresult
     # get a list of floating parameters to loop over
     fpf = result.floatParsFinal() 
-  
+
     # set all floating parameters constant
     for idx in xrange(fpf.getSize()):
         parname = fpf[idx].GetName()
         par = w.var(parname)
-        par.setConstant()
+        par.setConstant(True)
 
     for idx in xrange(fpf.getSize()):
         parname = fpf[idx].GetName()
         par = w.var(parname)
         par.setConstant(False)
-        sys_error  = Util.GetPropagatedError(pdf_in_region, result, doAsym)
-        reg_sys['syserr_'+parname] =  sys_error
-        par.setConstant() 
+        reg_sys['syserr_'+parname] =  Util.GetPropagatedError(pdf_in_region, result, doAsym)
+        par.setConstant(True) 
 
     return reg_sys
 
@@ -262,29 +261,10 @@ def systable(workspace, samples, channels, output_name):
         sample_list = cmdStringToListOfLists(samples)
         chosen_sample = True
     
-
-    # elif opt == '-f':
-    #   fitRegionsStr=arg
-    #   fitRegionsList=arg.split(",")
-    # elif opt == '-s':
-    # elif opt == '-b':
-    #   showAfterFitError=False
-    # elif opt == '-%':
     show_percent = True
-    # elif opt == '-y':
     doAsym = True
-     
-    # try:
-    #   fitRegionsList
-    #   if fitRegionsList and not method=="2":
-    #     print "Warning, you set fitRegions (-f) = ", fitRegionsStr, " but not method 2 (-m 2). Fitregions can only be set together with method 2"
-    #     sys.exit(0)
-    # except NameError:
-    #   pass
 
     result_name = 'RooExpandedFitResult_afterFit'
-    # if not showAfterFitError:
-    # resultName =  'RooExpandedFitResult_beforeFit'
 
     skip_list = ['sqrtnobsa', 'totbkgsysa', 'poisqcderr','sqrtnfitted','totsyserr','nfitted']
 
@@ -312,11 +292,17 @@ def systable(workspace, samples, channels, output_name):
 
     # write out LaTeX table by calling function from SysTableTex.py function tablefragment
     #line_chan_sys_tight = tablefragment(chanSys,chanList,skiplist,chanStr,showPercent)
-    field_names = ['\\textbf{Uncertainties}',] + [ '\\textbf{%s}' % reg for reg in  chan_list ]
+    if not chosen_sample:
+        field_names = ['\\textbf{Uncertainties}',] + [ '\\textbf{%s}' % reg for reg in  chan_list ]
+    elif len(sample_list) == 1:
+        sample_label = labels_latex_dict.get(getName(sample_list[0]), getName(sample_list[0]))
+
+        field_names = ['\\textbf{Uncertainties (%s)}' % sample_label ] + [ '\\textbf{%s}' % (reg.split('_')[0]) for reg in  chan_list ]
+    else:
+        field_names = ['\\textbf{Uncertainties}',] + [ '\\textbf{%s (%s)}' % (reg.split('_')[0], reg.split('_')[1]) for reg in  chan_list ]
     align = ['l',] + [ 'r' for i in chan_list ]
 
     tablel = LatexTable(field_names, align=align, env=True)
-
 
     # print the total fitted (after fit) number of events
     row = ['Total background expectation',]
@@ -348,57 +334,72 @@ def systable(workspace, samples, channels, output_name):
     d = chan_sys[chan_list[0]] 
     m_listofkeys = sorted(d.iterkeys(), key=lambda k: d[k], reverse=True)
 
+
+    # uncertanties dict
+    unc_dict = dict()
+    unc_order = []
     for name in m_listofkeys:
 
-        if name not in skip_list:
-            
-            printname = name
-            printname = printname.replace('syserr_','')
+        if name in skip_list:
+            continue
 
-            if printname.startswith('gamma'):
-                if region in printname:
-                    printname = 'MC stat.'
-                else:
-                    continue
+        printname = name.replace('syserr_','')
+
+        #slabel = label.split('_')
+        #label = 'MC stat. (%s)' % slabel[2]
+
+        # skip negligible uncertainties in all requested regions:
+        zero = True
+        for index, region in enumerate(chan_list):
+            percentage = chan_sys[region][name]/chan_sys[region]['nfitted'] * 100.0
+
+            if ('%.4f' % chan_sys[region][name]) != '0.0000' and ('%.2f' % percentage) != '0.00': 
+                zero = False
+
+        if zero:
+            continue
+
+        # Parameter name -> parameter label
+        if printname.startswith('gamma_stat'):
+            label = 'MC stat.'
+
+        elif printname.startswith('gamma_shape_JFAKE_STAT_jfake'):
+            label = 'jet $\\to\\gamma$ fakes stat.'
+
+        elif printname.startswith('gamma_shape_EFAKE_STAT_efake'):
+            label = '$e\\to\\gamma$ fakes stat.'
             
+        else:
             if printname in systdict and systdict[printname]:
-                printname = systdict[printname]
+                label = systdict[printname]
+            else:
+                label = printname
 
-            #printname = printname.replace('_','\_')
+        # Fill dict
+        for index, region in enumerate(chan_list):
 
-            # check if zero in all regions:
-            zero = True
-            for index, region in enumerate(chan_list):
-                percentage = chan_sys[region][name]/chan_sys[region]['nfitted'] * 100.0
-                
-                if ('%.4f' % chan_sys[region][name]) != '0.0000' and ('%.2f' % percentage) != '0.00': 
-                    zero = False
-
-            if zero:
+            if printname.startswith('gamma') and not region.split('_')[0] in printname:
                 continue
 
+            if not label in unc_dict:
+                unc_dict[label] = []
+                unc_order.append(label)
 
-            row = []
-            for index, region in enumerate(chan_list):
-                if index == 0:
-                    row.append(printname)
-          
-
-                if not show_percent:
-                    row.append("$\\pm %.2f$" % chan_sys[region][name])
+            if not show_percent:
+                unc_dict[label].append("$\\pm %.2f$" % chan_sys[region][name])
+            else:
+                percentage = chan_sys[region][name]/chan_sys[region]['nfitted'] * 100.0
+                if percentage < 1:
+                    unc_dict[label].append("$\\pm %.2f\ [%.2f\%%]$" % (chan_sys[region][name], percentage))
                 else:
-                    percentage = chan_sys[region][name]/chan_sys[region]['nfitted'] * 100.0
-                    if percentage < 1:
-                        row.append("$\\pm %.2f\ [%.2f\%%]$" % (chan_sys[region][name], percentage))
-                    else:
-                        row.append("$\\pm %.2f\ [%.1f\%%]$" % (chan_sys[region][name], percentage))
+                    unc_dict[label].append("$\\pm %.2f\ [%.1f\%%]$" % (chan_sys[region][name], percentage))
                     
-            tablel.add_row(row)
+
+
+    # fill table
+    for label in unc_order:
+        tablel.add_row([label,] + unc_dict[label])
 
     tablel.add_line()
 
-
     tablel.save_tex(output_name)
-
-
-

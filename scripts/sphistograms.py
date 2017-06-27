@@ -66,10 +66,10 @@ def sphistograms():
     do_mc_syst       = args.mcsyst  or args.syst
     
     ## high-low systematics
-    systematics_expHL = systematics_.get_high_low_systematics()
+    systematics_exp_hl = systematics_.get_high_low_systematics()
 
     ## one-sided systematics
-    systematics_expOS = systematics_.get_one_side_systematics()
+    systematics_exp_os = systematics_.get_one_side_systematics()
   
     # Histograms "manager"
     hlist = []
@@ -112,8 +112,6 @@ def sphistograms():
 
         # Detector systematics
         if do_detector_syst:
-
-
                     
             if (not sample.startswith('efake') and 
                 not sample.startswith('jfake') and 
@@ -121,16 +119,18 @@ def sphistograms():
                 not 'GGM' in sample):
 
                 # one side systematics
-                for syst in systematics_expOS:
+                for syst in systematics_exp_os:
                     systematics_list.append(syst)
 
                 # High-Low detector systematics
-                for syst in systematics_expHL:
+                for syst in systematics_exp_hl:
                     systematics_list.append(syst+'__1down')
                     systematics_list.append(syst+'__1up')
                             
                     
         # Get histograms
+        print systematics_list
+
         histograms = get_events(systematics=systematics_list)
 
         # Data
@@ -150,21 +150,27 @@ def sphistograms():
 
             # SRs
             if 'SRL200' in regions:
-                hlist.append(('hjfakeNom_SRL200_obs_cuts',  0.35, 0.35))
+                hlist.append(('hjfakeNom_SRL200_obs_cuts',      0.35, 0.35))
+                hlist.append(('hjfakeNom_SRL200_obs_cutsNorm',  1.00, 0.00))
+
                 hlist.append(('hjfakeJFAKE_STATLow_SRL200_obs_cuts',  fzero, fzero))
                 hlist.append(('hjfakeJFAKE_STATHigh_SRL200_obs_cuts', 0.70, fzero))
                 hlist.append(('hjfakeJFAKE_SYSTLow_SRL200_obs_cuts',  0.27, 0.27))
                 hlist.append(('hjfakeJFAKE_SYSTHigh_SRL200_obs_cuts', 0.43, 0.43))
 
             if 'SRL300' in regions:
-                hlist.append(('hjfakeNom_SRL300_obs_cuts',  0.07, 0.07))
+                hlist.append(('hjfakeNom_SRL300_obs_cuts',      0.07,     0.07))
+                hlist.append(('hjfakeNom_SRL300_obs_cutsNorm',  7.142857, 0.00))
+
                 hlist.append(('hjfakeJFAKE_STATLow_SRL300_obs_cuts',  fzero, fzero))
                 hlist.append(('hjfakeJFAKE_STATHigh_SRL300_obs_cuts', 0.51, 0.51))
                 hlist.append(('hjfakeJFAKE_SYSTLow_SRL300_obs_cuts',  0.01, 0.01))
                 hlist.append(('hjfakeJFAKE_SYSTHigh_SRL300_obs_cuts', 0.15, 0.15))
 
             if 'SRH' in regions:
-                hlist.append(('hjfakeNom_SRH_obs_cuts',  0.01, 0.01))
+                hlist.append(('hjfakeNom_SRH_obs_cuts',       0.01, 0.01))
+                hlist.append(('hjfakeNom_SRH_obs_cutsNorm',  50.00, 0.00))
+
                 hlist.append(('hjfakeJFAKE_STATLow_SRH_obs_cuts',  fzero, fzero))
                 hlist.append(('hjfakeJFAKE_STATHigh_SRH_obs_cuts', 0.51, 0.51))
                 hlist.append(('hjfakeJFAKE_SYSTLow_SRH_obs_cuts',  fzero, fzero))
@@ -179,6 +185,9 @@ def sphistograms():
 
                 hlist.append((hname, mean, unc))
                 if 'Nom' in hname:
+                    ratio = unc/mean
+                    hlist.append((hname+'Norm', ratio, 0.))
+
                     hlist.append(('hjfakeJFAKE_STATLow_%s_obs_cuts' % rname,  mean-unc, 0.))
                     hlist.append(('hjfakeJFAKE_STATHigh_%s_obs_cuts' % rname, mean+unc, 0.))
 
@@ -188,6 +197,8 @@ def sphistograms():
             # SRH
             if 'SRH' in regions:
                 hlist.append(('hefakeNom_SRH_obs_cuts',            0.044, 0.044))
+                hlist.append(('hefakeNom_SRH_obs_cutsNorm',        1.000, 0.000))
+
                 hlist.append(('hefakeEFAKE_STATLow_SRH_obs_cuts',  fzero, fzero))
                 hlist.append(('hefakeEFAKE_STATHigh_SRH_obs_cuts', 0.044, 0.044))
                 hlist.append(('hefakeEFAKE_SYSTLow_SRH_obs_cuts',  0.038, 0.038))
@@ -202,6 +213,9 @@ def sphistograms():
 
                 hlist.append((hname, mean, unc))
                 if 'Nom' in hname:
+                    ratio = unc/mean
+                    hlist.append((hname+'Norm', ratio, 0.))
+
                     hlist.append(('hefakeEFAKE_STATLow_%s_obs_cuts' % rname,  mean-unc, 0.))
                     hlist.append(('hefakeEFAKE_STATHigh_%s_obs_cuts' % rname, mean+unc, 0.))
 
