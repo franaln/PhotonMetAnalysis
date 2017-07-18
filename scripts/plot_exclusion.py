@@ -14,8 +14,8 @@ import style
 import miniutils
 import regions
 from utils import mkdirp
-from rootutils import set_default_style, set_atlas_style, get_color
-from drawutils import draw_grid_frame
+from rootutils import *
+from drawutils import *
 from signalgrid import mg_gg_grid
 
 ROOT.gROOT.SetBatch(1)
@@ -345,6 +345,13 @@ def get_cls_values(file_name, exp):
 
 def combine_hypotest_files(inpaths, outpath):
 
+    print 'Combining SRs: %s' % args.region
+    print 'Input paths:'
+    for ip in inpaths:
+        print ip
+    print 'Output path:'
+    print outpath
+
     regions = args.region.split(',')
 
     #create new files (best expected)
@@ -363,11 +370,12 @@ def combine_hypotest_files(inpaths, outpath):
 
         region = regions[i]
 
-        lines_nom = open(path+'/Output_hypotest__1_harvest_list').read().split('\n')
         if sig_xs_syst:
             lines_nom = open(path+'/Output_fixSigXSecNominal_hypotest__1_harvest_list').read().split('\n')
-            lines_dn = open(path+'/Output_fixSigXSecDown_hypotest__1_harvest_list').read().split('\n')
-            lines_up = open(path+'/Output_fixSigXSecUp_hypotest__1_harvest_list').read().split('\n')
+            lines_dn  = open(path+'/Output_fixSigXSecDown_hypotest__1_harvest_list').read().split('\n')
+            lines_up  = open(path+'/Output_fixSigXSecUp_hypotest__1_harvest_list').read().split('\n')
+        else:
+            lines_nom = open(path+'/Output_hypotest__1_harvest_list').read().split('\n')
 
         for jline, line in enumerate(lines_nom):
 
@@ -453,7 +461,7 @@ def create_listfiles(path, region):
             jsonfile = inputfile.replace('hypotest.root', 'hypotest__1_harvest_list.json')
             listfile = jsonfile.replace('.json', '')
 
-            format = "hypo_GGM_M3_mu_%f_%f"
+            format = "hypo_GGM_GG_bhmix_%f_%f"
             interpretation = "m3:mu"
 
             outputfile = ROOT.CollectAndWriteHypoTestResults(inputfile, format, interpretation, '1', True, output_dir)
@@ -673,7 +681,7 @@ def create_histograms(path, textfile, input_hist):
 def print_common_usage():
     print ''
     print 'common usage:'
-    print '             plot_exclusion.py --combine [path1] [path2] [output path]'
+    print '             plot_exclusion.py --combine [output path] [input path 1] [input path 2] ...'
     print '             plot_exclusion.py --list --sr SR [path]'
     print '             plot_exclusion.py --cont --sr SR [path]'
     print '             plot_exclusion.py --plot --sr SR [path]'
@@ -726,20 +734,21 @@ if __name__ == '__main__':
     set_default_style()
 
     # guess if signal xs up/down files exist
-    first_path = args.paths[0]
+    last_path = args.paths[-1]
+
     global sig_xs_syst
     sig_xs_syst = False
-    if os.path.exists('%s/Output_fixSigXSecNominal_hypotest.root' % first_path):
+    if os.path.exists('%s/Output_fixSigXSecNominal_hypotest.root' % last_path):
         sig_xs_syst = True
 
-    if os.path.exists('%s/Output_fixSigXSecNominal_hypotest__1_harvest_list' % first_path):
+    if os.path.exists('%s/Output_fixSigXSecNominal_hypotest__1_harvest_list' % last_path):
         sig_xs_syst = True
 
 
     # Combine hypotest files in one: take last path as output
     if args.combine:
-        inpaths = args.paths[:-1]
-        outpath = args.paths[-1]
+        outpath = args.paths[0]
+        inpaths = args.paths[1:]
 
         if len(args.region.split(',')) != len(inpaths):
             print 'error'
@@ -754,15 +763,15 @@ if __name__ == '__main__':
             parser.print_usage()
             sys.exit()
 
-        create_listfiles(first_path, args.region)
+        create_listfiles(args.paths[0], args.region)
 
     if args.cont:
         if len(args.paths) > 1:
             parser.print_usage()
             sys.exit()
 
-        create_contourhists(first_path, args.region)
+        create_contourhists(args.paths[0], args.region)
 
     if args.plot:
-        plot_exclusion(first_path, args.region, args.output)
+        plot_exclusion(args.paths[0], args.region, args.output)
 
