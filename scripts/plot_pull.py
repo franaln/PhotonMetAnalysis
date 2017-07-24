@@ -16,16 +16,22 @@ ROOT.gInterpreter.ProcessLine('#include "{0}/src/Utils.h" '.format(os.getenv('HI
 ROOT.gROOT.Reset()
 
 parser = argparse.ArgumentParser(description='')
-parser.add_argument('-w', dest='workspace_file', required=True, help='Workspace file')
-parser.add_argument('-o', dest='output_dir', required=True, help='output directory')
+parser.add_argument('-i', dest='input_file', required=True, help='Input file (with workspace or fit)')
+parser.add_argument('-w', dest='workspace_name', default='w', help='Workspace name')
+parser.add_argument('-f', dest='fit_name', help='Fit name')
+parser.add_argument('-o', dest='output_file', required=True, help='Output file')
 
 args = parser.parse_args()
 
-wfile = args.workspace_file
+if args.fit_name is not None:
+    infile = ROOT.TFile.Open(args.input_file)
+    
+    result = infile.Get(args.fit_name)
+else:
 
-w = ROOT.Util.GetWorkspaceFromFile(wfile, 'w') #orkspacename)
+    w = ROOT.Util.GetWorkspaceFromFile(args.input_file, args.workspace_name) 
 
-result = w.obj('RooExpandedFitResult_afterFit')
+    result = w.obj('RooExpandedFitResult_afterFit')
 
 
 np_list = result.floatParsFinal()
@@ -40,22 +46,46 @@ x = array('d')
 xe = array('d')
 
 counter = 0
+counter_gamma = -1
 for i in xrange(np_size):
 
     np = np_list[i]
 
     name = np.GetName()
     
-    if name.startswith('gamma_stat') or name.startswith('mu_'):
+    if 'VR' in name or 'CR' in name:
         continue
 
-    names.append(systdict_root[name])
-    
     val = np.getVal()
     val_up = np.getErrorHi()
     val_dn = np.getErrorLo() 
 
-    print val_dn, val_up
+    if name.startswith('gamma_') or name.startswith('mu_'):
+        val -= 1.
+
+        if counter_gamma < 0:
+            counter_gamma = counter
+
+    if name in systdict_root:
+        names.append(systdict_root[name])
+    elif name.startswith('gamma_shape'):
+        name = name.replace('_obs_cuts_bin_0', '').replace('gamma_shape_', '')
+
+        _, _, sample, region = name.split('_')
+        if sample == 'efake':
+            sample = 'e#rightarrow#gamma fakes'
+        elif sample == 'jfake':
+            sample = 'j#rightarrow#gamma fakes'
+
+        #names.append('%s stat. (%s)' % (sample, region))
+        names.append('%s stat.' % (sample))
+
+    elif name.startswith('gamma_stat'):
+        name = name.replace('_cuts_bin_0', '').replace('gamma_stat_', '')
+        #names.append('MC stat. (%s)' % name)
+        names.append('MC stat.')
+    else:
+        names.append(name)
 
     x.append(counter)
     xe.append(0)
@@ -74,11 +104,11 @@ set_atlas_style()
 c = ROOT.TCanvas('pulls', '', 1200, 500)
 c.SetBottomMargin(0.32)
 c.SetTopMargin(0.03)
-c.SetRightMargin(0.02)
+c.SetRightMargin(0.06)
 c.SetLeftMargin(0.06)
 
-frame = ROOT.TH2D('frame_', '', len(y), -0.5, len(y)-0.5, 5, -1.2, 1.2)
-frame.SetYTitle('Uncertainty After Fit')
+frame = ROOT.TH2D('frame_', '', len(y), -0.5, len(y)-0.5, 5, -1.5, 1.5)
+frame.SetYTitle('#alpha parameters after fit')
 frame.SetXTitle('')
 frame.Draw()
 frame.GetYaxis().SetTitleOffset(0.5)
@@ -103,17 +133,18 @@ for abin in xrange(len(x)):
 frame.GetXaxis().LabelsOption('v')
 frame.GetXaxis().SetLabelSize(0.03)
 
-c2 = ROOT.TCanvas("Nuisance parameters zoom", "Nuisance parameters zoom", 1200, 500)
-c2.cd()
-frame2 = frame.Clone()
-frame2.GetXaxis().SetLabelSize(0.02)
-frame2.GetYaxis().SetRangeUser(-0.05, 0.05)
-frame2.Draw()
-graph2 = eg.Clone()
-graph2.SetMarkerStyle(20)
-graph2.SetMarkerSize(1.3)
-graph2.Draw("samePx")
-zero.Draw('same')
+# Draw an axis on the right side
+axis = ROOT.TGaxis(len(y)-0.5, -1.5, len(y)-0.5, 1.5, -0.5, 2.5, 510, "+L")
+axis.SetLabelFont(42)
+axis.SetTitleFont(42)
+axis.SetTitle('#gamma/#mu parameters after fit')
+axis.SetTitleOffset(0.7)
+axis.Draw()
+frame.GetYaxis().SetLabelSize(axis.GetLabelSize())
 
-c.SaveAs('%s/syst_pull_afterFit.pdf' % args.output_dir)
-c2.SaveAs('%s/syst_pull_zoom_afterFit.pdf' % args.output_dir)
+
+pg = ROOT.TLine(counter_gamma-0.5, -1.5, counter_gamma-0.5, 1.5)
+pg.SetLineStyle(3)
+pg.Draw('same')
+
+c.SaveAs(args.output_file)

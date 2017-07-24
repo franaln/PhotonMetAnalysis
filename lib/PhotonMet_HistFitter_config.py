@@ -262,10 +262,10 @@ syst_to_all = [
     HistSys("EG_RESOLUTION_ALL"),
     HistSys("EG_SCALE_ALL"),
 
-    HistSys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
-    HistSys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
-    HistSys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
-    HistSys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
+    # HistSys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
+    # HistSys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
+    # HistSys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
+    # HistSys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
     Systematic('PH_Iso_DDonoff', nom_name, '_PH_Iso_DDonoff', nom_name, 'tree', 'histoSysOneSide'),
     HistSys('PH_EFF_ID_Uncertainty'),
 
@@ -289,20 +289,20 @@ syst_to_all = [
     Systematic('MET_SoftTrk_ResoPerp', nom_name, '_MET_SoftTrk_ResoPerpUp', nom_name, 'tree', 'histoSysOneSide'),
     Systematic('MET_SoftTrk_Scale',    nom_name, '_MET_SoftTrk_ScaleUp', '_MET_SoftTrk_ScaleDown', 'tree', 'overallSys'),
 
-    # muon 
-    HistSys("MUON_SCALE"),
-    HistSys("MUON_MS"),
-    HistSys("MUON_ID"),
-    HistSys("MUON_SAGITTA_RESBIAS"),
-    HistSys("MUON_SAGITTA_RHO"),
-    HistSys('MUON_EFF_STAT'),
-    HistSys('MUON_EFF_SYS'),
-    HistSys('MUON_ISO_STAT'),
-    HistSys('MUON_ISO_SYS'),
-    HistSys('MUON_BADMUON_STAT'),
-    HistSys('MUON_BADMUON_SYS'),
-    HistSys('MUON_TTVA_STAT'),
-    HistSys('MUON_TTVA_SYS'),
+    # # muon 
+    # HistSys("MUON_SCALE"),
+    # HistSys("MUON_MS"),
+    # HistSys("MUON_ID"),
+    # HistSys("MUON_SAGITTA_RESBIAS"),
+    # HistSys("MUON_SAGITTA_RHO"),
+    # HistSys('MUON_EFF_STAT'),
+    # HistSys('MUON_EFF_SYS'),
+    # HistSys('MUON_ISO_STAT'),
+    # HistSys('MUON_ISO_SYS'),
+    # HistSys('MUON_BADMUON_STAT'),
+    # HistSys('MUON_BADMUON_SYS'),
+    # HistSys('MUON_TTVA_STAT'),
+    # HistSys('MUON_TTVA_SYS'),
 
     # pile-up
     HistSys('PRW_DATASF'),
@@ -313,11 +313,13 @@ syst_to_all = [
 # Fake photon backgrounds
 ## e->g
 syst_feg      = HistSys('EFAKE_SYST')
-syst_stat_feg = Systematic('EFAKE_STAT', nom_name, nom_name, nom_name, 'tree', 'shapeStat') ##, constraint='Poisson')
+#syst_stat_feg = Systematic('EFAKE_STAT', nom_name, nom_name, nom_name, 'tree', 'shapeStat') ##, constraint='Poisson')
+syst_stat_feg = HistSys('EFAKE_STAT') 
 
 ## j->g
 syst_fjg      = HistSys('JFAKE_SYST')
-syst_stat_fjg = Systematic('JFAKE_STAT', nom_name, nom_name, nom_name, 'tree', 'shapeStat') ##, constraint='Poisson')
+#syst_stat_fjg = Systematic('JFAKE_STAT', nom_name, nom_name, nom_name, 'tree', 'shapeStat') ##, constraint='Poisson')
+syst_stat_fjg = HistSys('JFAKE_STAT')
 
 # Theory Uncertainties
 ## Zgamma
