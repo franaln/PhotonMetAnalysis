@@ -81,7 +81,8 @@ for ix in xrange(1, nbins+1):
                 label = h_corr.GetYaxis().GetBinLabel(iy)
 
                 if label.startswith('gamma'):
-                    label = 'MC stat.'
+                    slabel = label.split('_')
+                    label = 'MC stat. (%s)' % slabel[2]
             
                 if label in systdict and systdict[label]:
                     label = systdict[label]
@@ -94,7 +95,8 @@ for ix in xrange(1, nbins+1):
         index_x += 1
         label = h_corr.GetXaxis().GetBinLabel(ix)
         if label.startswith('gamma'):
-            label = 'MC stat.'
+            slabel = label.split('_')
+            label = 'MC stat. (%s)' % slabel[2]
         if label in systdict and systdict[label]:
             label = systdict[label]
         h_corr_reduced.GetXaxis().SetBinLabel(index_x, label)

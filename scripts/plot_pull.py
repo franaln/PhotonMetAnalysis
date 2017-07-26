@@ -82,8 +82,8 @@ for i in xrange(np_size):
 
     elif name.startswith('gamma_stat'):
         name = name.replace('_cuts_bin_0', '').replace('gamma_stat_', '')
-        #names.append('MC stat. (%s)' % name)
-        names.append('MC stat.')
+        names.append('MC stat. (%s)' % name)
+        #names.append('MC stat.')
     else:
         names.append(name)
 

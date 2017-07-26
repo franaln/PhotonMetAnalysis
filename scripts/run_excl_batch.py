@@ -94,8 +94,8 @@ def main():
     parser.add_argument('--ntoys',  default='5000', help='Number of toys (By default use toys)')
     parser.add_argument('--dry', action='store_true', help='Dry run (not submit to batch)')
     parser.add_argument('--sigxs',  action='store_true', help='')
-    parser.add_argument('--only', help='Point as 1600_450')
-    parser.add_argument('--exclude', help='Point as 1600_450')
+    parser.add_argument('--include', help='Points to include separated by commas like GGM_GG_bhmix_1600_450')
+    parser.add_argument('--exclude', help='Points to exclude separated by commas like GGM_GG_bhmix_1600_450')
     parser.add_argument('--failed', help='')
 
     args = parser.parse_args()
@@ -119,26 +119,26 @@ def main():
     if args.sigxs:
         options += ' --sigxs'
 
-    requested_points = []
-    excluded_points  = []
-    if args.only is not None:
-        requested_points = args.only.split(',')
+    include_points = []
+    exclude_points  = []
+    if args.include is not None:
+        include_points = args.include.split(',')
     if args.exclude is not None:
-        excluded_points = args.exclude.split(',')
+        exclude_points = args.exclude.split(',')
 
     if args.failed is not None:
         lines = [ l.strip() for l in open(args.failed).read().split('\n') if l ]
         
-        requested_points.extend(lines)
+        include_points.extend(lines)
 
     for (m3, mu) in mg_gg_grid.iterkeys():
 
         point = 'GGM_GG_bhmix_%d_%d' % (m3, mu)
 
-        if requested_points and point not in requested_points:
+        if include_points and point not in include_points:
             continue
 
-        if point in excluded_points:
+        if point in exclude_points:
             continue
 
         write_and_submit_job(jobdir, logdir, resultsdir, args.configfile, options, point, args.region, args.queue, not args.dry)

@@ -25,7 +25,10 @@ def merge(input_files, output_file):
 
         infile = ROOT.TFile.Open(path)
 
-        content = [ key.GetName() for key in infile.GetListOfKeys() ]
+        try:
+            content = [ key.GetName() for key in infile.GetListOfKeys() ]
+        except:
+            continue
 
         for name in content:
             if not name.startswith('hypo'): ## or nor name.startswith('fitTo'):

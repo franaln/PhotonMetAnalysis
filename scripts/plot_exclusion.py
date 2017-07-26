@@ -397,13 +397,13 @@ def combine_hypotest_files(inpaths, outpath):
                     new_lines_dn[(m3, mu)] = lines_dn[jline]
                     new_lines_up[(m3, mu)] = lines_up[jline]
 
-                print 'copying list for (%i, %i) %s CLs = %.3f' % (m3, mu, region, cls)
+                print 'copying list for (%i, %i) %s CLs = %.6f' % (m3, mu, region, cls)
                     
             else:
 
                 if cls < cls_dict[(m3, mu)]:
 
-                    print 'changing list for (%i, %i) %s CLs = %.3f (old = %.3f)' % (m3, mu, region, cls, cls_dict[(m3, mu)]) 
+                    print 'changing list for (%i, %i) %s CLs = %.6f (old = %.6f)' % (m3, mu, region, cls, cls_dict[(m3, mu)]) 
                     
                     cls_dict[(m3, mu)] = cls
 
