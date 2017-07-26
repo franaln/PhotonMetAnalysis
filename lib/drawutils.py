@@ -1294,6 +1294,22 @@ def fix_and_set_borders(hist, name, title, val):
     return hist3 # this can be used for filled contour histograms
 
 
+def convert_hist_to_graph(hist):
+
+    canvas = ROOT.TCanvas()
+    hist.Draw("CONT List")
+    canvas.Update()
+    contours = ROOT.TObjArray(ROOT.gROOT.GetListOfSpecials().FindObject("contours"))
+
+    lcontour1 = contours.At(0)
+    graph = lcontour1.First()
+
+    graph.SetLineColor(hist.GetLineColor())
+    graph.SetLineWidth(hist.GetLineWidth())
+    graph.SetLineStyle(hist.GetLineStyle())
+
+    return graph.Clone()
+
 def return_contour95(hist_name, file_name):
 
     file_ = ROOT.TFile(file_name)
@@ -1312,24 +1328,9 @@ def return_contour95(hist_name, file_name):
     hist.SetLineWidth(2)
     hist.SetLineStyle(1)
 
-    return hist
+    return convert_hist_to_graph(hist)
 
 
-def convert_hist_to_graph(hist):
-
-    canvas = ROOT.TCanvas()
-    hist.Draw("CONT List")
-    canvas.Update()
-    contours = ROOT.TObjArray(ROOT.gROOT.GetListOfSpecials().FindObject("contours"))
-
-    lcontour1 = contours.At(0)
-    graph = lcontour1.First()
-
-    graph.SetLineColor(hist.GetLineColor())
-    graph.SetLineWidth(hist.GetLineWidth())
-    graph.SetLineStyle(hist.GetLineStyle())
-
-    return graph.Clone()
 
 
 def make_exclusion_band(g_nom, g_up, g_dn):
