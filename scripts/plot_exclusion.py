@@ -40,32 +40,16 @@ def plot_exclusion(path, region, outdir):
 
     # Get histograms
     ## obs CLs (Nominal, Low, High)
-    sigp1clsf = return_contour95('sigp1clsf', file_name)
+    graph_obs = return_contour95('sigp1clsf', file_name)
     if sig_xs_syst:
-        sigp1clsfLow  = return_contour95('sigp1clsf', file_name_low)
-        sigp1clsfHigh = return_contour95('sigp1clsf', file_name_high)
+        graph_obs_dn  = return_contour95('sigp1clsf', file_name_low)
+        graph_obs_up = return_contour95('sigp1clsf', file_name_high)
 
-        sigp1clsfLow.SetName('sigp1clsfLow')
-        sigp1clsfLow.SetTitle('sigp1clsfLow')
+    graph_exp_nom = return_contour95('sigp1expclsf', file_name)
+    graph_exp_dn  = return_contour95('sigclsu1s',    file_name)
+    graph_exp_up  = return_contour95('sigclsd1s',    file_name)
 
-        sigp1clsfHigh.SetName('sigp1clsfHigh')
-        sigp1clsfHigh.SetTitle('sigp1clsfHigh')
-
-    sigp1expclsf  = return_contour95('sigp1expclsf', file_name)
-    sigclsu1s     = return_contour95('sigclsu1s',    file_name)
-    sigclsd1s     = return_contour95('sigclsd1s',    file_name)
-
-    graph_sigp1clsf = convert_hist_to_graph(sigp1clsf)
-    if sig_xs_syst:
-        graph_sigp1clsfLow  = convert_hist_to_graph(sigp1clsfLow)
-        graph_sigp1clsfHigh = convert_hist_to_graph(sigp1clsfHigh)
-
-    graph_sigp1expclsf = convert_hist_to_graph(sigp1expclsf)
-    graph_sigclsu1s = convert_hist_to_graph(sigclsu1s)
-    graph_sigclsd1s = convert_hist_to_graph(sigclsd1s)
-
-    graph_exp, graph_exp_shade = make_exclusion_band(graph_sigp1expclsf, graph_sigclsd1s, graph_sigclsu1s)
-
+    graph_exp, graph_exp_shade = make_exclusion_band(graph_exp_nom, graph_exp_dn, graph_exp_up)
 
 
     # Style
@@ -74,16 +58,14 @@ def plot_exclusion(path, region, outdir):
     c_blue   = ROOT.TColor.GetColor('#28373c')
 
     ## expected 
-    set_style(graph_exp, color=c_blue, lwidth=2)
+    set_style(graph_exp,       color=c_blue, lwidth=2)
     set_style(graph_exp_shade, color=c_yellow, fstyle=1001)
 
     ## observed
-    set_style(graph_sigp1clsf, color=c_red, lwidth=3)
-
+    set_style(graph_obs, color=c_red, lwidth=3)
     if sig_xs_syst:
-        set_style(graph_sigp1clsfLow, color=c_red, lwidth=2)
-        set_style(graph_sigp1clsfHigh, color=c_red, lwidth=2)
-
+        set_style(graph_obs_dn, color=c_red, lwidth=2)
+        set_style(graph_obs_up, color=c_red, lwidth=2)
 
 
     frame = draw_grid_frame(xmin=1340, xmax=2550, ymin=147, ymax=2550) 
@@ -110,15 +92,15 @@ def plot_exclusion(path, region, outdir):
     leg3.SetTextColor(1)
     leg3.SetTextFont(42)
 
-    region_text = region
-    if 'SRL,SRH' in region_text or 'SRiL,SRiH' in region_text:
-        region_text = region_text = 'SR_{L} and SR_{H}'
-    elif 'SRL' in region_text or 'SRiL' in region_text:
-        region_text = 'SR_{L}'
-    elif 'SRH' in region_text or 'SRiH' in region_text:
-        region_text = 'SR_{H}'
+    # region_text = region
+    # if 'SRL,SRH' in region_text or 'SRiL,SRiH' in region_text:
+    #     region_text = region_text = 'SR_{L} and SR_{H}'
+    # elif 'SRL' in region_text or 'SRiL' in region_text:
+    #     region_text = 'SR_{L}'
+    # elif 'SRH' in region_text or 'SRiH' in region_text:
+    #     region_text = 'SR_{H}'
 
-    leg3.DrawLatex(0.15, 0.63, region_text)
+    # leg3.DrawLatex(0.15, 0.63, region_text)
 
     # Legend
     leg  = ROOT.TLegend(0.15, 0.77, 0.6, 0.92)
@@ -161,7 +143,7 @@ def plot_exclusion(path, region, outdir):
 
     if not args.onlyexp:
         obs_entry = leg.AddEntry(graph_sigp1clsf, "Observed limit (#pm1 #sigma^{SUSY}_{theory})", "LF")
-    leg.AddEntry(graph_sigp1expclsf, "Expected limit 40 fb^{-1} (#pm1 #sigma_{exp})", "LF")
+    leg.AddEntry(graph_sigp1expclsf, "Expected limit (#pm1 #sigma_{exp})", "LF")
 
     leg.Draw()
 
@@ -199,10 +181,10 @@ def plot_exclusion(path, region, outdir):
 
     ## observed
     if not args.onlyexp:
-        graph_sigp1clsf.Draw('same l')
+        graph_obs.Draw('same l')
         if sig_xs_syst:
-            graph_sigp1clsfHigh.Draw("same l")
-            graph_sigp1clsfLow.Draw("same l")
+            graph_obs_dn.Draw("same l")
+            graph_obs_up.Draw("same l")
 
 
     # # plot Run 1 limit
@@ -297,7 +279,7 @@ def plot_exclusion(path, region, outdir):
         lp.DrawLatex(1260, 1850, "#times    Extension")
     
 
-    frame.SaveAs(path+'/limitPlot_%s%s.pdf' % (region.replace(',', '_'), output_tag))
+    frame.SaveAs(path+'/limit_plot_%s%s.pdf' % (region.replace(',', '_'), output_tag))
 
 
     # Save contours
@@ -307,19 +289,16 @@ def plot_exclusion(path, region, outdir):
     outfile.cd()
 
     ## observed
-    graph_sigp1clsf.Write('clsf_obs')
+    graph_obs.Write('cls_obs')
     if sig_xs_syst:
-        graph_sigp1clsfHigh.Write("clsf_obs_up")
-        graph_sigp1clsfLow.Write("clsf_obs_dn")
+        graph_obs_up.Write("cls_obs_up")
+        graph_obs_dn.Write("cls_obs_dn")
 
     ## expected
-    graph_sigp1expclsf.Write('clsf_exp')
+    graph_exp_nom.Write('cls_exp')
     if sig_xs_syst:
-        graph_sigclsd1s = convert_hist_to_graph(sigclsd1s)
-        graph_sigclsu1s = convert_hist_to_graph(sigclsu1s)
-
-        graph_sigclsd1s.Write('clsf_exp_dn')
-        graph_sigclsu1s.Write('clsf_exp_up')
+        graph_exp_dn.Write('cls_exp_dn')
+        graph_exp_up.Write('cls_exp_up')
 
     outfile.Close()
 
