@@ -18,8 +18,8 @@ import analysis
 import samples
 import binning
 
-MiniDir1  = '/ar/pcunlp001/raid/falonso/mini2'
-MiniDir2  = '/ar/pcunlp002/disk/falonso/mini2'
+MiniDirLOCAL  = '/ar/pcunlp001/raid/falonso/mini2'
+MiniDirEOS  = '/eos/user/f/falonso/mini2'
 
 # FS for EWK samples
 relevant_fs = [111, 112, 113, 115, 117, 118, 123, 125, 126, 127, 133, 134, 135, 137, 138, 146, 148, 157, 158, 168]
@@ -269,9 +269,15 @@ def find_path(project, did, short_name, versions, ptags):
             version = version.split('_')[0]
 
         for ptag in ptags:
-            path = '%s/v%s/%s.%s.%s.mini.p%s.v%s%s_output.root' % (MiniDir1, version, project, did, short_name, ptag, version, vtag)
+            path = '%s/v%s/%s.%s.%s.mini.p%s.v%s%s_output.root' % (MiniDirLOCAL, version, project, did, short_name, ptag, version, vtag)
             if os.path.isfile(path):
                 return path
+
+            path = '%s/v%s/%s.%s.%s.mini.p%s.v%s%s_output.root' % (MiniDirEOS, version, project, did, short_name, ptag, version, vtag)
+            if os.path.isfile(path):
+                return path
+
+
 
     return ''
 
@@ -431,6 +437,8 @@ def _get_histogram(ds, **kwargs):
 
     is_mc = (ds['project'] == 'mc15_13TeV')
 
+    events_by_interval = kwargs.get('events_by_interval', True)
+
     original_selection = selection
 
     is_srl, is_srh = False, False
@@ -451,6 +459,7 @@ def _get_histogram(ds, **kwargs):
     #-----------
     systname = syst
 
+    fix_events_by_interval = False
     if ':' in variable and '::' not in variable:
         varx, vary = variable.split(':')
 
@@ -468,11 +477,13 @@ def _get_histogram(ds, **kwargs):
         htemp.Sumw2()
     else:
         if len(binning) > 3:
+            if events_by_interval:
+                fix_events_by_interval = True
             htemp = ROOT.TH1D(hname, hname, len(binning)-1, array('d', binning))
         else:
             htemp = ROOT.TH1D(hname, hname, *binning)
         htemp.Sumw2()
-        htemp.SetBinErrorOption(ROOT.TH1.kPoisson)
+        # htemp.SetBinErrorOption(ROOT.TH1.kPoisson)
 
     # Variable
     if ':' in variable and '::' not in variable:
@@ -640,7 +651,37 @@ def _get_histogram(ds, **kwargs):
         tree.Project(hname, variable, varexp)
         hist = htemp.Clone()
 
-    hist.AddOverflowBin()
+    if variable != 'cuts':
+
+        # if fix_events_by_interval:
+
+        #     nominal_width = hist.GetBinWidth(1)
+        #     for b in xrange(1, hist.GetNbinsX()+1):
+                
+        #         bin_width = hist.GetBinWidth(b)
+        #         scale = nominal_width / bin_width
+                
+        #         if abs(scale - 1.) > 0.0001:
+        #             c = hist.GetBinContent(b)
+        #             e = hist.GetBinError(b)
+                
+        #             hist.SetBinContent(b, c*scale)
+        #             hist.SetBinError  (b, e*scale)
+
+        # add overflow bin content to last bin
+        hist.AddOverflowBin()
+
+        # remove negative bins
+        need_renorm = False
+        original_norm = hist.Integral()
+        for b in xrange(1, hist.GetNbinsX()+1):
+            bin_c = hist.GetBinContent(b)
+            if bin_c < 0.:
+                hist.SetBinContent(b, 0.)
+                hist.SetBinError  (b, 0.)
+                need_renorm = True
+        if need_renorm:
+            hist.Scale(original_norm/hist.Integral())
 
     htemp.Delete()
 

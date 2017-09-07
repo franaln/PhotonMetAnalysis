@@ -27,7 +27,7 @@ def merge(input_files, output_file):
         if merge_htr is None:
             merge_htr = htr_result.Clone()
         else:
-            merge_htr.Append(htr_result.Clone())
+            merge_htr.Add(htr_result.Clone())
 
         htr_result.Delete()
 
@@ -35,7 +35,6 @@ def merge(input_files, output_file):
 
     outfile = ROOT.TFile(output_file, 'update')
     outfile.cd()
-    merge_inv.Write()
     merge_htr.Write()
     outfile.Close()
 

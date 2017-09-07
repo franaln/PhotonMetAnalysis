@@ -117,50 +117,6 @@ def main():
             ]
 
 
-    # Plot from histograms file
-    if args.input_file:
-
-        ifile = ROOT.TFile.Open(args.input_file)
-
-        for region in regions:
-
-            region_name = region #.split('_')[0]
-
-            for variable in variables:
-                
-                print 'plotting %s in region %s ...' % (variable, region)
-
-                ## backgrounds
-                h_bkg = OrderedDict()
-
-                backgrounds = ['photonjet', 'vgamma', 'tgamma', 'diphoton', 'efake', 'jfake']
-                for name in backgrounds:
-                    h_bkg[name] = get_histogram_from_file(ifile, name, variable, region_name, syst=syst)
-
-                ## data
-                h_data = get_histogram_from_file(ifile, 'data', variable, region_name, syst=syst)
-
-                ## signal
-                h_signal = OrderedDict()
-
-                if region.endswith('_L'):
-                    h_signal['GGM_M3_mu_1600_250'] = get_histogram_from_file(ifile, 'GGM_M3_mu_1600_250', variable, region_name, syst=syst)
-                    h_signal['GGM_M3_mu_1600_650'] = get_histogram_from_file(ifile, 'GGM_M3_mu_1600_650', variable, region_name, syst=syst)
-                    
-                elif region.endswith('_H'):
-                    h_signal['GGM_M3_mu_1600_1250'] = get_histogram_from_file(ifile, 'GGM_M3_mu_1600_1250', variable, region_name, syst)
-                    h_signal['GGM_M3_mu_1600_1450'] = get_histogram_from_file(ifile, 'GGM_M3_mu_1600_1450', variable, region_name, syst)
-                
-            
-                variable = variable.replace('/', '_over_')
-                outname = os.path.join(args.output, 'can_{}_{}_afterFit'.format(region, variable))
-            
-                do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region)
-
-        ifile.Close()
-        sys.exit(0)
-
-   
     # Standard DATA/Backgrounds plot
     for region in regions:
 
@@ -194,22 +150,21 @@ def main():
 
                 if 'CRQ' in mus:
                     mu = mus['CRQ']
-                    histogram_scale(h_bkg['photonjet'], *mu)
-                    #h_bkg['photonjet'].Scale(mu[0])
+                    #histogram_scale(h_bkg['photonjet'], *mu)
+                    h_bkg['photonjet'].Scale(mu[0])
                 if 'CRW' in mus:
                     mu = mus['CRW']
-                    histogram_scale(h_bkg['wgamma'], *mu)
-                    #h_bkg['wgamma'].Scale(mu[0])
-                    if 'vqqgamma' in h_bkg:
-                        histogram_scale(h_bkg['vqqgamma'], *mu)
+                    #histogram_scale(h_bkg['wgamma'], *mu)
+                    h_bkg['wgamma'].Scale(mu[0])
                 if 'CRT' in mus:
                     mu = mus['CRT']
-                    histogram_scale(h_bkg['ttbarg'], *mu)
-                   # h_bkg['ttbarg'].Scale(mu[0])
+                    #histogram_scale(h_bkg['ttbarg'], *mu)
+                    h_bkg['ttbarg'].Scale(mu[0])
             else:
                 if args.muq is not None:
-                    histogram_scale(h_bkg['photonjet'], float(args.muq))
-                        
+                    #histogram_scale(h_bkg['photonjet'], float(args.muq))
+                    h_bkg['photonjet'].Scale(args.muq)
+
             # Merge backgrounds to plot
             ## V + jets
             if args.mc:
