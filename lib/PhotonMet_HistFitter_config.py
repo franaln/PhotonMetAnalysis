@@ -253,20 +253,16 @@ else:
 configMgr.nomName = 'Nom'
 
 def HistSys(name='', kind='overallSys'):
-    return Systematic(name, nom_name, '_'+name+'Up', '_'+name+'Down', 'tree', kind)
+    #return Systematic(name, nom_name, '_'+name+'Up', '_'+name+'Down', 'tree', kind)
+    return Systematic(name, nom_name, '_'+name+'High', '_'+name+'Low', 'tree', kind)
 
 # Detector uncertainties
 syst_to_all = [
-
     # egamma
     HistSys("EG_RESOLUTION_ALL"),
     HistSys("EG_SCALE_ALL"),
 
-    # HistSys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
-    # HistSys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
-    # HistSys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
-    # HistSys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
-    Systematic('PH_Iso_DDonoff', nom_name, '_PH_Iso_DDonoff', nom_name, 'tree', 'histoSysOneSide'),
+    Systematic('PH_Iso_DDonoff', nom_name, '_PH_Iso_DDonoffHigh', nom_name, 'tree', 'histoSysOneSide'),
     HistSys('PH_EFF_ID_Uncertainty'),
 
     # jets
@@ -275,39 +271,20 @@ syst_to_all = [
     HistSys('JET_GroupedNP_1'),
     HistSys('JET_GroupedNP_2'),
     HistSys('JET_GroupedNP_3'),
-    Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NPUp', nom_name, 'tree','histoSysOneSide'),
-
-    # # # flavour-tagging
-    # # HistSys('FT_EFF_B_systematics'),
-    # # HistSys('FT_EFF_C_systematics'),
-    # # HistSys('FT_EFF_Light_systematics'),
-    # # HistSys('FT_EFF_extrapolation'),
-    # # HistSys('FT_EFF_extrapolation_from_charm'),
+    Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NPHigh', nom_name, 'tree','histoSysOneSide'),
 
     # met 
-    Systematic('MET_SoftTrk_ResoPara', nom_name, '_MET_SoftTrk_ResoParaUp', nom_name, 'tree', 'histoSysOneSide'),
-    Systematic('MET_SoftTrk_ResoPerp', nom_name, '_MET_SoftTrk_ResoPerpUp', nom_name, 'tree', 'histoSysOneSide'),
-    Systematic('MET_SoftTrk_Scale',    nom_name, '_MET_SoftTrk_ScaleUp', '_MET_SoftTrk_ScaleDown', 'tree', 'overallSys'),
-
-    # # muon 
-    # HistSys("MUON_SCALE"),
-    # HistSys("MUON_MS"),
-    # HistSys("MUON_ID"),
-    # HistSys("MUON_SAGITTA_RESBIAS"),
-    # HistSys("MUON_SAGITTA_RHO"),
-    # HistSys('MUON_EFF_STAT'),
-    # HistSys('MUON_EFF_SYS'),
-    # HistSys('MUON_ISO_STAT'),
-    # HistSys('MUON_ISO_SYS'),
-    # HistSys('MUON_BADMUON_STAT'),
-    # HistSys('MUON_BADMUON_SYS'),
-    # HistSys('MUON_TTVA_STAT'),
-    # HistSys('MUON_TTVA_SYS'),
+    Systematic('MET_SoftTrk_ResoPara', nom_name, '_MET_SoftTrk_ResoParaHigh', nom_name, 'tree', 'histoSysOneSide'),
+    Systematic('MET_SoftTrk_ResoPerp', nom_name, '_MET_SoftTrk_ResoPerpHigh', nom_name, 'tree', 'histoSysOneSide'),
+    Systematic('MET_SoftTrk_Scale',    nom_name, '_MET_SoftTrk_ScaleHigh', '_MET_SoftTrk_ScaleLow', 'tree', 'overallSys'),
 
     # pile-up
     HistSys('PRW_DATASF'),
 ]
 
+# Flat 100% unc for photon+jet in SRs
+sigma_gamjet_flat = 0.9999
+syst_gamjet_flat_SR  = Systematic("flat100GJ", 1, 1+sigma_gamjet_flat, 1-sigma_gamjet_flat, "user", "userOverallSys")
 
 
 # Fake photon backgrounds
@@ -323,8 +300,8 @@ syst_stat_fjg = Systematic('JFAKE_STAT', nom_name, nom_name, nom_name, 'tree', '
 
 # Theory Uncertainties
 ## Zgamma
-sigma_zgamma_srl = 0.3 #0.0567
-sigma_zgamma_srh = 0.3 #0.1154
+sigma_zgamma_srl = 0.30 #0.0567
+sigma_zgamma_srh = 0.30 #0.1154
 sigma_zgamma_crq = 0.0620
 sigma_zgamma_crw = 0.0714
 sigma_zgamma_crt = 0.6891
@@ -344,12 +321,12 @@ syst_gamjet_theo_all  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_all, 1-sigma_g
 
 
 ## wgamma
-sigma_wgamma_srl   = 0.3 #0.0473
-sigma_wgamma_srh   = 0.3 #0.1455
+sigma_wgamma_srl   = 0.30 #0.0473
+sigma_wgamma_srh   = 0.30 #0.1455
 sigma_wgamma_crq   = 0.0855
 sigma_wgamma_crw   = 0.0477
 sigma_wgamma_crt   = 0.0486
-sigma_wgamma_vrl   = 0.3 #0.09
+sigma_wgamma_vrl   = 0.30 #0.09
 
 syst_wgamma_theo_srl = Systematic("theoSysWG", 1, 1+sigma_wgamma_srl, 1-sigma_wgamma_srl, "user", "userOverallSys")
 syst_wgamma_theo_srh = Systematic("theoSysWG", 1, 1+sigma_wgamma_srh, 1-sigma_wgamma_srh, "user", "userOverallSys")
@@ -359,12 +336,12 @@ syst_wgamma_theo_crt = Systematic("theoSysWG", 1, 1+sigma_wgamma_crt, 1-sigma_wg
 syst_wgamma_theo_vrl = Systematic("theoSysWG", 1, 1+sigma_wgamma_vrl, 1-sigma_wgamma_vrl, "user", "userOverallSys")
 
 ## ttgamma
-sigma_tgamma_srl = 0.3 #0.2839
-sigma_tgamma_srh = 0.3 #0.3305
+sigma_tgamma_srl = 0.30 #0.2839
+sigma_tgamma_srh = 0.30 #0.3305
 sigma_tgamma_crq = 0.2134
 sigma_tgamma_crw = 0.1317
 sigma_tgamma_crt = 0.0987
-sigma_tgamma_vrl = 0.3 #0.19
+sigma_tgamma_vrl = 0.30 #0.19
 
 syst_tgamma_theo_srl = Systematic("theoSysTG", 1, 1+sigma_tgamma_srl, 1-sigma_tgamma_srl, "user", "userOverallSys")
 syst_tgamma_theo_srh = Systematic("theoSysTG", 1, 1+sigma_tgamma_srh, 1-sigma_tgamma_srh, "user", "userOverallSys")
@@ -385,21 +362,10 @@ if do_detector_syst:
             if sample.name.startswith('efake') or sample.name.startswith('jfake'):
                 continue
 
+            if sample.name == 'photonjet':
+                continue
+
             sample.addSystematic(gsyst)
-
-    # for gsyst in syst_jets:
-    #     for sample in bkg_samples:
-    #         if sample.name.startswith('efake') or sample.name.startswith('jfake'):
-    #             continue
-    #         if sample.name not in ('photonjet', 'wgamma', 'ttbarg'):
-    #             sample.addSystematic(gsyst)
-
-    # for gsyst in syst_jets_norm:
-    #     for sample in bkg_samples:
-    #         if sample.name.startswith('efake') or sample.name.startswith('jfake'):
-    #             continue
-    #         if sample.name in ('photonjet', 'wgamma', 'ttbarg'):
-    #             sample.addSystematic(gsyst)
 
 
 if do_dd_syst:
@@ -532,6 +498,9 @@ if do_mc_syst:
         sc.getSample('ttbarg')     .addSystematic(tg_syst)
         sc.getSample('zllgamma')   .addSystematic(zg_syst)
         sc.getSample('znunugamma') .addSystematic(zg_syst)
+
+        sc.getSample('photonjet').addSystematic(syst_gamjet_flat_SR)
+
 
     # CR
     CRQ.getSample('wgamma').addSystematic(syst_wgamma_theo_crq)

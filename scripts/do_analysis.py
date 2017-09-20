@@ -22,6 +22,8 @@ today = datetime.datetime.today()
 
 parser = argparse.ArgumentParser(description='do_analysis.py')
 parser.add_argument('--tag', default='', help='Output name tag')
+parser.add_argument('-i', '--input_hist', help='Input histograms')
+parser.add_argument('-c', '--conf', help='HF config file')
 
 parser.add_argument('--hist', action='store_true', help='Force histogram creation')
 parser.add_argument('-f', '--fit', action='store_true', help='Do fit')
@@ -98,7 +100,7 @@ else:
 # Results outpu dir
 susy_dir = os.environ['SUSY_ANALYSIS']
 
-results_dir    = 'results/analysis_%s' % (tag)
+results_dir    = '%s/results/analysis_%s' % (susy_dir, tag)
 log_dir        = '%s/log'        % results_dir
 histograms_dir = '%s/histograms' % results_dir
 fits_dir       = '%s/fits'       % results_dir
@@ -113,7 +115,6 @@ os.system('mkdir -p %s' % fits_dir)
 os.system('mkdir -p %s' % tables_dir)
 os.system('mkdir -p %s' % plots_dir)
 os.system('mkdir -p %s' % web_dir)
-
 
 logfile = log_dir + '/analysis.txt'
 logfile_cmd = log_dir + '/commands.txt'
@@ -186,30 +187,37 @@ with open(log_dir + '/selection.txt', 'w+') as f:
 #------------------
 # Create Histograms
 #------------------
-histograms_txt_path = '%s/histograms.txt' % (histograms_dir)
-histograms_path = '%s/histograms.root' % (histograms_dir)
+if args.input_hist is not None:
+    histograms_path = args.input_hist
 
-samples = ','.join(mc_samples) + ',data,efake,jfake' # signal
+else:
+    histograms_txt_path = '%s/histograms.txt' % (histograms_dir)
+    histograms_path = '%s/histograms.root' % (histograms_dir)
 
-cmd = 'sphistograms.py -o %s -s %s -r %s --lumi data' % (histograms_txt_path, samples, regions_str) 
-cmd2 = 'txt2hist.py %s %s' % (histograms_txt_path, histograms_path)
+    samples = ','.join(mc_samples) + ',data,efake,jfake' # signal
 
-if unblind:
-    cmd += ' --unblind'
+    cmd = 'sphistograms.py -o %s -s %s -r %s --lumi data' % (histograms_txt_path, samples, regions_str) 
+    cmd2 = 'txt2hist.py %s %s' % (histograms_txt_path, histograms_path)
 
-if syst_str:
-    cmd += syst_str
+    if unblind:
+        cmd += ' --unblind'
 
-if not os.path.isfile(histograms_path) or args.hist:
-    run_cmd(cmd)
-    run_cmd(cmd2)
+    if syst_str:
+        cmd += syst_str
+
+    if not os.path.isfile(histograms_path) or args.hist:
+        run_cmd(cmd)
+        run_cmd(cmd2)
 
 
 
 #--------------
 # Bkg-only Fit
 #--------------
-configfile = susy_dir + '/lib/PhotonMet_HistFitter_config.py'
+if args.conf is not None:
+    configfile = os.path.abspath(args.conf)
+else:
+    configfile = susy_dir + '/lib/PhotonMet_HistFitter_config.py'
 
 fit_dir = '%s/bkgonly' % fits_dir
 ws = fit_dir + "/BkgOnlyFit_combined_BasicMeasurement_model_afterFit.root"
@@ -221,6 +229,8 @@ if syst_str:
 if args.val:
     cmd += ' --val'
 
+cmd += ' --hf "-D corrMatrix -m ALL"' 
+
 if do_fit:
     run_cmd(cmd)
 
@@ -229,11 +239,13 @@ if do_fit:
 #-------
 # Tables
 #-------
-
 backgrounds_str = 'photonjet,wgamma,[zllgamma,znunugamma],ttbarg,efake,jfake,diphoton'
 
-all_regions_str = 'CRQ,CRW,CRT,VRM1L,VRM2L,VRM3L,VRM1H,VRM2H,VRM3H,VRL1,VRL2,VRL3,VRL4,VRE,' + sr_str
-        
+if args.val:
+    all_regions_str = 'CRQ,CRW,CRT,VRM1L,VRM2L,VRM3L,VRM1H,VRM2H,VRM3H,VRL1,VRL2,VRL3,VRL4,VRE,' + sr_str
+else:
+    all_regions_str = 'CRQ,CRW,CRT,' + sr_str
+
 # Yields tables
 if do_tables:
     ## CR
@@ -251,8 +263,15 @@ if do_tables:
     ## SR
     yieldstable(ws, backgrounds_str, sr_str, tables_dir+'/table_sr.tex', 'Signal Regions', unblind=unblind)
 
-    ## All
-    yieldstable(ws, backgrounds_str.replace('[', '').replace(']', ''), all_regions_str, tables_dir+'/table_all.tex', 'All Regions', unblind=unblind)
+    ## All (for pull plot)
+    if args.val:
+        yieldstable(ws, backgrounds_str.replace('[', '').replace(']', ''), all_regions_str, tables_dir+'/table_all.tex', 'All Regions', unblind=unblind)
+
+
+# Pull plot
+if do_tables and args.val:
+    cmd  = 'plot_region_pull.py --pickle %s -r %s -o %s --ext "pdf,png"' % (tables_dir+'/table_all.pickle', all_regions_str, plots_dir)  + (' --unblind' if unblind else '')
+    run_cmd(cmd)
 
 
 # Systematics tables
@@ -261,34 +280,31 @@ if do_tables and syst_str:
     systable(ws, '', 'SRL200', '%s/table_syst_srl200.tex' % tables_dir)
     systable(ws, '', 'SRL300', '%s/table_syst_srl300.tex' % tables_dir)
     systable(ws, '', 'SRH',    '%s/table_syst_srh.tex' % tables_dir)
-    
-    systable(ws, '', 'CRQ,CRW,CRT', '%s/table_syst_cr.tex' % tables_dir)
 
     systable(ws, '', 'CRQ', '%s/table_syst_crq.tex' % tables_dir)
     systable(ws, '', 'CRW', '%s/table_syst_crw.tex' % tables_dir)
     systable(ws, '', 'CRT', '%s/table_syst_crt.tex' % tables_dir)
 
-    systable(ws, 'jfake', 'SRL200,SRL300,SRH', '%s/table_syst_jfake.tex' % tables_dir)
+    systable(ws, 'photonjet',             'SRL200,SRL300,SRH', '%s/table_syst_phohonjet.tex' % tables_dir)
+    systable(ws, 'wgamma',                'SRL200,SRL300,SRH', '%s/table_syst_wgamma.tex' % tables_dir)
+    systable(ws, 'zllgamma',              'SRL200,SRL300,SRH', '%s/table_syst_zllgamma.tex' % tables_dir)
+    systable(ws, 'znunugamma',            'SRL200,SRL300,SRH', '%s/table_syst_znunugamma.tex' % tables_dir)
+    systable(ws, 'ttbarg',                'SRL200,SRL300,SRH', '%s/table_syst_ttbarg.tex' % tables_dir)
+    systable(ws, 'efake',                 'SRL200,SRL300,SRH', '%s/table_syst_efake.tex' % tables_dir)
+    systable(ws, 'jfake',                 'SRL200,SRL300,SRH', '%s/table_syst_jfake.tex' % tables_dir)
+    systable(ws, 'diphoton',              'SRL200,SRL300,SRH', '%s/table_syst_diphoton.tex' % tables_dir)
 
-    # cmds = [
-
-    #     # 'SysTable.py -w ' + ws + ' -c SRL200 -o %s/table_syst_srl200_photonjet.tex  -%% -s photonjet' % tables_dir,
-    #     # 'SysTable.py -w ' + ws + ' -c SRL200 -o %s/table_syst_srl200_ttbarg.tex     -%% -s ttbarg' % tables_dir,
-    #     # 'SysTable.py -w ' + ws + ' -c SRL200 -o %s/table_syst_srl200_wgamma.tex     -%% -s wgamma' % tables_dir,
-    #     # 'SysTable.py -w ' + ws + ' -c SRL200 -o %s/table_syst_srl200_znunugamma.tex -%% -s znunugamma' % tables_dir,
-
-    #     # 'SysTable.py -w ' + ws + ' -c SRL300 -o %s/table_syst_srl300_photonjet.tex  -%% -s photonjet' % tables_dir,
-    #     # 'SysTable.py -w ' + ws + ' -c SRL300 -o %s/table_syst_srl300_ttbarg.tex     -%% -s ttbarg' % tables_dir,
-    #     # 'SysTable.py -w ' + ws + ' -c SRL300 -o %s/table_syst_srl300_wgamma.tex     -%% -s wgamma' % tables_dir,
-    #     # 'SysTable.py -w ' + ws + ' -c SRL300 -o %s/table_syst_srl300_znunugamma.tex -%% -s znunugamma' % tables_dir,
-
-    #     # 'SysTable.py -w ' + ws + ' -c SRH -o %s/table_syst_srh_photonjet.tex  -%% -s photonjet' % tables_dir,
-    #     # 'SysTable.py -w ' + ws + ' -c SRH -o %s/table_syst_srh_ttbarg.tex     -%% -s ttbarg' % tables_dir,
-    #     # 'SysTable.py -w ' + ws + ' -c SRH -o %s/table_syst_srh_wgamma.tex     -%% -s wgamma' % tables_dir,
-    #     # 'SysTable.py -w ' + ws + ' -c SRH -o %s/table_syst_srh_znunugamma.tex -%% -s znunugamma' % tables_dir,
-
-    #     # 'SysTable.py -w ' + ws + ' -c VRZ      -o %s/table_syst_vrz.tex -%%' % tables_dir,
-    # ]
+    if args.val:
+        systable(ws, '', 'VRL1', '%s/table_syst_vrl1.tex' % tables_dir)
+        systable(ws, '', 'VRL2', '%s/table_syst_vrl2.tex' % tables_dir)
+        systable(ws, '', 'VRL3', '%s/table_syst_vrl3.tex' % tables_dir)
+        systable(ws, '', 'VRL4', '%s/table_syst_vrl4.tex' % tables_dir)
+        systable(ws, '', 'VRM1L', '%s/table_syst_vrm1l.tex' % tables_dir)
+        systable(ws, '', 'VRM1H', '%s/table_syst_vrm1h.tex' % tables_dir)
+        systable(ws, '', 'VRM2L', '%s/table_syst_vrm2l.tex' % tables_dir)
+        systable(ws, '', 'VRM2H', '%s/table_syst_vrm2h.tex' % tables_dir)
+        systable(ws, '', 'VRM3L', '%s/table_syst_vrm3l.tex' % tables_dir)
+        systable(ws, '', 'VRM3H', '%s/table_syst_vrm3h.tex' % tables_dir)
 
 
 
@@ -316,24 +332,18 @@ variables_str = ','.join(variables)
 # Distributions plots
 after_cmd = ' --ws %s' % ws
 
-# Region pulls
-#cmd  = 'plot_region_pull.py --ws %s -r %s -o %s --ext "pdf,png"' % (ws, all_regions_str, plots_dir)  + (' --unblind' if unblind else '')
-cmd  = 'plot_region_pull.py --pickle %s -r %s -o %s --ext "pdf,png"' % (tables_dir+'/table_all.pickle', all_regions_str, plots_dir)  + (' --unblind' if unblind else '')
-
-run_cmd(cmd)
-
 
 ## SR
-if do_plots:
+# if do_plots:
 
-    cmd = 'draw.py -r SRL,SReL2,SReH -l data --data data -o %s --signal --n1 --ext "pdf,png" --save %s/histograms_plots_sr.root' % (plots_dir, histograms_dir) + after_cmd
+#     cmd = 'draw.py -r SRL,SReL2,SReH -l data --data data -o %s --signal --n1 --ext "pdf,png" --save %s/histograms_plots_sr.root' % (plots_dir, histograms_dir) + after_cmd
 
-    if not unblind:
-        cmd += ' -v met_et,meff --blind'
-    else:
-        cmd += ' -v %s --ratio none' % variables_str
+#     if not unblind:
+#         cmd += ' -v met_et,meff --blind'
+#     else:
+#         cmd += ' -v %s --ratio none' % variables_str
         
-    run_cmd(cmd)
+#     run_cmd(cmd)
 
 
 ## CR

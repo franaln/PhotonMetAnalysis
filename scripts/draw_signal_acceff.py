@@ -76,6 +76,20 @@ for (m3, mu), (mgl, mn1) in sorted(mg_gg_grid.iteritems()):
     h_srh.Fill(mgl, mn1, srh_acceff)
 
 
+
+
+f = ROOT.TFile('acceff.root', 'recreate')
+h_srl200.SetDirectory(f)
+h_srl300.SetDirectory(f)
+h_srh.SetDirectory(f)
+
+h_srl200.Write('h_srl200')
+h_srl300.Write('h_srl300')
+h_srh.Write('h_srh')
+f.Close()
+
+sys.exit(1)
+
 # plot
 set_atlas_style()
 

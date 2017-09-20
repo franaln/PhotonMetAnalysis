@@ -17,17 +17,18 @@ from rootutils import *
 import style
 from style import colors_dict, labels_dict
 from drawutils import calc_poisson_cl_upper, calc_poisson_cl_lower
-from yieldstable import latexfitresults
+from yieldstable import yieldstable
 import analysis
 
 parser = argparse.ArgumentParser(description='plot regions pull')
     
 parser.add_argument('--ws', dest='workspace', help='Input workspace')
 parser.add_argument('--pickle', dest='pickle_filename', help='Input pickle file')
-parser.add_argument('-o', dest='output_dir', default='.', help='Output dir')
+parser.add_argument('-o', dest='output_name', default='pull_regions', help='Output name')
 parser.add_argument('-r', dest='regions', help='regions')
 parser.add_argument('--unblind', action='store_true', help='Unblind! (use with caution)')
 parser.add_argument('--ext', dest='extensions', default='pdf', help='')
+parser.add_argument('--save', help='Save histograms to root file')
 
 args = parser.parse_args()
 
@@ -316,6 +317,7 @@ def make_hist_pull_plot(samples, regions, results):
     if 'vqqgamma' in merged_bkgs:
         merged_bkgs['vgamma'] += to_merge['vqqgamma']
 
+    merged_bkgs['diphoton'] = to_merge['diphoton']
 
     for sam, h in merged_bkgs.iteritems():
         set_style(h, color=colors_dict[sam], fill=True)
@@ -389,12 +391,6 @@ def make_hist_pull_plot(samples, regions, results):
 
     legend1.Draw()
 
-    lr = ROOT.TLine()
-    #lr.SetLineWidth(2)
-    #lr.SetLineColor(ROOT.kGray+2)
-    lr.SetLineStyle(3)
-    lr.DrawLine( 3, 0.05,  3, 2000)
-    lr.DrawLine(14, 0.05, 14, 2000)
 
     cup.RedrawAxis()
 
@@ -427,7 +423,23 @@ def make_hist_pull_plot(samples, regions, results):
     # lr.DrawLine(14, -max_pull, 14, max_pull)
     
     for ext in args.extensions.split(','):
-        c.Print(args.output_dir+'/pull_regions.' + ext)
+        c.SaveAs(args.output_name + '.' + ext)
+
+    if args.save:
+        outfile = ROOT.TFile(args.save, 'recreate')
+        hdata.Write('h_data')
+        graph_data.Write('g_data')
+
+        hbkg_total.Write('h_sm_total')
+        for name, h in merged_bkgs.iteritems():
+            h.Write('h_'+name)
+
+        p = ROOT.TH1D('pull', 'pull', npar, 0, npar)
+        for i, (region, pull) in enumerate(regions_pull):
+            print i, region, pull
+            p.SetBinContent(i+1, pull)
+
+        p.Write('h_pull')
 
     return
 

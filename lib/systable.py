@@ -403,3 +403,7 @@ def systable(workspace, samples, channels, output_name):
     tablel.add_line()
 
     tablel.save_tex(output_name)
+
+
+if __name__ == "__main__":
+    pass

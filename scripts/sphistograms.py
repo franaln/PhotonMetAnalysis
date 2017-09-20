@@ -115,8 +115,9 @@ def sphistograms():
                     
             if (not sample.startswith('efake') and 
                 not sample.startswith('jfake') and 
-                not 'data' in sample and 
-                not 'GGM' in sample):
+                not 'data' in sample):
+                # and 
+                #                not 'GGM' in sample):
 
                 # one side systematics
                 for syst in systematics_exp_os:

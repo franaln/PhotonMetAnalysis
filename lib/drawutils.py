@@ -16,7 +16,7 @@ c1_text = '#tilde{#chi} #kern[-0.8]{#lower[0.8]{#scale[0.6]{1}}} #kern[-1.8]{#lo
 mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[0.8]{#scale[0.6]{1}}} #kern[-1.41]{#lower[-0.6]{#scale[0.6]{0}}}}'
 
 # Grid plot size
-glmin = 1146
+glmin = 1200
 glmax = 2400 #2400
 n1min = 147
 n1max = 2400 #2400
@@ -75,7 +75,6 @@ def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ym
 
     ROOT.SetOwnership(canvas, False)
 
-
     nx = (xmax - xmin) / 25
     ny = (ymax - ymin) / 25
 
@@ -87,25 +86,25 @@ def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ym
     frame.SetTitle('')
 
     canvas.SetTicks()
-    canvas.SetLeftMargin(0.12)
+    canvas.SetLeftMargin  (0.10)
     canvas.SetBottomMargin(0.09)
-    canvas.SetRightMargin(0.05)
-    canvas.SetTopMargin(0.05)
+    canvas.SetRightMargin (0.05)
+    canvas.SetTopMargin   (0.05)
 
-    frame.SetLabelOffset(0.012, "X") # label offset on x axis
-    frame.SetLabelOffset(0.012, "Y") # label offset on x axis
+    frame.SetLabelOffset(0.012, "X") 
+    frame.SetLabelOffset(0.012, "Y") 
     frame.SetXTitle('m_{#tilde{g}} [GeV]')
     frame.SetYTitle('%s [GeV]' % mn1_text)
-    frame.GetXaxis().SetTitleSize(0.033)
-    frame.GetYaxis().SetTitleSize(0.033)
-    frame.GetXaxis().SetLabelSize(0.033)
-    frame.GetYaxis().SetLabelSize(0.033)
+    frame.GetXaxis().SetTitleSize(0.035)
+    frame.GetYaxis().SetTitleSize(0.035)
+    frame.GetXaxis().SetLabelSize(0.035)
+    frame.GetYaxis().SetLabelSize(0.035)
     frame.GetZaxis().SetLabelSize(0.02)
-    frame.GetXaxis().SetTitleOffset(1.3)
-    frame.GetYaxis().SetTitleOffset(1.6)
+    frame.GetXaxis().SetTitleOffset(1.2)
+    frame.GetYaxis().SetTitleOffset(1.4)
 
-    frame.GetXaxis().SetNdivisions(10, 3, 0)
-    frame.GetYaxis().SetNdivisions(10, 5, 0)
+    frame.GetXaxis().SetNdivisions(520)
+    frame.GetYaxis().SetNdivisions(510)
 
     frame.Draw("hist")
     ROOT.gROOT.ForceStyle()
@@ -116,14 +115,13 @@ def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ym
     fl.SetLineColor(ROOT.kGray+2)
     fl.Draw()
 
-    flabel = ROOT.TLatex(xmax-280, ymax-200, '%s > m_{#tilde{g}}' % mn1_text)
+    flabel = ROOT.TLatex(xmax-420, ymax-350, '%s > m_{#tilde{g}} forbidden' % mn1_text)
     ROOT.SetOwnership(flabel, False)
-    flabel.SetTextSize(0.02)
+    flabel.SetTextSize(0.025)
     flabel.SetTextColor(ROOT.kGray+2)
-    flabel.SetTextAngle(24)
+    flabel.SetTextAngle(20)
     flabel.Draw()
 
-    # Redraw axis and update canvas
     canvas.RedrawAxis()
 
     return canvas

@@ -51,22 +51,39 @@ systematics_muon_w = [
 
 
 # jets 
-systematics_jet_kin = [
+systematics_jet_jes_np1 = [
     'JET_EtaIntercalibration_NonClosure__1up', 'JET_EtaIntercalibration_NonClosure__1down',
     'JET_GroupedNP_1__1up',                    'JET_GroupedNP_1__1down',
     'JET_GroupedNP_2__1up',                    'JET_GroupedNP_2__1down',
     'JET_GroupedNP_3__1up',                    'JET_GroupedNP_3__1down',
-    'JET_JER_SINGLE_NP__1up',
-
-    # 'JET_Rtrk_Baseline_Kin__1up',  'JET_Rtrk_Baseline_Kin__1down',
-    # 'JET_Rtrk_Baseline_Sub__1up',  'JET_Rtrk_Baseline_Sub__1down',
-    # 'JET_Rtrk_Modelling_Kin__1up', 'JET_Rtrk_Modelling_Kin__1down',
-    # 'JET_Rtrk_Modelling_Sub__1up', 'JET_Rtrk_Modelling_Sub__1down',
-    # 'JET_Rtrk_TotalStat_Kin__1up', 'JET_Rtrk_TotalStat_Kin__1down',
-    # 'JET_Rtrk_TotalStat_Sub__1up', 'JET_Rtrk_TotalStat_Sub__1down',
-    # 'JET_Rtrk_Tracking_Kin__1up',  'JET_Rtrk_Tracking_Kin__1down',
-    # 'JET_Rtrk_Tracking_Sub__1up',  'JET_Rtrk_Tracking_Sub__1down',
 ]
+
+systematics_jet_jes_all = [
+    'JET_EtaIntercalibration_Modelling__1up', 'JET_EtaIntercalibration_Modelling__1down',
+    'JET_EtaIntercalibration_TotalStat__1up', 'JET_EtaIntercalibration_TotalStat__1down',
+    'JET_EtaIntercalibration_NonClosure__1up', 'JET_EtaIntercalibration_NonClosure__1down',
+    'JET_Pileup_OffsetMu__1up', 'JET_Pileup_OffsetMu__1down',
+    'JET_Pileup_OffsetNPV__1up', 'JET_Pileup_OffsetNPV__1down',
+    'JET_Pileup_PtTerm__1up', 'JET_Pileup_PtTerm__1down',
+    'JET_Pileup_RhoTopology__1up', 'JET_Pileup_RhoTopology__1down',
+    'JET_Flavor_Composition__1up', 'JET_Flavor_Composition__1down',
+    'JET_Flavor_Response__1up', 'JET_Flavor_Response__1down',
+    'JET_PunchThrough_MC15__1up', 'JET_PunchThrough_MC15__1down',
+    'JET_EffectiveNP_1__1up', 'JET_EffectiveNP_1__1down',
+    'JET_EffectiveNP_2__1up', 'JET_EffectiveNP_2__1down',
+    'JET_EffectiveNP_3__1up', 'JET_EffectiveNP_3__1down',
+    'JET_EffectiveNP_4__1up', 'JET_EffectiveNP_4__1down',
+    'JET_EffectiveNP_5__1up', 'JET_EffectiveNP_5__1down',
+    'JET_EffectiveNP_6__1up', 'JET_EffectiveNP_6__1down',
+    'JET_EffectiveNP_7__1up', 'JET_EffectiveNP_7__1down',
+    'JET_EffectiveNP_8restTerm__1up', 'JET_EffectiveNP_8restTerm__1down',
+    'JET_SingleParticle_HighPt__1up', 'JET_SingleParticle_HighPt__1down',
+    #'JET_RelativeNonClosure_MC15__1up', 'JET_RelativeNonClosure_MC15__1down',
+    'JET_BJES_Response__1up', 'JET_BJES_Response__1down',
+]
+
+systematics_jet_kin = systematics_jet_jes_np1 + [ 'JET_JER_SINGLE_NP__1up', ]
+#systematics_jet_kin = systematics_jet_jes_all + [ 'JET_JER_SINGLE_NP__1up', ]
 
 systematics_jet_w = [
     'JET_JvtEfficiency__1down', 'JET_JvtEfficiency__1up',     
@@ -77,6 +94,7 @@ systematics_jet_w = [
     'FT_EFF_extrapolation__1down',             'FT_EFF_extrapolation__1up',
     'FT_EFF_extrapolation_from_charm__1down',  'FT_EFF_extrapolation_from_charm__1up',
 ]
+
 
 # met
 systematics_met = [

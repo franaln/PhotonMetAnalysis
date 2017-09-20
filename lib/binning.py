@@ -22,8 +22,8 @@ bins['jet_eta'] = (15, -3., 3.)
 bins['jet_phi'] = (34, -3.4, 3.4)
 
 ## met
-#bins['met_et']  = (32, 0, 800)
-bins['met_et']  = (0, 100, 200, 300, 400, 500, 800) 
+bins['met_et']  = (10, 0, 1000)
+#bins['met_et']  = (0, 100, 200, 300, 400, 500, 600, 1000) 
 bins['met_phi'] = (17, -3.4, 3.4)
 bins['met_soft_et']  = (20, 0., 1000.)
 bins['met_soft_phi'] = (17, -3.4, 3.4)
