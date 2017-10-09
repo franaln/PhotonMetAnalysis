@@ -1,0 +1,62 @@
+diff --git a/src/HypoTestTool.cxx b/src/HypoTestTool.cxx
+index c4e43e1..3c885ff 100644
+--- a/src/HypoTestTool.cxx
++++ b/src/HypoTestTool.cxx
+@@ -533,7 +533,7 @@ RooStats::HypoTestTool::SetupHypoTestCalculator(RooWorkspace * w, bool doUL,
+         tw.Start();
+         Bool_t verbose = (m_logger.GetMinLevel() <= kDEBUG) ? kTRUE : kFALSE;
+         RooFitResult * fitres = sbModel->GetPdf()->fitTo(*data,InitialHesse(false), Hesse(false),
+-                Minimizer(mMinimizerType.c_str(),"Migrad"), Strategy(0), Verbose(verbose),
++                Minimizer(mMinimizerType.c_str(),"Migrad"), Strategy(1), Verbose(verbose),
+                 PrintLevel(mPrintLevel+1), Constrain(constrainParams), Save(true) );
+         if (fitres->status() != 0) { 
+             Warning("StandardHypoTestInvDemo","Fit to the model failed - try with strategy 1 and perform first an Hesse computation");
+diff --git a/src/StatTools.cxx b/src/StatTools.cxx
+index b810e79..5bc5e86 100644
+--- a/src/StatTools.cxx
++++ b/src/StatTools.cxx
+@@ -339,6 +339,7 @@ nToyRatio            ratio of S+B/B toys (default is 2)
+ 
+     HypoTestTool calc;
+     calc.SetParameter("EnableDetailedOutput", true);
++    calc.SetParameter("RandomSeed", 0);
+ 
+     // set parameters
+     /*
+@@ -912,7 +913,7 @@ RooStats::HypoTestResult* RooStats::get_htr(  RooWorkspace* w,
+         const char * modelSBName, // = "ModelConfig",
+         const char * modelBName, // = "",
+         const char * dataName, // = "obsData",
+-	bool /*useCLs*/, // = true ,   
++        bool /*useCLs*/, // = true ,   
+         bool useNumberCounting, // = false,
+         const char * nuisPriorName) // = 0 
+ {
+diff --git a/src/Utils.cxx b/src/Utils.cxx
+index edcfb6e..fc267cd 100644
+--- a/src/Utils.cxx
++++ b/src/Utils.cxx
+@@ -2562,15 +2562,20 @@ TString Util::GetFullRegionName(RooCategory* regionCat,  TString regionShortName
+     TString regionFullName;
+     Int_t foundReg = 0;
+     for(unsigned int iReg=0; iReg<regionsAllVec.size(); iReg++){
+-        if( regionsAllVec[iReg].Contains(regionShortName) && foundReg==0) {
+-            regionFullName = regionsAllVec[iReg];
+-            foundReg++;
+-        } 
+-        else if( regionsAllVec[iReg].Contains(regionShortName) && foundReg>0){
+-            foundReg++;	    
+-        }
++      TString tmp(regionsAllVec[iReg]);
++    
++      if (!regionShortName.Contains("_cuts"))
++          tmp.ReplaceAll("_cuts", "");
++
++      if( tmp.EqualTo(regionShortName) && foundReg==0) {
++        regionFullName = regionsAllVec[iReg];
++        foundReg++;
++      } 
++      else if( tmp.Contains(regionShortName) && foundReg>0){
++        foundReg++;	    
++      }
+     }
