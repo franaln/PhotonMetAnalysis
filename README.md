@@ -14,7 +14,8 @@ ROOT, HistFitter, rootutils
     cd HistFitter
     git checkout tags/v0.54.0 -b v54
 
-    patch -p0 -i ../HistFitter_fix_fit_strategy.diff
+    ## patch -p0 -i ../HistFitter_fix_fit_strategy.diff
+    git apply ../HistFitter_patch.diff ## fix fit strategy and add random seed to compute p0
 
     cd src
     make 
