@@ -5,14 +5,24 @@ Discovery significance
 Model independent limit 
 =======================
 
-Run the jobs in batch
+1. Run the jobs in batch
 
+    ```
     run_ul_batch.py -i ${histograms} -c ${configfile} -o OUTPUT_DIR  --sr SRL --ntoys 5000 --queue 2nd -l 36.1 --npoints 15 --mumax 15
+    ```
 
-Merge different jobs
+# 2. Merge different jobs
 
-    merge_indp_ul.py
+#     ```
+#     merge_indp_ul.py output_merged.root UpperLimitTable_nToys5000.texhtiResult_poi_mu_SIG_ntoys_5000_calctype_0_nPoints_15.root ...
+#     ``` 
 
+
+2. Get the table/plot for one or more HTR:
+
+    ```
+    plot_upper_limit.py -i ... -o ...
+    ```
 
 Exclusion limits (batch)
 ========================
