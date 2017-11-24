@@ -12,7 +12,7 @@ pwd = os.getcwd().strip()+"/"
 hf_dir = os.getenv('HISTFITTER')
 
 
-def write_and_submit_job(jobdir, logdir, resultsdir, configfile, options, point, region, queue, do_submission=False):
+def write_and_submit_job(jobdir, logdir, resultsdir, configfile, options, point, region, queue, do_submission=False, do_ul=False):
 
     job_name = '%s_%s' % (region, point)
 
@@ -52,7 +52,10 @@ echo ' Running HistFitter now'
 echo '========================'
 """)
 
-    cmd = 'HistFitter.py -u \'"%s"\' -w -f -F excl -p -g %s %s' % (options, point, configfile)
+    if do_ul:
+        cmd = 'HistFitter.py -u \'"%s"\' -w -f -F excl -l -g %s %s' % (options, point, configfile)
+    else:
+        cmd = 'HistFitter.py -u \'"%s"\' -w -f -F excl -p -g %s %s' % (options, point, configfile)
 
     f.write("echo " + cmd + " \n\n")
     f.write(cmd+" \n\n")
@@ -97,6 +100,7 @@ def main():
     parser.add_argument('--include', help='Points to include separated by commas like GGM_GG_bhmix_1600_450')
     parser.add_argument('--exclude', help='Points to exclude separated by commas like GGM_GG_bhmix_1600_450')
     parser.add_argument('--failed', help='')
+    parser.add_argument('--ul', action='store_true', help='Compute xsection UL')
 
     args = parser.parse_args()
 
@@ -141,7 +145,7 @@ def main():
         if point in exclude_points:
             continue
 
-        write_and_submit_job(jobdir, logdir, resultsdir, args.configfile, options, point, args.region, args.queue, not args.dry)
+        write_and_submit_job(jobdir, logdir, resultsdir, args.configfile, options, point, args.region, args.queue, not args.dry, args.ul)
 
 
 if __name__ == '__main__':
