@@ -100,7 +100,9 @@ def main():
     parser.add_argument('--include', help='Points to include separated by commas like GGM_GG_bhmix_1600_450')
     parser.add_argument('--exclude', help='Points to exclude separated by commas like GGM_GG_bhmix_1600_450')
     parser.add_argument('--failed', help='')
+
     parser.add_argument('--ul', action='store_true', help='Compute xsection UL')
+    parser.add_argument('--npoints', help='If computing UL, number of points')
 
     args = parser.parse_args()
 
@@ -122,6 +124,13 @@ def main():
 
     if args.sigxs:
         options += ' --sigxs'
+
+    if args.ul:
+        if args.npoints is None:
+            parser.print_usage()
+            sys.exit(1)
+
+        options += ' --npoints %i' % int(args.npoints)
 
     include_points = []
     exclude_points  = []

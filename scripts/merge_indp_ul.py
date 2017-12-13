@@ -13,6 +13,8 @@ def merge(input_files, output_file):
     """ merge the hypotest results and fits from all
     files in input_files into output_file """
 
+    print 'Merging %i files to %s' % (len(input_files), output_file)
+    
     merge_htr  = None
 
     for path in input_files:
@@ -22,18 +24,21 @@ def merge(input_files, output_file):
         try:
             htr_result = infile.Get('result_mu_SIG')
         except:
-            htr_result = None
+            infile.Close()
+            continue
 
         if merge_htr is None:
             merge_htr = htr_result.Clone()
         else:
             merge_htr.Add(htr_result.Clone())
 
-        htr_result.Delete()
-
+        # htr_result.Delete()
         infile.Close()
 
-    outfile = ROOT.TFile(output_file, 'update')
+    merge_htr.Print()
+
+    print 'Saving merged htr to %s ...' % output_file
+    outfile = ROOT.TFile(output_file, 'recreate')
     outfile.cd()
     merge_htr.Write()
     outfile.Close()
