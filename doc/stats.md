@@ -44,7 +44,7 @@ Exclusion limits (batch)
 
 * Using custom script
 
-* Using deafult plot
+* Using the default plot
 
     ```
     plot_exclusion.py --plot PATH
@@ -53,9 +53,7 @@ Exclusion limits (batch)
 
 ## Combine SRs
 
-    ``` 
     plot_exclusion.py --combine 
-    ```
 
 
 Model dependent UL
@@ -63,16 +61,20 @@ Model dependent UL
 
 1. Send jobs to batch
 
+    ```
     run_excl_batch.py  -i histograms.root -o output_dir --sr SR --data data --ntoys 5000 --queue 8nh  --npoints 15 --ul
-
+    ```
 2. Merge jobs (we need to merge the Output_upperlimit.root files for all the signal points)
 
+    ```
     hadd upper_limit_SR.root SR_GGM_XXX/Output_upperlimit.root SR_GGM_YYY/Output_upperlimit.root ...
+    ```
 
 2. Or create a json with the UL values for each point (better when the size of the files is big, e.g. usings toys)
 
+    ```
     merge_ul.py upper_limit_SR.json SR_GGM_XXX SR_GGM_YYY ...
-
+    ```
 
 
 Discovery
