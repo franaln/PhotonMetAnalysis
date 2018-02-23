@@ -411,6 +411,39 @@ def combine_hypotest_files(inpaths, outpath):
             for line in new_lines_nom.itervalues():
                 f.write(line+'\n')
 
+    # Copy list description
+    description = """
+#!/usr/bin/env python
+                                                                                                                                                                                               
+import os, sys, ROOT
+#from ROOT import TTree, TString
+                                                                                                                                                                                    
+ROOT.gROOT.SetBatch(True)
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+
+def treedescription():
+  filename = "/afs/cern.ch/work/f/falonso/Susy/Run2/PhotonMetAnalysis/batch_output/excl/merge_run1_run2_run3/SRH/Output_hypotest__1_harvest_list"
+  description = "expectedUpperLimitMinus1Sig/F:upperLimitEstimatedError/F:fitstatus/F:p0d2s/F:p0u2s/F:seed/F:CLsexp/F:sigma1/F:failedfit/F:expectedUpperLimitPlus2Sig/F:nofit/F:nexp/F:sigma0/F:clsd2s/F:m3/F:expectedUpperLimit/F:failedstatus/F:xsec/F:covqual/F:upperLimit/F:p0d1s/F:clsd1s/F:failedp0/F:failedcov/F:p0exp/F:p1/F:p0u1s/F:excludedXsec/F:p0/F:clsu1s/F:clsu2s/F:expectedUpperLimitMinus2Sig/F:expectedUpperLimitPlus1Sig/F:mu/F:mode/F:fID/C:dodgycov/F:CLs/F"
+  return filename, description
+
+def harvesttree(textfile):
+  filename, description=treedescription()
+  tree = ROOT.TTree('tree','data from ascii file')
+  if len(textfile)>0:
+    nlines = tree.ReadFile(textfile, description)
+  elif len(filename)>0:
+    nlines = tree.ReadFile(filename, description)
+  else:
+    print 'WARNING: file name is empty. No tree is read.'
+
+  tree.SetMarkerStyle(8)
+  tree.SetMarkerSize(0.5)
+
+  return tree
+"""
+    with open(outpath+'/summary_harvest_tree_description.py', 'w') as f:
+        f.write(description)
+
 
 def create_listfiles(path, region):
 

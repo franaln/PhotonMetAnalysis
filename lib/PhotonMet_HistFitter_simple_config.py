@@ -60,7 +60,7 @@ configMgr.analysisName = "PhotonMetAnalysis_Simple"
 configMgr.outputFileName = "results/%s_Output.root" % configMgr.analysisName
 
 # Define cuts
-configMgr.cutsDict["UserRegion"] = "1."
+configMgr.cutsDict["SR"] = "1."
 
 # Define weights
 configMgr.weights = "1."
@@ -68,31 +68,31 @@ configMgr.weights = "1."
 # Define samples
 bkgSample = Sample("Bkg", ROOT.kGreen-9)
 bkgSample.setStatConfig(True)
-bkgSample.buildHisto([nbkg],"UserRegion", "cuts",0.5)
+bkgSample.buildHisto([nbkg], "SR", "cuts", 0.5)
 bkgSample.addSystematic(ucb)
 
 sigSample = Sample("GGM_GG_bhmix_%d_%d" % (args.m3, args.mu), ROOT.kOrange+3)
-sigSample.setNormFactor("mu_sig", 1.,0., 10.)
+sigSample.setNormFactor("mu_SIG", 1., 0., 10.)
 #sigSample.setStatConfig(True)
 sigSample.setNormByTheory()
-sigSample.buildHisto([nsig],"UserRegion","cuts",0.5)
+sigSample.buildHisto([nsig], "SR", "cuts", 0.5)
 
 dataSample = Sample("Data", ROOT.kBlack)
 dataSample.setData()
-dataSample.buildHisto([ndata], "UserRegion", "cuts", 0.5)
+dataSample.buildHisto([ndata], "SR", "cuts", 0.5)
 
 # Define top-level
-ana = configMgr.addFitConfig("SPlusB")
+ana = configMgr.addFitConfig("Disc")
 ana.addSamples([bkgSample, sigSample, dataSample])
 ana.setSignalSample(sigSample)
 
 # Define measurement
-meas = ana.addMeasurement(name="NormalMeasurement",lumi=1.0,lumiErr=lumiError)
-meas.addPOI("mu_sig")
+meas = ana.addMeasurement(name="NormalMeasurement", lumi=1.0, lumiErr=lumiError)
+meas.addPOI("mu_SIG")
 meas.addParamSetting("Lumi", True)
 
 # Add the channel
-chan = ana.addChannel("cuts",["UserRegion"],1,0.5,1.5)
+chan = ana.addChannel("cuts", ["SR"], 1, 0.5, 1.5)
 ana.setSignalChannels([chan])
 
 # These lines are needed for the user analysis to run

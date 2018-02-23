@@ -437,7 +437,8 @@ def _get_histogram(ds, **kwargs):
 
     is_mc = (ds['project'] == 'mc15_13TeV')
 
-    events_by_interval = kwargs.get('events_by_interval', True)
+    nominal_width = kwargs.get('nominal_width', None)
+    events_by_interval_not_last = kwargs.get('events_by_interval_not_last', False)
 
     original_selection = selection
 
@@ -477,11 +478,11 @@ def _get_histogram(ds, **kwargs):
         htemp.Sumw2()
     else:
         if len(binning) > 3:
-            if events_by_interval:
+            if nominal_width is not None:
                 fix_events_by_interval = True
             htemp = ROOT.TH1D(hname, hname, len(binning)-1, array('d', binning))
         else:
-            htemp = ROOT.TH1D(hname, hname, *binning)
+            htemp = ROOT.TH1D(hname, hname, int(binning[0]), binning[1], binning[2])
         htemp.Sumw2()
         # htemp.SetBinErrorOption(ROOT.TH1.kPoisson)
 
@@ -653,20 +654,22 @@ def _get_histogram(ds, **kwargs):
 
     if variable != 'cuts':
 
-        # if fix_events_by_interval:
+        if fix_events_by_interval:
 
-        #     nominal_width = hist.GetBinWidth(1)
-        #     for b in xrange(1, hist.GetNbinsX()+1):
+            for b in xrange(1, hist.GetNbinsX()+1):
+
+                if events_by_interval_not_last and b == hist.GetNbinsX():
+                    continue
                 
-        #         bin_width = hist.GetBinWidth(b)
-        #         scale = nominal_width / bin_width
+                bin_width = hist.GetBinWidth(b)
+                scale = nominal_width / bin_width
+
+                if abs(scale - 1.) > 0.0001:
+                    c = hist.GetBinContent(b)
+                    e = hist.GetBinError(b)
                 
-        #         if abs(scale - 1.) > 0.0001:
-        #             c = hist.GetBinContent(b)
-        #             e = hist.GetBinError(b)
-                
-        #             hist.SetBinContent(b, c*scale)
-        #             hist.SetBinError  (b, e*scale)
+                    hist.SetBinContent(b, c*scale)
+                    hist.SetBinError  (b, e*scale)
 
         # add overflow bin content to last bin
         hist.AddOverflowBin()
