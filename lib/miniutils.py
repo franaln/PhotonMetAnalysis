@@ -18,7 +18,7 @@ import analysis
 import samples
 import binning
 
-MiniDirLOCAL  = '/ar/pcunlp001/raid/falonso/mini2'
+MiniDirLOCAL  = '/ar/pcunlp001/raid/datasamples/susy/mini2'
 MiniDirEOS  = '/eos/user/f/falonso/mini2'
 
 # FS for EWK samples

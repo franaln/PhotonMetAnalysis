@@ -4,7 +4,7 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 alias setupATLAS='source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh'
 
 setupATLAS
-#localSetupROOT 6.06.04-x86_64-slc6-gcc49-opt
+localSetupROOT 6.12.04-x86_64-slc6-gcc62-opt
 
 export SUSY_ANALYSIS=$PWD
 
@@ -20,3 +20,4 @@ else
     echo Download and compile HistFitter!!!
 fi
 
+cd $SUSY_ANALYSIS
