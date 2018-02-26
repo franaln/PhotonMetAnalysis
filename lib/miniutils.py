@@ -35,6 +35,7 @@ variable_aliases = {
 
     'm_jetjet': 'm_inv(jet_pt[0], jet_eta[0], jet_phi[0], jet_e[0], jet_pt[1], jet_eta[1], jet_phi[1], jet_e[1])',
 
+    'dphi_gamsoft': 'get_dphi(ph_phi[0], met_soft_phi)',
 }
 
 # --------
@@ -67,6 +68,9 @@ def get_binning_single_variable(variable):
 
     if binning_ is None and 'ht+' in variable:
         binning_ = binning.bins.get('meff', None)
+
+    if binning_ is None and 'dphi' in variable:
+        binning_ = binning.bins.get('dphi', None)
 
     return binning_
 

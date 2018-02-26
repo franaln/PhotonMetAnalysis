@@ -1200,7 +1200,8 @@ def do_plot_cmp(plotname,
             
 
     for ext in extensions:
-        can.Print(plotname+'.'+ext)
+        outputname = plotname.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace(' ', '').replace(',', '')
+        can.Print(outputname+'.'+ext)
 
 
 ## Limits
