@@ -106,3 +106,6 @@ bins['m_jetjet'] = (16, 0, 400)
 
 bins['pass_g140'] = (2, 0, 2)
 bins['pass_g70_xe70'] = (2, 0, 2)
+
+bins['dphi_gamsoft'] = (17, 0., 3.4)
+# bins['get_dphi(ph_phi[0], met_soft_phi)'] = (17, 0., 3.4)

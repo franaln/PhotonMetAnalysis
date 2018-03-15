@@ -891,6 +891,7 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
         l = ROOT.TLatex()
         l.SetNDC()
         l.SetTextSize(0.035)
+        l.SetTextFont(42)
         l.SetTextColor(ROOT.kBlack)
         l.DrawLatex(tx, ty, ttext)
 
