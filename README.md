@@ -8,7 +8,9 @@ ROOT, HistFitter, rootutils
 
 ## Install HistFitter
 
-    git clone https://gitlab.cern.ch/HistFitter/HistFitter.git
+    source setup.sh
+
+    git clone https://gitlab.cern.ch/HistFitter/HistFitter.git (o ssh://git@gitlab.cern.ch:7999/HistFitter/HistFitter.git)
 
     cd HistFitter
     git checkout tags/v0.54.0 -b v54
