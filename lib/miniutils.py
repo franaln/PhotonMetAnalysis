@@ -454,7 +454,12 @@ def _get_multi_histograms(ds, **kwargs):
 
 
     # Use MutiDraw to project all histograms
-    tree.MultiDraw(*draw_list)
+    if len(draw_list) > 1:
+        tree.MultiDraw(*draw_list)
+    else:
+        hname, variable, selection = draw_list[0]
+        tree.Project(hname, variable, selection)
+
 
     for hist in histograms:
         hist.SetDirectory(0)
@@ -474,23 +479,25 @@ def get_histograms(name, **kwargs):
     year = kwargs.get('year')
 
     if year == '2015+2016':
-        del kwargs['year']
-        h1 = get_histograms(name, year='2015', **kwargs)
-        h2 = get_histograms(name, year='2016', **kwargs)
-        # return h1 + h2
+        pass
+        # del kwargs['year']
+        # h1 = get_histograms(name, year='2015', **kwargs)
+        # h2 = get_histograms(name, year='2016', **kwargs)
+        # # return h1 + h2
 
 
     version = kwargs.get('version', None)
     is_mc = (not 'data' in name)
 
+    mc_campaign = None
     if is_mc:
         if year in ('2015', '2016'):
             mc_campaign = 'mc16a'
         elif year == '2017':
             mc_campaign = 'mc16c'
-    else:
+    elif name == 'data':
         name = name+year[-2:]
-            
+        
 
     datasets = get_datasets(name, version, mc_campaign)
 

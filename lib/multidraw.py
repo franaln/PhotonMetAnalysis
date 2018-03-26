@@ -69,10 +69,10 @@ def MultiDraw(self, *draw_list):
             f = ROOT.TTreeFormula("selection%i" % i, selection, self)
             if not f.GetTree():
                 raise RuntimeError("TTreeFormula didn't compile: " + selection)
-            f.SetQuickLoad( True )
-            selections.append( f )
+            f.SetQuickLoad(True)
+            selections.append(f)
         else:
-            selections.append( ROOT.TObject() )
+            selections.append(ROOT.TObject())
 
         last_variable, last_selection = variable, selection
 
