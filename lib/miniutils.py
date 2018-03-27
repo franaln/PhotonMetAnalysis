@@ -352,17 +352,20 @@ def _get_multi_histograms(ds, **kwargs):
                 systname = syst
 
                 # fix_events_by_interval = False
-                # if ':' in variable and '::' not in variable:
-                #     varx, vary = variable.split(':')
+                if is_2d_variable(variable):
+                    varx, vary = variable.split(':')
 
-                #if binning is None:
-                binning = get_binning(variable)
+                binning = kwargs.get('binning', None) # only valid from get_histogram
+                if binning is None:
+                    binning = get_binning(variable)
 
 
                 # name to avoid the ROOT warning, not used
                 hname = 'h%s%s_%s_obs_cuts' % (ds['did'], systname, region)
-                    
-                if ':' in variable and '::' not in variable:
+                if year is not None:
+                    hname += '_%s' % year
+    
+                if is_2d_variable(variable):
                     htemp = ROOT.TH2D(hname, hname, *binning)
                     htemp.Sumw2()
                 else:
@@ -472,6 +475,23 @@ def _get_multi_histograms(ds, **kwargs):
     return histograms
 
 
+def sum_histograms(histograms):
+    """
+    histograms: list of list of histograms, e.g. [(h1, h2, h3), (h4, h5, h6)]
+    return: [h1+h4, h2+h5, h3+h6]
+    """
+    new_histograms = []
+
+    for hlist in zip(*histograms):
+        hist = hlist[0].Clone()
+        for h in hlist[1:]:
+            hist.Add(h, 1)
+
+        new_histograms.append(hist)
+
+    return new_histograms
+
+
 def get_histograms(name, **kwargs):
 
     """
@@ -481,12 +501,12 @@ def get_histograms(name, **kwargs):
 
     year = kwargs.get('year')
 
-    if year == '2015+2016':
-        pass
-        # del kwargs['year']
-        # h1 = get_histograms(name, year='2015', **kwargs)
-        # h2 = get_histograms(name, year='2016', **kwargs)
-        # # return h1 + h2
+    if '+' in year:
+        del kwargs['year']
+
+        years = year.split('+')
+
+        return sum_histograms([ get_histograms(name, year=y, **kwargs) for y in years ])
 
 
     version = kwargs.get('version', None)
