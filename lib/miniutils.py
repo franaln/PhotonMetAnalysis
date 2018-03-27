@@ -10,7 +10,7 @@ import ROOT
 from rootutils import Value, histogram, histogram_equal_to
 import multidraw
 
-from samples import samples_dict
+from samples import samples_dict, samples_r20_dict;
 from binning import  binning_dict
 import xsutils
 import systematics as systematics_
@@ -203,7 +203,7 @@ r_ds = re.compile('(mc15_13TeV|mc16_13TeV|data15_13TeV|data16_13TeV|data17_13TeV
 
 def find_path(project, did, short_name, version, mc_campaign):
 
-    if project.startswith('mc'):
+    if project.startswith('mc') and mc_campaign is not None:
         guess_path = '%s/v%s/%s.%s.%s.mini.%s.p*.v%s_output.root' % (MiniDirLOCAL, version, project, did, short_name, mc_campaign, version)
     else:
         guess_path = '%s/v%s/%s.%s.%s.mini.p*.v%s_output.root' % (MiniDirLOCAL, version, project, did, short_name, version)
@@ -225,16 +225,19 @@ def find_path(project, did, short_name, version, mc_campaign):
     return None
 
 
-def get_dsnames(name):
+def get_dsnames(name, version):
 
-    ds_tmp = samples_dict.get(name)
+    if version == '56':
+        ds_tmp = samples_r20_dict.get(name)
+    else:
+        ds_tmp = samples_dict.get(name)
 
     dsnames = []
     if isinstance(ds_tmp, str):
         if '+' in ds_tmp:
             names = [ i.strip() for i in ds_tmp.split('+')  if i ]
             for name in names:
-                dsnames += get_dsnames(name)
+                dsnames += get_dsnames(name, version)
         else:
             dsnames.append(ds_tmp)
 
@@ -246,7 +249,7 @@ def get_dsnames(name):
 def get_datasets(name, version=None, mc_campaign=None):
 
     # get datasets corresponding to sample
-    dsnames = get_dsnames(name)
+    dsnames = get_dsnames(name, version)
 
     if not dsnames:
         raise Exception('Sample %s not found in samples.py' % name)
@@ -490,7 +493,7 @@ def get_histograms(name, **kwargs):
     is_mc = (not 'data' in name)
 
     mc_campaign = None
-    if is_mc:
+    if is_mc and version != '56':
         if year in ('2015', '2016'):
             mc_campaign = 'mc16a'
         elif year == '2017':
