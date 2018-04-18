@@ -325,7 +325,7 @@ def _get_multi_histograms(ds, **kwargs):
     tree = file_.Get('mini')
 
     # Lumi weight is the same for all histograms
-    if use_lumiw:
+    if is_mc and use_lumiw:
         luminosity = lumi_dict[year]
         
         lumi_weight = get_lumi_weight(ds, luminosity)
@@ -501,7 +501,7 @@ def get_histograms(name, **kwargs):
 
     year = kwargs.get('year')
 
-    if '+' in year:
+    if year is not None and '+' in year:
         del kwargs['year']
 
         years = year.split('+')
