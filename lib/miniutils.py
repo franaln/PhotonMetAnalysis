@@ -17,7 +17,12 @@ import systematics as systematics_
 import regions as regions_
 
 MiniDirLOCAL  = '/ar/pcunlp001/raid/datasamples/susy/mini2'
-MiniDirEOS    = '/eos/user/f/falonso/mini2'
+
+MiniDirOTHERS = [
+    '/eos/user/f/falonso/mini2',
+    '/ar/pcunlp001/raid/falonso/mini_vx',
+    ]
+
 
 # Mini version
 versions_ = ['56', ] # v56: last r20.7 version used for paper
@@ -208,7 +213,6 @@ def find_path(project, did, short_name, version, mc_campaign):
     else:
         guess_path = '%s/v%s/%s.%s.%s.mini.p*.v%s_output.root' % (MiniDirLOCAL, version, project, did, short_name, version)
 
-
     paths = glob.glob(guess_path)
 
     if paths:
@@ -216,11 +220,17 @@ def find_path(project, did, short_name, version, mc_campaign):
         return paths[0]
 
     else:
-        pass
-        # TODO: try in EOS?
-        #         path = path.replace(MiniDirLOCAL, MiniDirEOS)
-        #         if os.path.isfile(path):
-        #             return path
+        # Try other directories
+        for mini_dir in MiniDirOTHERS:
+            new_guess_path = guess_path.replace(MiniDirLOCAL, mini_dir)
+
+            try:
+                paths = glob.glob(new_guess_path)
+
+                if paths:
+                    return paths[0]
+            except:
+                pass
 
     return None
 
@@ -246,7 +256,7 @@ def get_dsnames(name, version):
 
     return dsnames
 
-def get_datasets(name, version=None, mc_campaign=None):
+def get_datasets(name, version=None, mc_campaign=None, ignore_missing=False):
 
     # get datasets corresponding to sample
     dsnames = get_dsnames(name, version)
@@ -264,9 +274,12 @@ def get_datasets(name, version=None, mc_campaign=None):
             raise Exception(ds)
 
         path = find_path(project, did, short_name, version, mc_campaign)
-        
+
         if not path:
-            raise Exception('File not found for ds %s with version %s.' % (ds, version))
+            if ignore_missing:
+                continue
+            else:
+                raise Exception('File not found for ds %s with version %s.' % (ds, version))
 
         dataset = {
             'name': name,
@@ -278,7 +291,7 @@ def get_datasets(name, version=None, mc_campaign=None):
             }
 
         datasets.append(dataset)
-                
+
     return datasets
     
 
@@ -522,7 +535,7 @@ def get_histograms(name, **kwargs):
         name = name+year[-2:]
         
 
-    datasets = get_datasets(name, version, mc_campaign)
+    datasets = get_datasets(name, version, mc_campaign, kwargs.get('ignore_missing', False))
 
     histograms = []
 
@@ -537,7 +550,6 @@ def get_histograms(name, **kwargs):
             for hall, hnew in zip(histograms, histograms_ds):
                 hall.Add(hnew, 1)
 
-
     return histograms
 
 
@@ -549,7 +561,10 @@ def get_histogram(name, **kwargs):
 
     histograms = get_histograms(name, variables=[variable,], selections=[selection,], systematics=[syst,], **kwargs)
 
-    return histograms[0]
+    if histograms:
+        return histograms[0]
+
+    return None
 
 
 def get_events(sample, **kwargs):
