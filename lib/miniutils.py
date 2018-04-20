@@ -81,7 +81,8 @@ def get_binning(variable):
         binning = get_binning_single_variable(variable)
 
     if binning is None:
-        raise Exception('Not bins configured for this variable %s' % variable)
+        print 'Not bins configured for this variable %s. Using default binning' % variable
+        binning = binning_dict['default']
 
     return binning
 

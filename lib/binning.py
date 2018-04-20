@@ -13,6 +13,8 @@ binning_dict['ph_eta'] = (30, -3., 3.)
 binning_dict['ph_etas2'] = (30, -3., 3.)
 binning_dict['ph_phi'] = (17, -3.4, 3.4)
 binning_dict['ph_truth_pt']  = (100, 145., 2045.)
+binning_dict['ph_etcone40']  = (50, -5., 20.)
+binning_dict['ph_ptcone20']  = (50, -5., 20.)
 
 ## jets
 binning_dict['jet_n']   = (20, 0, 20)
@@ -109,3 +111,5 @@ binning_dict['pass_g70_xe70'] = (2, 0, 2)
 
 binning_dict['dphi_gamsoft'] = (17, 0., 3.4)
 # binning_dict['get_dphi(ph_phi[0], met_soft_phi)'] = (17, 0., 3.4)
+
+binning_dict['default'] = (100, 0., 1000)
