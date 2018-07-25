@@ -1,21 +1,21 @@
 diff --git a/src/HypoTestTool.cxx b/src/HypoTestTool.cxx
-index c4e43e1..3c885ff 100644
+index 710eed7..1f641a2 100644
 --- a/src/HypoTestTool.cxx
 +++ b/src/HypoTestTool.cxx
-@@ -533,7 +533,7 @@ RooStats::HypoTestTool::SetupHypoTestCalculator(RooWorkspace * w, bool doUL,
-         tw.Start();
-         Bool_t verbose = (m_logger.GetMinLevel() <= kDEBUG) ? kTRUE : kFALSE;
-         RooFitResult * fitres = sbModel->GetPdf()->fitTo(*data,InitialHesse(false), Hesse(false),
--                Minimizer(mMinimizerType.c_str(),"Migrad"), Strategy(0), Verbose(verbose),
-+                Minimizer(mMinimizerType.c_str(),"Migrad"), Strategy(1), Verbose(verbose),
-                 PrintLevel(mPrintLevel+1), Constrain(constrainParams), Save(true) );
-         if (fitres->status() != 0) { 
-             Warning("StandardHypoTestInvDemo","Fit to the model failed - try with strategy 1 and perform first an Hesse computation");
+@@ -543,7 +543,7 @@ RooStats::HypoTestTool::SetupHypoTestCalculator(RooWorkspace * w, bool doUL,
+         RooCmdArg _InitialHesse(InitialHesse(false));
+         RooCmdArg _Hesse(Hesse(false));
+         RooCmdArg _Minimizer(Minimizer(mMinimizerType.c_str(), "Migrad"));
+-        RooCmdArg _Strategy(Strategy(0));
++        RooCmdArg _Strategy(Strategy(1));
+         RooCmdArg _Strategy_alt(Strategy(1));
+         RooCmdArg _Verbose(Verbose(verbose));
+         RooCmdArg _PrintLevel(PrintLevel(mPrintLevel+1));
 diff --git a/src/StatTools.cxx b/src/StatTools.cxx
-index b810e79..93ce289 100644
+index f8ef1be..bc1d543 100644
 --- a/src/StatTools.cxx
 +++ b/src/StatTools.cxx
-@@ -339,6 +339,7 @@ nToyRatio            ratio of S+B/B toys (default is 2)
+@@ -341,6 +341,7 @@ nToyRatio            ratio of S+B/B toys (default is 2)
  
      HypoTestTool calc;
      calc.SetParameter("EnableDetailedOutput", true);

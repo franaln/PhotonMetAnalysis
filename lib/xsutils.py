@@ -18,7 +18,7 @@ def _create_xs_db():
                 continue
             
             try:
-                dsid, dsname, gen_xs, br, filter_eff, xs, kfact, tot_xs = line.split()
+                dsid, name, gen_xs, filter_eff, kfact, unc, gen_name = line.split()
             except:
                 continue
 
