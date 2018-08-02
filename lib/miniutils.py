@@ -19,8 +19,8 @@ import regions as regions_
 MiniDirLOCAL  = '/ar/pcunlp001/raid/datasamples/susy/mini2'
 
 MiniDirOTHERS = [
-    '/eos/user/f/falonso/mini2',
-    '/ar/pcunlp001/raid/falonso/mini_vx',
+    '/eos/user/f/falonso/data/mini2',
+    # '/ar/pcunlp001/raid/falonso/mini_vx',
     ]
 
 
@@ -31,7 +31,7 @@ versions_ = ['56', ] # v56: last r20.7 version used for paper
 lumi_dict = {
     '2015':  3219.56,
     '2016': 32965.30,
-    '2017': 43813.70,
+    '2017': 43813.70,  ## UPDATE with new repro data
 }
 
 # --------
@@ -568,9 +568,9 @@ def get_histogram(name, **kwargs):
     return None
 
 
-def get_events(sample, **kwargs):
+def get_events(name, **kwargs):
 
-    hist = get_histogram(sample, variable='cuts', **kwargs)
+    hist = get_histogram(name, variable='cuts', **kwargs)
 
     mean = hist.GetBinContent(1)
     error = hist.GetBinError(1)
@@ -578,5 +578,24 @@ def get_events(sample, **kwargs):
     hist.Delete()
 
     return Value(mean, error)
+
+
+def get_multi_events(name, **kwargs):
+
+    histograms = get_histograms(name, variable='cuts', **kwargs)
+
+    hlist = []
+
+    for hist in histograms:
+
+        name = hist.GetName()
+
+        mean  = hist.GetBinContent(1)
+        error = hist.GetBinError(1)
+
+        hlist.append( (name, mean, error) ) 
+
+
+    return hlist
 
 

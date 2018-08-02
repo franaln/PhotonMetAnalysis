@@ -8,7 +8,6 @@ if len(sys.argv) < 3:
     print 'usage: hist2txt.py file.root file.txt'
     sys.exit(1)
 
-
 root_file_path = sys.argv[1]
 text_file_path = sys.argv[2]
 
@@ -26,9 +25,7 @@ try:
 except ReferenceError:
     sys.exit(1)
 
-    
 keys = fin.GetListOfKeys()
-
 
 with open(text_file_path, 'w+') as f:
     

@@ -13,7 +13,7 @@ ROOT, HistFitter, rootutils
     git clone https://gitlab.cern.ch/HistFitter/HistFitter.git (o ssh://git@gitlab.cern.ch:7999/HistFitter/HistFitter.git)
 
     cd HistFitter
-    git checkout tags/v0.54.0 -b v54
+    git checkout tags/v0.62.0 -b v62
 
     git apply ../HistFitter_patch.diff ## fix fit strategy and add random seed to compute p0
 
@@ -38,6 +38,31 @@ ROOT, HistFitter, rootutils
     ```
 
 
+## Analysis framework
 
-
-
+                             +-------------------+     Data
+                             |    Mini ntuples   |     MC
+                             +---------+---------+     Fakes
+                                       |
+                                       |
+                    Regions, xs, ...   |
+                 +-------------------------------------+
+                 |                                     |
+       +---------+-----------+                   +-----+------+
+       | Events              |                   | Histograms |
+       | (1-bin histograms)  |                   +-----+------+
+       +---------+-----------+                         |
+                 |                                     |
+       +---------+-----------+                         |
+       | Bkg-only fit        |                         |
+       | (HistFitter)        |                         |
+       +---------+-----------+                         |
+                 |                                     |
+                 |   Scale factors                     |
+                 +-------------------------------------+
+                 |                                     |
+       +---------+-----------+                   +-----+-----------------------+
+       | Tables with         |                   | Plots of relevant variables |
+       | expected events     |                   | in CRs, VRs and SRs         |
+       | in CRs, VRs, SRs    |                   +-----------------------------+
+       +---------------------+
