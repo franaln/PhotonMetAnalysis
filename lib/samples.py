@@ -444,7 +444,7 @@ samples_dict = {
         'mc16_13TeV.410084.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma80_noallhad',
         ],
 
-    'vgamma': [
+    'zllgamma': [
         # 'mc16_13TeV.364500.Sherpa_222_NNPDF30NNLO_eegamma_pty_7_15',
         # 'mc16_13TeV.364501.Sherpa_222_NNPDF30NNLO_eegamma_pty_15_35',
         # 'mc16_13TeV.364502.Sherpa_222_NNPDF30NNLO_eegamma_pty_35_70',
@@ -460,9 +460,15 @@ samples_dict = {
         # 'mc16_13TeV.364512.Sherpa_222_NNPDF30NNLO_tautaugamma_pty_35_70',
         # 'mc16_13TeV.364513.Sherpa_222_NNPDF30NNLO_tautaugamma_pty_70_140',
         'mc16_13TeV.364514.Sherpa_222_NNPDF30NNLO_tautaugamma_pty_140_E_CMS',
+        ],
+
+    'znunugamma': [
         # 'mc16_13TeV.364517.Sherpa_222_NNPDF30NNLO_nunugamma_pty_35_70',
         # 'mc16_13TeV.364518.Sherpa_222_NNPDF30NNLO_nunugamma_pty_70_140',
         'mc16_13TeV.364519.Sherpa_222_NNPDF30NNLO_nunugamma_pty_140_E_CMS',
+        ],
+    
+    'wgamma': [
         # 'mc16_13TeV.364521.Sherpa_222_NNPDF30NNLO_enugamma_pty_7_15',
         # 'mc16_13TeV.364522.Sherpa_222_NNPDF30NNLO_enugamma_pty_15_35',
         # 'mc16_13TeV.364523.Sherpa_222_NNPDF30NNLO_enugamma_pty_35_70',
@@ -479,7 +485,130 @@ samples_dict = {
         'mc16_13TeV.364535.Sherpa_222_NNPDF30NNLO_taunugamma_pty_140_E_CMS',
         ],
 
-    'vgammagamma': [
+    'vgammagamma': 'zllgamma + znunugamma + wgamma',
+
+    'ttbar': 'mc16_13TeV.410470.PhPy8EG_A14_ttbar_hdamp258p75_nonallhad',
+
+    'wjets': [
+        'mc16_13TeV.364156.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV0_70_CVetoBVeto',
+        'mc16_13TeV.364157.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV0_70_CFilterBVeto',
+        'mc16_13TeV.364158.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV0_70_BFilter',
+        'mc16_13TeV.364159.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV70_140_CVetoBVeto',
+        'mc16_13TeV.364160.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV70_140_CFilterBVeto',
+        'mc16_13TeV.364161.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV70_140_BFilter',
+        'mc16_13TeV.364162.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV140_280_CVetoBVeto',
+        'mc16_13TeV.364163.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV140_280_CFilterBVeto',
+        'mc16_13TeV.364164.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV140_280_BFilter',
+        'mc16_13TeV.364165.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV280_500_CVetoBVeto',
+        'mc16_13TeV.364166.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV280_500_CFilterBVeto',
+        'mc16_13TeV.364167.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV280_500_BFilter',
+        'mc16_13TeV.364168.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV500_1000',
+        'mc16_13TeV.364169.Sherpa_221_NNPDF30NNLO_Wmunu_MAXHTPTV1000_E_CMS',
+        'mc16_13TeV.364170.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV0_70_CVetoBVeto',
+        'mc16_13TeV.364171.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV0_70_CFilterBVeto',
+        'mc16_13TeV.364172.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV0_70_BFilter',
+        'mc16_13TeV.364173.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV70_140_CVetoBVeto',
+        'mc16_13TeV.364174.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV70_140_CFilterBVeto',
+        'mc16_13TeV.364175.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV70_140_BFilter',
+        'mc16_13TeV.364176.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV140_280_CVetoBVeto',
+        'mc16_13TeV.364177.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV140_280_CFilterBVeto',
+        'mc16_13TeV.364178.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV140_280_BFilter',
+        'mc16_13TeV.364179.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV280_500_CVetoBVeto',
+        'mc16_13TeV.364180.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV280_500_CFilterBVeto',
+        'mc16_13TeV.364181.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV280_500_BFilter',
+        'mc16_13TeV.364182.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV500_1000',
+        'mc16_13TeV.364183.Sherpa_221_NNPDF30NNLO_Wenu_MAXHTPTV1000_E_CMS',
+        'mc16_13TeV.364184.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV0_70_CVetoBVeto',
+        'mc16_13TeV.364185.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV0_70_CFilterBVeto',
+        'mc16_13TeV.364186.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV0_70_BFilter',
+        'mc16_13TeV.364187.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV70_140_CVetoBVeto',
+        'mc16_13TeV.364188.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV70_140_CFilterBVeto',
+        'mc16_13TeV.364189.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV70_140_BFilter',
+        'mc16_13TeV.364190.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV140_280_CVetoBVeto',
+        'mc16_13TeV.364191.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV140_280_CFilterBVeto',
+        'mc16_13TeV.364192.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV140_280_BFilter',
+        'mc16_13TeV.364193.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV280_500_CVetoBVeto',
+        'mc16_13TeV.364194.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV280_500_CFilterBVeto',
+        'mc16_13TeV.364195.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV280_500_BFilter',
+        'mc16_13TeV.364196.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV500_1000',
+        'mc16_13TeV.364197.Sherpa_221_NNPDF30NNLO_Wtaunu_MAXHTPTV1000_E_CMS',
+        ],
+
+    'zjets': [
+        'mc16_13TeV.364100.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV0_70_CVetoBVeto',
+        'mc16_13TeV.364101.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV0_70_CFilterBVeto',
+        'mc16_13TeV.364102.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV0_70_BFilter',
+        'mc16_13TeV.364103.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV70_140_CVetoBVeto',
+        'mc16_13TeV.364104.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV70_140_CFilterBVeto',
+        'mc16_13TeV.364105.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV70_140_BFilter',
+        'mc16_13TeV.364106.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV140_280_CVetoBVeto',
+        'mc16_13TeV.364107.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV140_280_CFilterBVeto',
+        'mc16_13TeV.364108.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV140_280_BFilter',
+        'mc16_13TeV.364109.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV280_500_CVetoBVeto',
+        'mc16_13TeV.364110.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV280_500_CFilterBVeto',
+        'mc16_13TeV.364111.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV280_500_BFilter',
+        'mc16_13TeV.364112.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV500_1000',
+        'mc16_13TeV.364113.Sherpa_221_NNPDF30NNLO_Zmumu_MAXHTPTV1000_E_CMS',
+        'mc16_13TeV.364114.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV0_70_CVetoBVeto',
+        'mc16_13TeV.364115.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV0_70_CFilterBVeto',
+        'mc16_13TeV.364116.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV0_70_BFilter',
+        'mc16_13TeV.364117.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV70_140_CVetoBVeto',
+        'mc16_13TeV.364118.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV70_140_CFilterBVeto',
+        'mc16_13TeV.364119.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV70_140_BFilter',
+        'mc16_13TeV.364120.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV140_280_CVetoBVeto',
+        'mc16_13TeV.364121.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV140_280_CFilterBVeto',
+        'mc16_13TeV.364122.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV140_280_BFilter',
+        'mc16_13TeV.364123.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV280_500_CVetoBVeto',
+        'mc16_13TeV.364124.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV280_500_CFilterBVeto',
+        'mc16_13TeV.364125.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV280_500_BFilter',
+        'mc16_13TeV.364126.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV500_1000',
+        'mc16_13TeV.364127.Sherpa_221_NNPDF30NNLO_Zee_MAXHTPTV1000_E_CMS',
+        'mc16_13TeV.364128.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV0_70_CVetoBVeto',
+        'mc16_13TeV.364129.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV0_70_CFilterBVeto',
+        'mc16_13TeV.364130.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV0_70_BFilter',
+        'mc16_13TeV.364131.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV70_140_CVetoBVeto',
+        'mc16_13TeV.364132.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV70_140_CFilterBVeto',
+        'mc16_13TeV.364133.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV70_140_BFilter',
+        'mc16_13TeV.364134.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV140_280_CVetoBVeto',
+        'mc16_13TeV.364135.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV140_280_CFilterBVeto',
+        'mc16_13TeV.364136.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV140_280_BFilter',
+        'mc16_13TeV.364137.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV280_500_CVetoBVeto',
+        'mc16_13TeV.364138.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV280_500_CFilterBVeto',
+        'mc16_13TeV.364139.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV280_500_BFilter',
+        'mc16_13TeV.364140.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV500_1000',
+        'mc16_13TeV.364141.Sherpa_221_NNPDF30NNLO_Ztautau_MAXHTPTV1000_E_CMS',
+        'mc16_13TeV.364142.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV0_70_CVetoBVeto',
+        'mc16_13TeV.364143.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV0_70_CFilterBVeto',
+        'mc16_13TeV.364144.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV0_70_BFilter',
+        'mc16_13TeV.364145.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV70_140_CVetoBVeto',
+        'mc16_13TeV.364146.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV70_140_CFilterBVeto',
+        'mc16_13TeV.364147.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV70_140_BFilter',
+        'mc16_13TeV.364148.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV140_280_CVetoBVeto',
+        'mc16_13TeV.364149.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV140_280_CFilterBVeto',
+        'mc16_13TeV.364150.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV140_280_BFilter',
+        'mc16_13TeV.364151.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV280_500_CVetoBVeto',
+        'mc16_13TeV.364152.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV280_500_CFilterBVeto',
+        'mc16_13TeV.364153.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV280_500_BFilter',
+        'mc16_13TeV.364154.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV500_1000',
+        'mc16_13TeV.364155.Sherpa_221_NNPDF30NNLO_Znunu_MAXHTPTV1000_E_CMS',
+        ],
+
+    'multijet': [
+        'mc16_13TeV.426131.Sherpa_CT10_jets_JZ1',
+        'mc16_13TeV.426132.Sherpa_CT10_jets_JZ2',
+        'mc16_13TeV.426133.Sherpa_CT10_jets_JZ3',
+        'mc16_13TeV.426134.Sherpa_CT10_jets_JZ4',
+        'mc16_13TeV.426135.Sherpa_CT10_jets_JZ5',
+        'mc16_13TeV.426136.Sherpa_CT10_jets_JZ6',
+        'mc16_13TeV.426137.Sherpa_CT10_jets_JZ7',
+        'mc16_13TeV.426138.Sherpa_CT10_jets_JZ8',
+        'mc16_13TeV.426139.Sherpa_CT10_jets_JZ9',
+        'mc16_13TeV.426140.Sherpa_CT10_jets_JZ10',
+        'mc16_13TeV.426141.Sherpa_CT10_jets_JZ11',
+        'mc16_13TeV.426142.Sherpa_CT10_jets_JZ12',
+        ],
+
+    'diphoton': [
         'mc16_13TeV.407022.Sherpa_CT10_enugammagammaPt50GeV',
         'mc16_13TeV.407023.Sherpa_CT10_munugammagammaPt50GeV',
         'mc16_13TeV.407024.Sherpa_CT10_taunugammagammaPt50GeV',
@@ -487,10 +616,22 @@ samples_dict = {
         'mc16_13TeV.407026.Sherpa_CT10_ZmumugammagammaPt50GeV',
         'mc16_13TeV.407027.Sherpa_CT10_ZtautaugammagammaPt50GeV',
         'mc16_13TeV.407028.Sherpa_CT10_ZnunugammagammaPt50GeV',
-        ]
+        ],
 
     }
-        
+
+samples_dict['efake15'] = [ i.replace('data15_13TeV', 'efake15') for i in samples_dict['data15'] ]
+samples_dict['jfake15'] = [ i.replace('data15_13TeV', 'jfake15') for i in samples_dict['data15'] ]
+
+samples_dict['efake16'] = [ i.replace('data16_13TeV', 'efake16') for i in samples_dict['data16'] ]
+samples_dict['jfake16'] = [ i.replace('data16_13TeV', 'jfake16') for i in samples_dict['data16'] ]
+
+samples_dict['efake17'] = [ i.replace('data17_13TeV', 'efake17') for i in samples_dict['data17'] ]
+samples_dict['jfake17'] = [ i.replace('data17_13TeV', 'jfake17') for i in samples_dict['data17'] ]
+
+samples_dict['efake'] = 'efake15 + efake16 + efake17'
+samples_dict['jfake'] = 'jfake15 + jfake16 + jfake17'
+
 
 ## Samples 20.7 (just to make some comparisons)
 
