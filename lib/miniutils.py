@@ -3,6 +3,7 @@
 
 import os
 import re
+import sys
 import glob
 from array import array
 
@@ -375,9 +376,7 @@ def _get_multi_histograms(ds, **kwargs):
 
 
                 # name to avoid the ROOT warning, not used
-                hname = 'h%s%s_%s_obs_cuts' % (ds['did'], systname, region)
-                if year is not None:
-                    hname += '_%s' % year
+                hname = 'h__%s__%s_%s_obs_cuts' % (ds['did'], systname, region)
     
                 if is_2d_variable(variable):
                     htemp = ROOT.TH2D(hname, hname, *binning)
@@ -506,6 +505,20 @@ def sum_histograms(histograms):
     return new_histograms
 
 
+def update_progressbar(total, progress):
+
+    bar_length, status = 60, ""
+    progress = float(progress) / float(total)
+    if progress >= 1.:
+        progress, status = 1, "\r\n"
+    block = int(round(bar_length * progress))
+    text = "\r[{}] {:.0f}% {}".format(
+        "#" * block + "-" * (bar_length - block), round(progress * 100, 0),
+        status)
+    sys.stdout.write(text)
+    sys.stdout.flush()
+
+
 def get_histograms(name, **kwargs):
 
     """
@@ -524,7 +537,7 @@ def get_histograms(name, **kwargs):
 
 
     version = kwargs.get('version', None)
-    is_mc = (not 'data' in name)
+    is_mc = (not 'data' in name and not 'efake' in name and not 'jfake' in name)
 
     mc_campaign = None
     if is_mc and version != '56':
@@ -532,15 +545,14 @@ def get_histograms(name, **kwargs):
             mc_campaign = 'mc16a'
         elif year == '2017':
             mc_campaign = 'mc16c'
-    elif name == 'data':
+    elif name in ['data', 'efake', 'jfake']:
         name = name+year[-2:]
-        
-
+       
     datasets = get_datasets(name, version, mc_campaign, kwargs.get('ignore_missing', False))
 
     histograms = []
 
-    for ds in datasets:
+    for ids, ds in enumerate(datasets):
 
         histograms_ds = _get_multi_histograms(ds, **kwargs)
 
@@ -550,6 +562,35 @@ def get_histograms(name, **kwargs):
         else:
             for hall, hnew in zip(histograms, histograms_ds):
                 hall.Add(hnew, 1)
+
+        update_progressbar(len(datasets), ids+1) 
+
+
+    # Fix histogram name
+    replace_dict = {
+        'efake15': 'efake',
+        'efake16': 'efake',
+        'efake17': 'efake',
+        'jfake15': 'jfake',
+        'jfake16': 'jfake',
+        'jfake17': 'jfake',
+        'data15Nom': 'data',
+        'data16Nom': 'data',
+        'data17Nom': 'data',
+        }
+
+    for hist in histograms:
+        hname = hist.GetName()
+
+        to_replace = '__' + hname.split('__')[1] + '__'
+
+        new_hname = hname.replace(to_replace, name)
+
+        for i, j in replace_dict.iteritems():
+            if i in new_hname:
+                new_hname = new_hname.replace(i, j)
+
+        hist.SetName(new_hname)
 
     return histograms
 

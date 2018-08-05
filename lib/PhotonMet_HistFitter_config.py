@@ -58,7 +58,7 @@ do_detector_syst = args.detsyst or args.syst
 do_dd_syst       = args.ddsyst or args.syst
 do_mc_syst       = args.mcsyst or args.syst
 
-data_name = args.data
+data_year = args.data
 
 nom_name  = 'Nom'
 model_hypo_test = 'GGM'
@@ -155,8 +155,8 @@ wjets_sample.setNormByTheory()
 zjets_sample.setNormByTheory()
 
 # ttbar
-ttbar_sample  = Sample('ttbar', color("ttbar"))
-ttbarg_sample = Sample('ttbarg', color("ttbarg"))
+ttbar_sample  = Sample('ttbar',   color("ttbar"))
+ttbarg_sample = Sample('ttgamma', color("ttbarg"))
 
 ttbar_sample.setNormByTheory()
 ttbarg_sample.setNormFactor("mu_t", 1., 0., 2.)   
@@ -187,19 +187,19 @@ diphoton_sample.setNormByTheory()
 # vgammagamma_sample.setNormByTheory()
 
 # Fakes
-if data_name == 'data15':
-    efake_sample = Sample("efake15", color("efake"))
-    jfake_sample = Sample("jfake15", color("jfake"))
-elif data_name == 'data16':
-    efake_sample = Sample("efake16", color("efake"))
-    jfake_sample = Sample("jfake16", color("jfake"))
-else: # should be 'data'
-    efake_sample = Sample("efake", color("efake"))
-    jfake_sample = Sample("jfake", color("jfake"))
+# if data_name == 'data15':
+#     efake_sample = Sample("efake15", color("efake"))
+#     jfake_sample = Sample("jfake15", color("jfake"))
+# elif data_name == 'data16':
+#     efake_sample = Sample("efake16", color("efake"))
+#     jfake_sample = Sample("jfake16", color("jfake"))
+# else: # should be 'data'
+efake_sample = Sample("efake", color("efake"))
+jfake_sample = Sample("jfake", color("jfake"))
 
 
 # Data
-data_sample = Sample(data_name, ROOT.kBlack)
+data_sample = Sample('data', ROOT.kBlack)
 data_sample.setData()
 
 # stat uncertainty
@@ -495,7 +495,7 @@ if do_mc_syst:
             zg_syst  = syst_zgamma_theo_srh
 
         sc.getSample('wgamma')     .addSystematic(wg_syst)
-        sc.getSample('ttbarg')     .addSystematic(tg_syst)
+        sc.getSample('ttgamma')     .addSystematic(tg_syst)
         sc.getSample('zllgamma')   .addSystematic(zg_syst)
         sc.getSample('znunugamma') .addSystematic(zg_syst)
 
@@ -507,9 +507,9 @@ if do_mc_syst:
     CRW.getSample('wgamma').addSystematic(syst_wgamma_theo_crw)
     CRT.getSample('wgamma').addSystematic(syst_wgamma_theo_crt)
 
-    CRQ.getSample('ttbarg').addSystematic(syst_tgamma_theo_crq)
-    CRW.getSample('ttbarg').addSystematic(syst_tgamma_theo_crw)
-    CRT.getSample('ttbarg').addSystematic(syst_tgamma_theo_crt)
+    CRQ.getSample('ttgamma').addSystematic(syst_tgamma_theo_crq)
+    CRW.getSample('ttgamma').addSystematic(syst_tgamma_theo_crw)
+    CRT.getSample('ttgamma').addSystematic(syst_tgamma_theo_crt)
 
     CRQ.getSample('zllgamma').addSystematic(syst_zgamma_theo_crq)
     CRW.getSample('zllgamma').addSystematic(syst_zgamma_theo_crw)
@@ -526,18 +526,18 @@ if do_mc_syst:
             vr.getSample('wgamma')    .addSystematic(syst_wgamma_theo_vrl)
             vr.getSample('zllgamma')  .addSystematic(syst_zgamma_theo_vrl)
             vr.getSample('znunugamma').addSystematic(syst_zgamma_theo_vrl)
-            vr.getSample('ttbarg')    .addSystematic(syst_tgamma_theo_vrl)
+            vr.getSample('ttgamma')   .addSystematic(syst_tgamma_theo_vrl)
 
         elif vr.name.endswith('L'):
             vr.getSample('wgamma')     .addSystematic(syst_wgamma_theo_srl)
             vr.getSample('zllgamma')   .addSystematic(syst_zgamma_theo_srl)
             vr.getSample('znunugamma') .addSystematic(syst_zgamma_theo_srl)
-            vr.getSample('ttbarg')     .addSystematic(syst_tgamma_theo_srl)
+            vr.getSample('ttgamma')    .addSystematic(syst_tgamma_theo_srl)
         elif vr.name.endswith('H'):        
             vr.getSample('wgamma')     .addSystematic(syst_wgamma_theo_srh)
             vr.getSample('zllgamma')   .addSystematic(syst_zgamma_theo_srh)
             vr.getSample('znunugamma') .addSystematic(syst_zgamma_theo_srh)
-            vr.getSample('ttbarg')     .addSystematic(syst_tgamma_theo_srh)
+            vr.getSample('ttgamma')    .addSystematic(syst_tgamma_theo_srh)
 
 
 # Add CR/VR/SR 
