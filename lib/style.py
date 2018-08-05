@@ -84,6 +84,16 @@ colors_dict['vgammagamma'] = '#e5ac49'
 colors_dict['others']      = '#676363'
 colors_dict['fakes']       = '#348ABD'
 
+# colors_dict['photonjet'] = ROOT.kGray+1
+# colors_dict['diphoton']  = ROOT.kGray
+# colors_dict['zgamma']    = '#bea7c1'
+# colors_dict['wgamma']    = '#94cce1'
+# colors_dict['tgamma']    = '#825f87'
+# colors_dict['vgamma']    = '#94cce1'
+# #'fakes':     '#3679bf', ##ROOT.kGray+1
+
+
+
 colors_dict['GGM_M3_mu_1400_250']  = '#85ea7a' 
 colors_dict['GGM_M3_mu_1400_650']  = '#fa3a92'
 colors_dict['GGM_M3_mu_1400_1050'] = '#8453fb'

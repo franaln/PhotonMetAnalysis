@@ -4,7 +4,8 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 alias setupATLAS='source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh'
 
 setupATLAS
-localSetupROOT 6.12.06-x86_64-slc6-gcc62-opt
+#localSetupROOT 6.12.04-x86_64-slc6-gcc62-opt
+localSetupROOT 6.06.06-x86_64-slc6-gcc49-opt
 
 export SUSY_ANALYSIS=$PWD
 

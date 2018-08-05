@@ -5,7 +5,6 @@
 #include <TTree.h>
 #include <TH1D.h>
 #include <TTreeFormula.h>
-#include <TStopwatch.h>
 
 #include <iostream>
 
@@ -17,19 +16,11 @@ void MultiDraw(TTree *tree, TObjArray *formulae, TObjArray *weights, TObjArray *
   Long64_t i = 0;
   Long64_t num_events = tree->GetEntries();
 
-
   Double_t value = 0, weight = 0, common_weight = 0;
 
   Int_t tree_number = -1;
 
   for (i = 0; i<num_events; i++) {
-
-    // Display progress every 10000 events
-    if (i % 100000 == 0) {
-      std::cout.precision(2);
-      std::cout << "Done " << (double(i) / ( double(num_events)) * 100.0f) << "%   \r";
-      std::cout.flush();
-    }
 
     if (tree_number != tree->GetTreeNumber()) {
       tree_number = tree->GetTreeNumber();

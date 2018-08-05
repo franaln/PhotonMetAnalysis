@@ -82,7 +82,6 @@ def MultiDraw(self, *draw_list):
         from ROOT import MultiDraw as _MultiDraw
     except ImportError:
         ROOT.gInterpreter.Declare(open(os.environ['SUSY_ANALYSIS'] + '/lib/MultiDraw.cxx').read())
-        # ROOT.gROOT.ProcessLine( ".L %sMultiDraw.cxx+O" % "./" )
         from ROOT import MultiDraw as _MultiDraw
 
     # Ensure that formulae are told when tree changes

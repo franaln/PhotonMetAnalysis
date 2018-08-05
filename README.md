@@ -40,29 +40,29 @@ ROOT, HistFitter, rootutils
 
 ## Analysis framework
 
-                             +-------------------+     Data
-                             |    Mini ntuples   |     MC
-                             +---------+---------+     Fakes
-                                       |
-                                       |
-                    Regions, xs, ...   |
-                 +-------------------------------------+
-                 |                                     |
-       +---------+-----------+                   +-----+------+
-       | Events              |                   | Histograms |
-       | (1-bin histograms)  |                   +-----+------+
-       +---------+-----------+                         |
-                 |                                     |
-       +---------+-----------+                         |
-       | Bkg-only fit        |                         |
-       | (HistFitter)        |                         |
-       +---------+-----------+                         |
-                 |                                     |
-                 |   Scale factors                     |
-                 +-------------------------------------+
-                 |                                     |
-       +---------+-----------+                   +-----+-----------------------+
-       | Tables with         |                   | Plots of relevant variables |
-       | expected events     |                   | in CRs, VRs and SRs         |
-       | in CRs, VRs, SRs    |                   +-----------------------------+
-       +---------------------+
+                           +-------------------+   [ Data
+                           |    Mini ntuples   |---[ MC
+                           +---------+---------+   [ Fakes
+                                     |
+                                     |
+                regions, XS, ...     |
+               +-------------------------------------+
+               |                                     |
+     +---------+-----------+                   +-----+---------------+
+     | Events (1-bin       |                   | Variable histograms |
+     | "cuts" histograms)  |                   +-----+---------------+
+     +---------+-----------+                         |
+               |                                     |
+     +---------+-----------+                         |
+     | Bkg-only fit        |                         |
+     | (using HistFitter)  |                         |
+     +---------+-----------+                         |
+               |                                     |
+               | CR->SR scale factors                |
+               +-------------------------------------+
+               |                                     |
+     +---------+-------------+                   +-----+-----------------------+
+     | Tables with expected  |                   | Plots of relevant variables |
+     | events andsystematics |                   | in all regions              |
+     | in all regions        |                   +-----------------------------+
+     +-----------------------+
