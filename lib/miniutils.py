@@ -332,6 +332,7 @@ def _get_multi_histograms(ds, **kwargs):
     use_mcveto  = kwargs.get('use_mcveto',  True)
 
     is_mc = ds['project'].startswith('mc')
+    is_fake = ('efake' in ds['name'] or 'jfake' in ds['name'])
 
     #-----------
     # File/Chain
@@ -450,6 +451,16 @@ def _get_multi_histograms(ds, **kwargs):
                         else:
                             w_list.append('weight_pu')
 
+
+                elif is_fake:
+                    if syst == 'Nom':
+                        w_list.append('weight_ff')
+                    elif syst == 'EFAKE_SYST__1down' or syst == 'JFAKE_SYST__1down':
+                        w_list.append('weight_ff_dn')
+                    elif syst == 'EFAKE_SYST__1up' or syst == 'JFAKE_SYST__1up':
+                        w_list.append('weight_ff_up')
+
+
                 if not scale:
                     w_str = ''
                 else:
@@ -505,14 +516,14 @@ def sum_histograms(histograms):
     return new_histograms
 
 
-def update_progressbar(total, progress):
+def update_progressbar(name, total, progress):
 
     bar_length, status = 60, ""
     progress = float(progress) / float(total)
     if progress >= 1.:
         progress, status = 1, "\r\n"
     block = int(round(bar_length * progress))
-    text = "\r[{}] {:.0f}% {}".format(
+    text = "\rProcessing {:10}  [{}] {:.0f}% {}".format(name, 
         "#" * block + "-" * (bar_length - block), round(progress * 100, 0),
         status)
     sys.stdout.write(text)
@@ -563,7 +574,7 @@ def get_histograms(name, **kwargs):
             for hall, hnew in zip(histograms, histograms_ds):
                 hall.Add(hnew, 1)
 
-        update_progressbar(len(datasets), ids+1) 
+        update_progressbar(name, len(datasets), ids+1) 
 
 
     # Fix histogram name
