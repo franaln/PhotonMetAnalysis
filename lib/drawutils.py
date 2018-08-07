@@ -3,10 +3,9 @@ from array import array
 
 ROOT.gROOT.SetBatch(1)
 
-from rootutils import *
-from statutils import *
-
-import style
+from rootutils import set_style
+from statutils import make_poisson_cl_errors
+from style import labels_dict, colors_dict, get_plotconf
 
 # Gauginos labels
 n1_text = '#tilde{#chi} #kern[-0.8]{#lower[0.8]{#scale[0.6]{1}}} #kern[-1.8]{#lower[-0.6]{#scale[0.6]{0}}}'
@@ -185,7 +184,9 @@ def do_plot(plotname,
             logy=True,
             big_label=False,
             extensions=['pdf',],
-            region_line=None):
+            region_line=None,
+            atlas_label='',
+            data_label=''):
 
     if data is None:
         data = {}
@@ -194,30 +195,23 @@ def do_plot(plotname,
     if bkg is None:
         bkg = {}
 
-    labels_dict = style.labels_dict
-    atlas_label = style.atlas_label
-    data_label  = style.data_label
 
-    if variable not in style.plots_conf:
-        vartmp = variable[:variable.find('[')]
-        conf = style.plots_conf.get(vartmp, style.plots_conf['default'])
-    else:
-        conf = style.plots_conf.get(variable, style.plots_conf['default'])
+    conf = get_plotconf(variable)
 
-    xtitle, ytitle, legpos = conf.xtitle, conf.ytitle, conf.legpos
+    xtitle, ytitle, legpos = conf['xtitle'], conf['ytitle'], conf['legpos']
 
     if not logy:
         logy = False
     else:
-        logy = conf.logy
+        logy = conf['logy']
 
-    logx = conf.logx
+    logx = conf['logx']
 
-    can = canvas(plotname, plotname, 800, 800)
+    can = ROOT.TCanvas('', '', 800, 800)
     can.cd()
 
     def calc_size(pad):
-        pad_width = pad.XtoPixel(pad.GetX2())
+        pad_width  = pad.XtoPixel(pad.GetX2())
         pad_height = pad.YtoPixel(pad.GetY1())
 
         if pad_width < pad_height:
@@ -245,7 +239,7 @@ def do_plot(plotname,
         cup.Draw()
         cdown.Draw()
 
-        if logy and conf.logy:
+        if logy:
             cup.SetLogy()
         if logx:
             cup.SetLogx()
@@ -258,7 +252,7 @@ def do_plot(plotname,
         dn_size = calc_size(cdown)
 
     else:
-        if logy: ## conf.logy:
+        if logy: 
             can.SetLogy()
         if logx:
             can.SetLogx()
@@ -272,22 +266,26 @@ def do_plot(plotname,
         up_size = calc_size(can)
         dn_size = calc_size(can) 
 
+
     if big_label:
         up_size *= 1.2
         dn_size *= 1.2 
 
     # configure histograms
     if data:
-        set_style(data, msize=1, lwidth=2, color=ROOT.kBlack)
+        data.SetMarkerColor(ROOT.kBlack)
+        data.SetLineColor(ROOT.kBlack)
+        data.SetMarkerSize(1)
+        data.SetLineWidth(2)
 
     if bkg:
         for name, hist in bkg.iteritems():
-            set_style(hist, color=style.colors_dict[name], fill=True)
+            set_style(hist, color=colors_dict[name], fill=True)
             hist.SetLineColor(ROOT.kBlack)
 
     if signal:
         for sig, hist in signal.iteritems():
-            set_style(hist, msize=1.2, lwidth=2, lstyle=2, color=style.colors_dict[sig])
+            set_style(hist, msize=1.2, lwidth=2, lstyle=2, color=colors_dict[sig])
 
     # bkg stack
     if bkg:
@@ -301,6 +299,7 @@ def do_plot(plotname,
         for hist in sorted(bkg.itervalues(), _compare):
             sm_stack.Add(hist)
 
+
         # Total background
         sm_total = None
         sm_totalerr = None
@@ -313,14 +312,6 @@ def do_plot(plotname,
         sm_total = sm_stack.GetStack().Last().Clone('sm_total')
         sm_total_stat = sm_total.Clone()
 
-        # sm_total = None
-        # for h in bkg.itervalues():
-        #     if sm_total is None:
-        #         sm_total = h.Clone('sm_total')
-        #     else:
-        #         sm_total.Add(h, 1)
-
-
         if sm_total is not None:
             sm_total.SetLineWidth(2)
             sm_total.SetLineColor(sm_total_color)
@@ -332,7 +323,7 @@ def do_plot(plotname,
             sm_total_stat.SetFillStyle(sm_total_style)
             sm_total_stat.SetLineWidth(2)
             sm_total_stat.SetMarkerSize(0)
-            
+
 
     # legend
     legxmin, legxmax = 0.6, 0.88
@@ -358,21 +349,26 @@ def do_plot(plotname,
             legxmin = 0.65
             legxmax = 0.92
 
-    legend1 = legend(legxmin, legymin, legxmax, legymax, columns=2)
+    legend1 = ROOT.TLegend(legxmin, legymin, legxmax, legymax)
+    legend1.SetFillColor(0)
+    legend1.SetBorderSize(0)
+    legend1.SetNColumns(2)
     legend1.SetTextFont(42)
     legend1.SetTextSize(legend1.GetTextSize()*0.8)
     if signal:
         if legpos == 'top':
             if data:
-                legend2 = legend(legxmax+0.02, legymin+0.1, legxmax+0.39, legymax)
+                legend2 = ROOT.TLegend(legxmax+0.02, legymin+0.1, legxmax+0.39, legymax)
             else:
-                legend2 = legend(legxmax+0.02, legymin, legxmax+0.39, legymax)
+                legend2 = ROOT.TLegend(legxmax+0.02, legymin, legxmax+0.39, legymax)
         else:
             if data:
-                legend2 = legend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
+                legend2 = ROOT.TLegend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
             else:
-                legend2 = legend(legxmin-0.01, legymin-.20, legxmax-0.01, legymin -.01)
+                legend2 = ROOT.TLegend(legxmin-0.01, legymin-.20, legxmax-0.01, legymin -.01)
 
+        legend2.SetFillColor(0)
+        legend2.SetBorderSize(0)
         legend2.SetTextFont(42)
         legend2.SetTextSize(legend1.GetTextSize())
 
@@ -409,8 +405,8 @@ def do_plot(plotname,
             break
         chist = signal[name]
 
-    if conf.xmin is not None and conf.xmax is not None:
-        chist.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
+    if conf['xmin'] is not None and conf['xmax'] is not None:
+        chist.GetXaxis().SetRangeUser(conf['xmin'], conf['xmax'])
 
     if chist.GetXaxis().GetXmax() < 5.:
         chist.GetXaxis().SetNdivisions(512)
@@ -478,6 +474,8 @@ def do_plot(plotname,
     chist.GetYaxis().SetTitleSize(up_size)
     chist.GetYaxis().SetTitleOffset(y_offset)
 
+
+
     if data:
         data_graph = make_poisson_cl_errors(data)
         set_style(data_graph, msize=1, lwidth=2, color=ROOT.kBlack)
@@ -504,7 +502,7 @@ def do_plot(plotname,
 
     # ATLAS/data labels
     if data:
-        text = style.data_label
+        text = data_label
         t = ROOT.TLatex(0, 0, text)
         t.SetNDC()
         t.SetTextFont(42)
@@ -670,8 +668,8 @@ def do_plot(plotname,
         set_style(ratio, msize=1, lwidth=2, color=ROOT.kBlack)
 
         cdown.cd()
-        if conf.xmin is not None and conf.xmax is not None:
-            frame = cdown.DrawFrame(conf.xmin, 0., conf.xmax, 2.2)
+        if conf['xmin'] is not None and conf['xmax'] is not None:
+            frame = cdown.DrawFrame(conf['xmin'], 0., conf['xmax'], 2.2)
         else:
             frame = cdown.DrawFrame(chist.GetXaxis().GetXmin(), 0., chist.GetXaxis().GetXmax(), 2.2)
 
@@ -690,8 +688,8 @@ def do_plot(plotname,
         frame.GetXaxis().SetLabelOffset(0.03)
         frame.GetXaxis().SetTickLength(0.06)
 
-        if conf.xmin is not None and conf.xmax is not None:
-            ratio.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
+        if conf['xmin'] is not None and conf['xmax'] is not None:
+            ratio.GetXaxis().SetRangeUser(conf['xmin'], conf['xmax'])
 
         if frame.GetXaxis().GetXmax() < 5.:
             frame.GetXaxis().SetNdivisions(512)
@@ -740,8 +738,8 @@ def do_plot(plotname,
         err_band_stat.SetLineColor(sm_total_color)
         err_band_stat.SetFillColor(sm_total_color)
 
-        if conf.xmin is not None and conf.xmax is not None:
-            xmin, xmax = conf.xmin, conf.xmax
+        if conf['xmin'] is not None and conf['xmax'] is not None:
+            xmin, xmax = conf['xmin'], conf['xmax']
         else:
             firstbin = hist.GetXaxis().GetFirst()
             lastbin  = hist.GetXaxis().GetLast()
@@ -781,7 +779,7 @@ def do_plot(plotname,
                 ratio_z[i].SetBinContent(bx, z)
 
         for i, name in enumerate(names):
-            set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=style.colors_dict[name])
+            set_style(ratio_z[i], msize=1.2, lwidth=2, lstyle=2, color=colors_dict[name])
 
 
         # x-axis
@@ -1032,7 +1030,7 @@ def do_plot_cmp(plotname,
         legend1 = legend(legxmin1, legymin, legxmax1, legymax)
 
     for (name, hist) in histograms:
-        legend1.AddEntry(hist, style.labels_dict.get(name, name))
+        legend1.AddEntry(hist, labels_dict.get(name, name))
 
     if do_ratio:
         cup.cd()

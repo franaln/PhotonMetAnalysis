@@ -377,7 +377,7 @@ def _get_multi_histograms(ds, **kwargs):
 
 
                 # name to avoid the ROOT warning, not used
-                hname = 'h__%s__%s_%s_obs_cuts' % (ds['did'], systname, region)
+                hname = 'h__%s__%s_%s_obs_%s' % (ds['did'], systname, region, variable)
     
                 if is_2d_variable(variable):
                     htemp = ROOT.TH2D(hname, hname, *binning)
@@ -609,10 +609,11 @@ def get_histograms(name, **kwargs):
 def get_histogram(name, **kwargs):
 
     variable   = kwargs.get('variable', 'cuts')
+    region     = kwargs.get('region', '')
     selection  = kwargs.get('selection', '')
     syst       = kwargs.get('syst', 'Nom')
 
-    histograms = get_histograms(name, variables=[variable,], selections=[selection,], systematics=[syst,], **kwargs)
+    histograms = get_histograms(name, variables=[variable,], regions=[region,], selections=[selection,], systematics=[syst,], **kwargs)
 
     if histograms:
         return histograms[0]

@@ -1,8 +1,5 @@
 #! /usr/bin/env python
 
-# single photon analysis
-# plots script
-
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gROOT.SetBatch(1)
@@ -13,6 +10,7 @@ import argparse
 from functools import partial
 from rootutils import *
 from collections import OrderedDict
+
 import miniutils
 import regions as regions_
 from drawutils import *
