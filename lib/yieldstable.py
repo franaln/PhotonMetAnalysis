@@ -338,10 +338,10 @@ def yieldstable(workspace, samples, channels, output_name, table_name, show_befo
             
         for index, n in enumerate(m['TOTAL_MC_EXP_BKG_events']):
 
-            if regions_names[index].startswith('CR'):
-                if cr_dict:
-                    for cr, bkg in cr_dict.items():
-                        total_before[cr] = n
+            reg_name = regions_name[index]
+
+            if cr_dict and reg_name in cr_dict:
+                total_before[reg_name] = n
 
             rowl.append('$%.2f$' % n)
 
@@ -367,9 +367,9 @@ def yieldstable(workspace, samples, channels, output_name, table_name, show_befo
                     rowl.append('Before fit %s' % labels_latex_dict.get(sample_name, sample_name).replace('_', '\_'))
 
                     for index, n in enumerate(m[name]):
-                        if cr_dict:
-                            if regions_names[index] in cr_dict and sample == cr_dict[regions_names[index]]:
-                                purity_before[regions_names[index]] = n
+                        reg_name = regions_names[index]
+                        if cr_dict and reg_name in cr_dict and sample == cr_dict[reg_name]:
+                            purity_before[reg_name] = n
 
                         rowl.append('$%.2f$' % n)
 
