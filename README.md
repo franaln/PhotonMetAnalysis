@@ -27,12 +27,6 @@ ROOT, HistFitter, rootutils
 
 ## Setup
 
-* Install [rootutils](https://github.com/franaln/rootutils) (or copy rootutils.py to lib/) 
-    ```
-    https://raw.githubusercontent.com/franaln/rootutils/master/rootutils/rootutils.py
-    ```
-
-* Setup ROOT/HistFitter...
     ```
     source setup.sh
     ```
