@@ -58,12 +58,6 @@ def run_cmd(cmd, logfile=None, stdout=False):
     return sc
 
 
-def run_HF_cmd(cmd):
-
-    pass
-
-
-
 def run_cmds_and_wait(*cmds):
 
     processes = []

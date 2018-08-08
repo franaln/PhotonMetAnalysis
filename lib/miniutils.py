@@ -17,22 +17,18 @@ import xsutils
 import systematics as systematics_
 import regions as regions_
 
-MiniDirLOCAL  = '/ar/pcunlp001/raid/datasamples/susy/mini2'
-
-MiniDirOTHERS = [
+MiniDirs = [
     '/eos/user/f/falonso/data/mini2',
-    # '/ar/pcunlp001/raid/falonso/mini_vx',
     ]
 
-
 # Mini version
-versions_ = ['56', ] # v56: last r20.7 version used for paper
+versions_ = ['56', ] # v56: last r20.7 version used for paper (not used for r21)
 
 # Luminosity
 lumi_dict = {
     '2015':  3219.56,
     '2016': 32965.30,
-    '2017': 43813.70,  ## UPDATE with new repro data
+    '2017': 44307.40,  ## CHECK/UPDATE
 }
 
 # --------
@@ -206,33 +202,28 @@ def get_lumi_weight(ds, lumi, fs=None):
 # Samples
 #----------
 
-r_ds = re.compile('(mc15_13TeV|mc16_13TeV|data15_13TeV|data16_13TeV|data17_13TeV|efake15|efake16|jfake15|jfake16)\.([0-9]*)\.(.*)')
+r_ds = re.compile('(mc15_13TeV|mc16_13TeV|data15_13TeV|data16_13TeV|data17_13TeV|efake15|efake16|efak17|jfake15|jfake16|jfake17)\.([0-9]*)\.(.*)')
 
 def find_path(project, did, short_name, version, mc_campaign):
 
     if project.startswith('mc') and mc_campaign is not None:
-        guess_path = '%s/v%s/%s.%s.%s.mini.%s.p*.v%s_output.root' % (MiniDirLOCAL, version, project, did, short_name, mc_campaign, version)
+        guess_path = 'v%s/%s.%s.%s.mini.%s.p*.v%s_output.root' % (version, project, did, short_name, mc_campaign, version)
     else:
-        guess_path = '%s/v%s/%s.%s.%s.mini.p*.v%s_output.root' % (MiniDirLOCAL, version, project, did, short_name, version)
+        guess_path = 'v%s/%s.%s.%s.mini.p*.v%s_output.root' % (version, project, did, short_name, version)
 
-    paths = glob.glob(guess_path)
+    for mini_dir in MiniDirs:
 
-    if paths:
-        # TODO: sort by ptag and choose the latest
-        return paths[0]
+        full_guess_path = '%s/%s' % (mini_dir, guess_path)
 
-    else:
-        # Try other directories
-        for mini_dir in MiniDirOTHERS:
-            new_guess_path = guess_path.replace(MiniDirLOCAL, mini_dir)
+        try:
+            paths = glob.glob(full_guess_path)
 
-            try:
-                paths = glob.glob(new_guess_path)
+            if paths:
+                # TODO: sort by ptag and choose the latest
+                return paths[0]
+        except:
+            pass
 
-                if paths:
-                    return paths[0]
-            except:
-                pass
 
     return None
 
@@ -563,6 +554,7 @@ def get_histograms(name, **kwargs):
 
     histograms = []
 
+    update_progressbar(name, len(datasets), 0) 
     for ids, ds in enumerate(datasets):
 
         histograms_ds = _get_multi_histograms(ds, **kwargs)
