@@ -1,10 +1,33 @@
 Bkg-only fit
 ============
 
-* bkg-only fit / plots / table / webpage
+                       -c   +------------------+   -f     +-----------+  -t
+                     +----> | cuts histograms  +--------> | workspace +------> Tables
+                     |      +------------------+   Fit    +-----+-----+
+  +--------------+   |                                          |
+  | mini ntuples +---+                                          | mu (CR -> SR)
+  +--------------+   |                                          |
+     |- Data         |      +------------------+                |        -p
+     |- MC           +----> | plots histograms +----------------+------------> Plots
+     |- Fakes          -d   +------------------+
 
-    do_analysis.py
 
+
+- Create histograms
+
+    analysis.py -v XXX --tag YYY --data 2017 -c -d
+
+- Bkg-only fit
+
+    analysis.py -v XXX --tag YYY --data 2017 -f
+
+- Tables
+
+    analysis.py -v XXX --tag YYY --data 2017 -t
+
+- Plots
+
+    analysis.py -v XXX --tag YYY --data 2017 -p
 
 
 Discovery significance

@@ -27,9 +27,9 @@ ROOT, HistFitter, rootutils
 
 ## Setup
 
-    ```
+
     source setup.sh
-    ```
+
 
 
 ## Analysis framework
