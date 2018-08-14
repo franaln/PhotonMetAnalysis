@@ -27,8 +27,8 @@ import miniutils
 import systematics as systematics_
 import regions as regions_
 from fitutils import get_normalization_factors
-from drawutils import do_plot
-from yieldstable import yieldstable
+from drawutils import do_plot, do_pull_plot
+from yieldstable import yieldstable, get_fit_results
 from systable import systable
 from utils import mkdirp, run_cmd
 from rootutils import set_atlas_style
@@ -248,7 +248,7 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
     fin.Close()
 
 
-def do_bkgonlyfit(configfile, input_file, output_dir, region, data, do_validation=False, syst='', use_mc=False, logfile=None, hf_options=None):
+def do_bkgonlyfit(configfile, input_file, output_dir, region, lumi, do_validation=False, syst='', use_mc=False, logfile=None, hf_options=None):
 
     configfile  = os.path.abspath(configfile)
     input_file  = os.path.abspath(input_file)
@@ -271,10 +271,6 @@ def do_bkgonlyfit(configfile, input_file, output_dir, region, data, do_validatio
         results_dir = 'results/PhotonMetAnalysis_bkgonly%s' % opttag
     else:
         results_dir = 'results/PhotonMetAnalysis_bkgonly'
-
-    lumi = 0.
-    for year in data.split('+'):
-        lumi += miniutils.lumi_dict.get(year, 0.)
 
     options = '-i %s --sr %s --rm --lumi %.2f' % (input_file, region, lumi)
     if do_validation:
@@ -303,12 +299,12 @@ def do_bkgonlyfit(configfile, input_file, output_dir, region, data, do_validatio
 
 
 
-def do_tables(ws, output_dir, backgrounds_str, regions, sr_str, do_validation, unblind=False, do_syst_tables=False):
+def do_tables(ws, output_dir, backgrounds, regions, sr_str, do_validation, unblind=False, do_syst_tables=False, norm_dict={}):
+
+    backgrounds_str = ','.join(backgrounds)
 
     ## CR
-    cr_dict = {'CRQ': 'photonjet', 'CRW': 'wgamma', 'CRT': 'ttgamma'}
-
-    yieldstable(ws, backgrounds_str, 'CRQ,CRW,CRT', output_dir+'/table_cr.tex', 'Control Regions', show_cr_info=True, cr_dict=cr_dict)
+    yieldstable(ws, backgrounds_str, 'CRQ,CRW,CRT', output_dir+'/table_cr.tex', 'Control Regions', show_cr_info=True, cr_dict=norm_dict)
 
     ## VR
     if do_validation:
@@ -321,11 +317,6 @@ def do_tables(ws, output_dir, backgrounds_str, regions, sr_str, do_validation, u
     ## SR
     yieldstable(ws, backgrounds_str, sr_str, output_dir+'/table_sr.tex', 'Signal Regions', unblind=unblind)
 
-    ## All (for pull plot)
-    if do_validation:
-        yieldstable(ws, backgrounds_str.replace('[', '').replace(']', ''), all_regions_str, output_dir+'/table_all.tex', 'All Regions', unblind=unblind)
-
-    
     # Systematic tables
     if do_syst_tables:
         systable(ws, '', 'SRL200', '%s/table_syst_srl200.tex' % output_dir)
@@ -336,14 +327,8 @@ def do_tables(ws, output_dir, backgrounds_str, regions, sr_str, do_validation, u
         systable(ws, '', 'CRW', '%s/table_syst_crw.tex' % output_dir)
         systable(ws, '', 'CRT', '%s/table_syst_crt.tex' % output_dir)
 
-        systable(ws, 'photonjet',             'SRL200,SRL300,SRH', '%s/table_syst_phohonjet.tex' % output_dir)
-        systable(ws, 'wgamma',                'SRL200,SRL300,SRH', '%s/table_syst_wgamma.tex' % output_dir)
-        systable(ws, 'zllgamma',              'SRL200,SRL300,SRH', '%s/table_syst_zllgamma.tex' % output_dir)
-        systable(ws, 'znunugamma',            'SRL200,SRL300,SRH', '%s/table_syst_znunugamma.tex' % output_dir)
-        systable(ws, 'ttbarg',                'SRL200,SRL300,SRH', '%s/table_syst_ttbarg.tex' % output_dir)
-        systable(ws, 'efake',                 'SRL200,SRL300,SRH', '%s/table_syst_efake.tex' % output_dir)
-        systable(ws, 'jfake',                 'SRL200,SRL300,SRH', '%s/table_syst_jfake.tex' % output_dir)
-        systable(ws, 'diphoton',              'SRL200,SRL300,SRH', '%s/table_syst_diphoton.tex' % output_dir)
+        for bkg in backgrounds:
+            systable(ws, bkg,             sr_str, '%s/table_syst_%s.tex' % (output_dir, bkg))
 
         if do_validation:
             systable(ws, '', 'VRL1', '%s/table_syst_vrl1.tex' % output_dir)
@@ -455,10 +440,7 @@ def get_histogram_from_file(file_, sample, variable, region, syst='Nom'):
     return hist.Clone()
 
 
-def do_plots(histograms_path, output_dir, regions, backgrounds, variables):
-
-    # plots style
-    set_atlas_style()
+def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_label):
 
     # histograms file
     file_ = ROOT.TFile.Open(histograms_path)
@@ -500,14 +482,84 @@ def do_plots(histograms_path, output_dir, regions, backgrounds, variables):
             #     h_signal[signal1] = get_histogram(signal1, variable=variable, region=region_name, selection=selection, syst=syst)
             #     h_signal[signal2] = get_histogram(signal2, variable=variable, region=region_name, selection=selection, syst=syst)
 
-            
             varname = variable.replace('[', '').replace(']', '')
                 
             outname = os.path.join(output_dir, 'can_{}_{}_afterFit'.format(region, varname))
             
-            do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, do_ratio=True)
+            do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, do_ratio=True, data_label=data_label)
 
+
+    file_.Close()
+
+
+
+# Regions pull pot
+def do_regions_pull_plot(ws, output_name, backgrounds, plot_bkgs, regions, merge_dict={}, unblind=False, data_label=''):
+
+    backgrounds_str = ','.join(backgrounds)
+    regions_str     = ','.join(regions)
+
+    mydict = get_fit_results(ws, backgrounds_str, regions_str)
+
+    # Create histograms
+    n_regions = len(regions)
+
+    # Make histograms
+    h_obs = ROOT.TH1F('h_obs', 'h_obs', n_regions, 0, n_regions)
+    h_exp = ROOT.TH1F("h_exp", "h_exp", n_regions, 0, n_regions)
+
+    h_bkg_dict = {}
+    for name in backgrounds:
+        h_bkg_dict[name] = ROOT.TH1F("h_bkg_"+name,"h_bkg_"+name, n_regions, 0, n_regions)
+
+    # loop over all the regions
+    for counter, region in enumerate(regions): 
+
+        index = mydict["names"].index(region+'_cuts')
+
+        n_obs = mydict["nobs"][index]
+        n_exp = mydict["TOTAL_FITTED_bkg_events"][index]
+
+        exp_syst = mydict["TOTAL_FITTED_bkg_events_err"][index]
+
+        n_exp_components = []
+        for sam in backgrounds:
+            if "Fitted_events_"+sam in mydict:
+                h_bkg_dict[sam].SetBinContent(counter+1, mydict["Fitted_events_"+sam][index])
+            else:
+                h_bkg_dict[sam].SetBinContent(counter+1, 0.)
+
+        if region.find("SR")>=0 and not unblind:
+            n_obs = -100
+
+        h_obs.GetXaxis().SetBinLabel(counter+1, region)
+        h_obs.SetBinContent(counter+1, n_obs)
+        h_obs.SetBinErrorOption(ROOT.TH1.kPoisson)
+
+        h_exp.SetBinContent(counter+1, n_exp)
+        h_exp.SetBinError(counter+1, exp_syst)
+
+    if merge_dict:
+
+        for merge_name, merge_list in merge_dict.items():
+
+            h_bkg_dict[merge_name] = h_bkg_dict[merge_list[0]].Clone(h_bkg_dict[merge_list[0]].GetName().replace(merge_list[0], merge_name))
+
+            for name in merge_list[1:]:
+                h_bkg_dict[merge_name].Add(h_bkg_dict[name], 1)
             
+            for name in merge_list:
+                del h_bkg_dict[name]
+            
+    h_bkg_dict_sorted = OrderedDict()
+    for name in plot_bkgs:
+        h_bkg_dict_sorted[name] = h_bkg_dict[name]
+
+    do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict_sorted, data_label=data_label)
+
+
+
+    
 
 
 
@@ -519,7 +571,6 @@ def main():
     # version, data
     parser.add_argument('-v', '--version', help='Mini-ntuples version')
     parser.add_argument('--data', help='2015+2016 or 2017')
-    parser.add_argument('--tag', help='Output tag')
     parser.add_argument('-o', dest='output_dir', help='Output directory')
 
     # Steps
@@ -556,7 +607,7 @@ def main():
     step_tables = args.tables
     step_plots  = args.plots
 
-    if not any([step_chist, step_dhist, step_fit, step_tables, step_plots]):
+    if not any([step_chist, step_dhist, step_fit, step_tables, step_plots]) or args.output_dir is None:
         parser.print_usage()
         sys.exit(1)
 
@@ -599,17 +650,16 @@ def main():
         'VRM1L', 'VRM2L', 'VRM3L', 
         'VRM1H', 'VRM2H', 'VRM3H', 
         'VRL1', 'VRL2', 'VRL3', 'VRL4', 
-        'VRLW1', 'VRLT1', 'VRLW3', 'VRLT3',
         
         'VRE'
     ]
 
     sr_str = ','.join(srs)
     if args.val:
-        regions = srs + crs + vrs
+        regions = crs + vrs + srs
         regions_str = '%s,%s,%s' % (','.join(srs), ','.join(crs), ','.join(vrs))
     else:
-        regions = srs + crs 
+        regions = crs + srs
         regions_str = '%s,%s' % (','.join(srs), ','.join(crs))
 
     # -------
@@ -662,9 +712,11 @@ def main():
 
     variables_str = ','.join(variables)
 
+    plot_bkgs = ['photonjet', 'wgamma','zgamma', 'fakes', 'ttgamma']
+
     bkg_merge_dict = {
-        'vgamma': ['zllgamma', 'znunugamma', 'wgamma'],
-        #'fakes': ['efake', 'jfake']
+        'zgamma': ['zllgamma', 'znunugamma',],
+        'fakes': ['efake', 'jfake']
         }
     
     bkg_norm_dict = {
@@ -673,22 +725,20 @@ def main():
         'CRT': 'ttgamma',
         }
 
-    plot_bkgs = ['photonjet', 'vgamma', 'efake', 'jfake', 'ttgamma']
+    lumi = 0.
+    for year in data.split('+'):
+        lumi += miniutils.lumi_dict.get(year, 0.)
 
+    lumi /= 1000.
+ 
+    data_label = '#sqrt{s} = 13 TeV, %.1f fb^{-1}' % lumi
 
     # ------------------
     # Results output dir
     # ------------------
     susy_dir = os.environ['SUSY_ANALYSIS']
 
-    if args.output_dir:
-        results_dir = args.output_dir
-    elif args.tag:
-        results_dir    = '%s/results/analysis_%s' % (susy_dir, args.tag)
-    else:
-        today = datetime.datetime.today()
-        daytag = today.strftime('%Y%b%d')
-        results_dir    = '%s/results/analysis_%s' % (susy_dir, daytag)
+    results_dir = args.output_dir
 
 
     log_dir        = '%s/log'        % results_dir
@@ -742,7 +792,7 @@ def main():
 
     if step_fit:
         print('Performing bkg-only fit ...')
-        do_bkgonlyfit(configfile, histograms_path, fit_dir, sr_str, data, do_validation, syst_str, use_mc, '%s/bkgonlyfit.log' % log_dir, hf_options='-D correlationMatrix') #  -m ALL
+        do_bkgonlyfit(configfile, histograms_path, fit_dir, sr_str, lumi, do_validation, syst_str, use_mc, '%s/bkgonlyfit.log' % log_dir, hf_options='-D correlationMatrix') #  -m ALL
 
 
     #--------
@@ -750,31 +800,29 @@ def main():
     #--------
     if step_tables:
         print('Creating tables ...')
-        do_tables(ws, tables_dir, backgrounds_str, regions, sr_str, do_validation, unblind)
+        do_tables(ws, tables_dir, backgrounds, regions, sr_str, do_validation, unblind, (do_det_syst or do_mc_syst or do_dd_syst), bkg_norm_dict)
 
 
     #-------
     # Plots
     #-------
     if step_plots:
-        print('Creating plots histograms after fit ...')
+        print('Creating plots histograms after fit -> %s' % histograms_plots_after_path)
 
         do_plots_histograms_after_fit(histograms_plots_path, histograms_plots_after_path, regions, backgrounds, variables, ws=ws, merge_dict=bkg_merge_dict, norm_dict=bkg_norm_dict)
 
 
         print('Creating plots ...')
-
-        do_plots(histograms_plots_after_path, plots_dir, regions, plot_bkgs, variables)
+        
+        set_atlas_style()
 
         ## Pull plot
-        #     cmd  = 'plot_region_pull.py --pickle %s -r %s -o %s --ext "pdf,png"' % (tables_dir+'/table_all.pickle', all_regions_str, plots_dir)  + (' --unblind' if unblind else '')
-        #     run_cmd(cmd)
-        # #     cmd = 'draw.py -r SRL,SReL2,SReH -l data --data data -o %s --signal --n1 --ext "pdf,png" --save %s/histograms_plots_sr.root' % (plots_dir, histograms_dir) + after_cmd
+        do_regions_pull_plot(ws, plots_dir+'/regions_pull.pdf', backgrounds, plot_bkgs, regions, bkg_merge_dict, unblind=unblind, data_label=data_label)
 
-        # #     if not unblind:
-        # #         cmd += ' -v met_et,meff --blind'
-        # #     else:
-        # #         cmd += ' -v %s --ratio none' % variables_str
+        ## Distributions
+        do_plots(histograms_plots_after_path, plots_dir, regions, plot_bkgs, variables, data_label)
+        
+
         
 
 

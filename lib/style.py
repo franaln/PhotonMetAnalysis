@@ -48,14 +48,14 @@ for mu, mn1 in mg_cn_grid.iteritems():
 # # Colours
 colors_dict = dict()
 colors_dict['data']        = ROOT.kBlack
-colors_dict['photonjet']   = '#e55e49'
-colors_dict['gamjet']      = '#e55e49'
-colors_dict['wgamma']      = '#fcdd5d'
+colors_dict['photonjet']   = '#dd4b39' ##e03127'
+colors_dict['wgamma']      = '#fcdd5d' ##fcdd5d'
+colors_dict['zgamma']      = '#9066b3'
+colors_dict['ttgamma']     = '#21c133' #'#39dd4b'
+colors_dict['fakes']       = '#3b5998' ##1e42d0'
+
 colors_dict['zllgamma']    = '#f7fab4'
 colors_dict['znunugamma']  = '#f7fab5'
-colors_dict['zgamma']      = '#b599cc'
-colors_dict['tgamma']      = '#32b43c' 
-colors_dict['ttgamma']     = '#32b43c'
 colors_dict['vgamma']      = '#f8f59b' 
 colors_dict['efake']       = '#a4cee6'
 colors_dict['jfake']       = '#348ABD'
@@ -67,7 +67,6 @@ colors_dict['ttbar']       = '#32b422'
 colors_dict['diphoton']    = '#ffa04d'
 colors_dict['vgammagamma'] = '#e5ac49'
 colors_dict['others']      = '#676363'
-colors_dict['fakes']       = '#348ABD'
 
 # MG focus points
 colors_dict['GGM_GG_bhmix_1900_150']  = '#3a92fa'

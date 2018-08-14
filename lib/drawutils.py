@@ -226,14 +226,14 @@ def do_plot(plotname,
         cdown = ROOT.TPad("d", "d", 0., 0.01, 0.99, 0.295)
         cup.SetRightMargin(0.05)
         cup.SetBottomMargin(0.005)
-        cup.SetLeftMargin(cup.GetLeftMargin())
+        cup.SetLeftMargin(0.12)
         cup.SetTickx()
         cup.SetTicky()
         cdown.SetTickx()
         cdown.SetTicky()
         cdown.SetRightMargin(0.05)
         cdown.SetTopMargin(0.0054)
-        cdown.SetLeftMargin(cdown.GetLeftMargin())
+        cdown.SetLeftMargin(0.12)
         cdown.SetBottomMargin(cdown.GetBottomMargin()*1.1)
         cdown.SetFillColor(ROOT.kWhite)
         cup.Draw()
@@ -273,10 +273,7 @@ def do_plot(plotname,
 
     # configure histograms
     if data:
-        data.SetMarkerColor(ROOT.kBlack)
-        data.SetLineColor(ROOT.kBlack)
-        data.SetMarkerSize(1)
-        data.SetLineWidth(2)
+        set_style(data, msize=1, lwidth=2, color=ROOT.kBlack)
 
     if bkg:
         for name, hist in bkg.iteritems():
@@ -1408,3 +1405,249 @@ def make_exclusion_band(g_nom, g_up, g_dn):
         gr_shade.SetPoint(nbins+i, x_dn[nbins-i-1], y_dn[nbins-i-1])
 
     return gr, gr_shade
+
+
+# ---------
+# Pull plot
+# ---------
+def get_poisson_error(obs):
+    posError = ROOT.TMath.ChisquareQuantile(1. - (1. - 0.68)/2. , 2.* (obs + 1.)) / 2. - obs - 1
+    negError = obs - ROOT.TMath.ChisquareQuantile((1. - 0.68)/2., 2.*obs) / 2
+    return (posError, negError)
+
+
+def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_label='', max_pull=3.0):
+
+    g_obs = make_poisson_cl_errors(h_obs)
+
+    ## bkg stack
+    stack = ROOT.THStack("stack", "stack")
+
+    def _compare(a, b):
+        amax = a.GetMaximum()
+        bmax = b.GetMaximum()
+        return cmp(int(amax), int(bmax))
+
+    for hist in sorted(h_bkg_dict.itervalues(), _compare):
+        stack.Add(hist)
+
+    h_bkg_total = h_exp.Clone()
+
+    # Compute uncertainties and pulls
+    pulls = []
+    for b in xrange(1, h_obs.GetNbinsX()+1):
+
+        n_obs = h_obs.GetBinContent(b)
+        n_exp = h_exp.GetBinContent(b)
+        
+        exp_syst = h_exp.GetBinError(b)
+        
+        exp_stat = 0
+        exp_stat_up = 0
+        exp_stat_dn = 0
+        if n_exp > 0:
+            exp_stat = ROOT.TMath.Sqrt(n_exp)
+            exp_stat_up, exp_stat_dn = get_poisson_error(n_exp)
+        
+        exp_total = 0
+        exp_total_up = 0
+        exp_total_dn = 0
+
+        exp_total    = ROOT.TMath.Sqrt(exp_stat*exp_stat + exp_syst*exp_syst)
+        exp_total_up = ROOT.TMath.Sqrt(exp_stat_up*exp_stat_up + exp_syst*exp_syst)
+        exp_total_dn = ROOT.TMath.Sqrt(exp_stat_dn*exp_stat_dn + exp_syst*exp_syst)
+
+        pull = 0
+        if (n_obs - n_exp) > 0 and exp_total_up != 0:
+            pull = (n_obs - n_exp)/exp_total_up
+        if (n_obs - n_exp) <= 0 and exp_total_dn != 0:
+            pull = (n_obs - n_exp)/exp_total_dn
+
+        if -0.02 < pull < 0: 
+            pull = -0.02 ###ATT: ugly
+        if 0 < pull < 0.02:  
+            pull = 0.02 ###ATT: ugly
+
+        if n_obs < 0.0001:
+            pull = 0.
+
+        pulls.append(pull)
+
+
+
+    ROOT.gStyle.SetOptStat(0000)
+
+
+    # Plot
+    c = ROOT.TCanvas("c",'', 1200, 600);
+
+    c.SetFrameFillColor(ROOT.kWhite)
+
+    cup   = ROOT.TPad("u", "u", 0., 0.305, 0.99, 1)
+    cdown = ROOT.TPad("d", "d", 0., 0.01, 0.99, 0.295)
+
+    cup.SetLogy()
+
+    cup.SetFillColor(0)
+    cup.SetBorderMode(0)
+    cup.SetBorderSize(2)
+    cup.SetTicks()
+    cup.SetTopMargin    (0.1)
+    cup.SetRightMargin  (0.02)
+    cup.SetBottomMargin (0.0025)
+    cup.SetLeftMargin   (0.08)
+    cup.SetFrameBorderMode(0)
+    cup.SetFrameBorderMode(0)
+    cup.Draw()
+
+    cdown.SetGridx()
+    cdown.SetGridy()
+
+    cdown.SetFillColor(0)
+    cdown.SetBorderMode(0)
+    cdown.SetBorderSize(2)
+    cdown.SetTickx(1)
+    cdown.SetTicky(1)
+    cdown.SetTopMargin   (0.003)
+    cdown.SetRightMargin (0.02)
+    cdown.SetBottomMargin(0.22)
+    cdown.SetLeftMargin  (0.08)
+    cdown.Draw()
+
+    cup.cd()
+
+    for sam, h in h_bkg_dict.iteritems():
+        set_style(h, color=colors_dict[sam], fill=True)
+
+
+    # Total background
+    sm_total_style = 3354
+    sm_total_color = ROOT.kGray+3
+
+    h_exp.SetLineWidth(2)
+    h_exp.SetLineColor(sm_total_color)
+    h_exp.SetFillColor(0)
+    h_exp.SetMarkerSize(0)
+
+    h_bkg_total.SetFillColor(sm_total_color)
+    h_bkg_total.SetLineColor(sm_total_color)
+    h_bkg_total.SetFillStyle(sm_total_style)
+    h_bkg_total.SetLineWidth(2)
+    h_bkg_total.SetMarkerSize(0)
+
+    set_style(g_obs, msize=1, lwidth=2, color=ROOT.kBlack)
+    set_style(h_obs, msize=1, lwidth=2, color=ROOT.kBlack)
+
+    h_obs.SetMaximum(1000*h_obs.GetMaximum())
+    h_obs.SetMinimum(0.05)
+
+    h_obs.GetYaxis().SetTitle("Number of events")
+    h_obs.GetYaxis().SetTitleSize(0.06)
+    h_obs.GetYaxis().SetTitleOffset(0.65)
+    h_obs.GetXaxis().SetLabelSize(0.00)
+    h_obs.GetYaxis().SetLabelSize(0.05)
+
+    h_obs.Draw('p')
+    stack.Draw("histsame")
+    g_obs.Draw("P0Z")
+    h_exp.Draw("histsame")
+    h_bkg_total.Draw("E2same][")
+    g_obs.Draw("P0Z")
+
+
+    legymin = 0.53
+    legymax = 0.85
+
+    legxmin = 0.65
+    legxmax = 0.94
+
+    legend1 = ROOT.TLegend(legxmin, legymin, legxmax, legymax)
+    legend1.SetFillColor(0)
+    legend1.SetBorderSize(0)
+    legend1.SetNColumns(2)
+    legend1.SetTextFont(42)
+    legend1.SetTextSize(legend1.GetTextSize()*0.8)
+
+    for name, hist in h_bkg_dict.iteritems():
+        legend1.AddEntry(hist, labels_dict[name], 'f')
+
+    legend1.AddEntry(h_bkg_total, "stat #oplus syst", 'f')
+    legend1.AddEntry(g_obs, 'Data', 'pl')
+
+    t = ROOT.TLatex(0, 0, data_label)
+    t.SetNDC()
+    t.SetTextFont(42)
+    t.SetTextSize(0.08)
+    t.SetTextColor(ROOT.kBlack)
+
+    if atlas_label:
+        t.DrawLatex(0.15, 0.80, atlas_label)
+    if data_label:
+        t.DrawLatex(0.15, 0.72, data_label)
+
+    legend1.Draw()
+    cup.RedrawAxis()
+
+    # Down plot (pulls)
+    cdown.cd()
+
+    frame = ROOT.TH2F("frame", "", len(pulls), 0., len(pulls), 8, -4., 4.);
+    frame.GetYaxis().SetTitleSize(0.10)
+    frame.GetYaxis().CenterTitle()
+    frame.GetYaxis().SetTitleOffset(0.35)
+    frame.GetYaxis().SetRangeUser(-max_pull, max_pull)
+    frame.GetXaxis().SetLabelOffset(0.03)
+    frame.GetXaxis().SetLabelSize(0.12)
+    frame.GetYaxis().SetLabelSize(0.12)
+    frame.GetYaxis().SetNdivisions(4)
+    frame.SetYTitle("(n_{#lower[-0.3]{obs}} - n_{exp}) / #sigma_{tot}")
+        
+    # global style settings
+    ROOT.gPad.SetTicks();
+    frame.SetLabelFont(42, "X");
+    frame.SetTitleFont(42, "X");
+    frame.SetLabelFont(42, "Y");
+    frame.SetTitleFont(42, "Y");
+
+    for b in xrange(1, h_obs.GetNbinsX()+1):
+        label = h_obs.GetXaxis().GetBinLabel(b)
+        frame.GetXaxis().SetBinLabel(b, label)
+
+    frame.GetXaxis().SetLabelSize(0.15)
+    frame.Draw()
+
+    l1 = ROOT.TLine(0, -1., len(pulls), -1.)
+    l2 = ROOT.TLine(0,  1., len(pulls),  1.)
+    
+    ROOT.SetOwnership(l1, False)
+    ROOT.SetOwnership(l2, False)
+    
+    l1.SetLineStyle(3)
+    l2.SetLineStyle(3)
+    
+    l1.Draw()
+    l2.Draw()
+
+    allp = []
+    for counter, pull in enumerate(pulls):
+
+        color = ROOT.TColor.GetColor('#80807a')
+
+        if pull > 0.:
+            miny = -0.02
+        else:
+            miny = 0.02
+
+        if pull > max_pull:
+            pull = max_pull-0.05
+        elif pull < -max_pull:
+            pull = -max_pull+0.05
+
+        box = ROOT.TBox(0.1+counter, miny, 0.9+counter, pull)
+        box.SetFillColor(color)
+        box.SetLineColor(color)
+        box.Draw()
+
+        allp.append(box)
+
+    c.SaveAs(output_name)

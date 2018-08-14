@@ -14,8 +14,6 @@ from ROOT import Util
 from cmdLineUtils import getPdfInRegions, getName, getPdfInRegionsWithRangeName, cmdStringToListOfLists
 from fitutils import get_normalization_factors
 
-
-
 labels_latex_dict = {
     'wgamma': '$W\gamma$',
     'ttgamma': '$t\\bar{t}\gamma$',
@@ -37,6 +35,7 @@ labels_latex_dict = {
     }
 
 def latexfitresults(filename, region_list, sample_list):
+
 
     f = ROOT.TFile.Open(filename)
     w = f.Get('w')
@@ -234,11 +233,23 @@ def latexfitresults(filename, region_list, sample_list):
     # sort the tablenumbers set
     map_listofkeys = tablenumbers.keys()
     map_listofkeys.sort()
+
+    f.Close()
   
     return tablenumbers
 
 
-def yieldstable(workspace, samples, channels, output_name, table_name, show_before_fit=False, unblind=True, show_cr_info=False, cr_dict={}):
+def get_fit_results(workspace, samples, channels):
+
+    samples_list = cmdStringToListOfLists(samples)
+    regions_list = [ '%s_cuts' % r for r in channels.split(",") ]
+
+    m = latexfitresults(workspace, regions_list, samples_list)
+
+    return m
+
+
+def yieldstable(workspace, samples, channels, output_name, table_name='', show_before_fit=False, unblind=True, show_cr_info=False, cr_dict={}):
 
     if show_cr_info:
         show_before_fit = True
@@ -338,7 +349,7 @@ def yieldstable(workspace, samples, channels, output_name, table_name, show_befo
             
         for index, n in enumerate(m['TOTAL_MC_EXP_BKG_events']):
 
-            reg_name = regions_name[index]
+            reg_name = regions_names[index]
 
             if cr_dict and reg_name in cr_dict:
                 total_before[reg_name] = n
