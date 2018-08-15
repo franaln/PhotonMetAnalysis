@@ -142,31 +142,48 @@ def calc_poisson_cl_upper(q, obs):
 
     return ul
 
+def get_poisson_interval(q, obs):
+    return calc_poisson_cl_lower(0.68, obs), calc_poisson_cl_upper(0.68, obs)
+
 def make_poisson_cl_errors(hist):
 
-    x_val  = array('f')
-    y_val = array('f')
-    x_errU = array('f')
-    x_errL = array('f')
-    y_errU = array('f')
-    y_errL = array('f')
+    x_val    = array('f')
+    y_val    = array('f')
+    x_err_up = array('f')
+    x_err_dn = array('f')
+    y_err_up = array('f')
+    y_err_dn = array('f')
 
-    for b in xrange(1, hist.GetNbinsX()+1):
-        binEntries = hist.GetBinContent(b)
-        if binEntries > 0.:
-            binErrUp   = calc_poisson_cl_upper(0.68, binEntries) - binEntries
-            binErrLow  = binEntries - calc_poisson_cl_lower(0.68, binEntries)
-            x_val.append(hist.GetXaxis().GetBinCenter(b))
-            y_val.append(binEntries)
-            y_errU.append(binErrUp)
-            y_errL.append(binErrLow)
-            x_errU.append(hist.GetXaxis().GetBinWidth(b)/2.)
-            x_errL.append(hist.GetXaxis().GetBinWidth(b)/2.) 
+    for b in range(1, hist.GetNbinsX()+1):
+        bin_c = hist.GetBinContent(b)
+
+        if bin_c < 0.0000001:
+            continue
+
+        if bin_c - int(bin_c) < 0.0001:
+            y_dn, y_up = get_poisson_interval(0.68, bin_c)
+        else:
+            n1 = int(bin_c)
+            n2 = n1+1
+
+            y1_dn, y1_up = get_poisson_interval(0.68, n1)
+            y2_dn, y2_up = get_poisson_interval(0.68, n2)
+
+            y_dn = y1_dn + (bin_c - n1)*(y2_dn - y1_dn)
+            y_up = y1_up + (bin_c - n1)*(y2_up - y1_up)
+
+        x_val.append(hist.GetXaxis().GetBinCenter(b))
+        y_val.append(bin_c)
+
+        y_err_up.append(y_up - bin_c)
+        y_err_dn.append(bin_c - y_dn)
+
+        x_err_up.append(0.) #hist.GetXaxis().GetBinWidth(b)/2.)
+        x_err_dn.append(0.) #hist.GetXaxis().GetBinWidth(b)/2.)
+
 
     if len(x_val) > 0:
-        data_graph = ROOT.TGraphAsymmErrors(len(x_val), x_val, y_val, x_errL, x_errU, y_errL, y_errU)
+        data_graph = ROOT.TGraphAsymmErrors(len(x_val), x_val, y_val, x_err_dn, x_err_up, y_err_dn, y_err_up)
         return data_graph
     else:
         return ROOT.TGraph()
-
-    

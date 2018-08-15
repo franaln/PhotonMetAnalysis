@@ -210,6 +210,16 @@ def do_plot(plotname,
     can = ROOT.TCanvas('', '', 800, 800)
     can.cd()
 
+    margin_l = 0.11
+    margin_r = 0.03
+    margin_b = 0.35
+    margin_t = 0.05
+
+    can.SetBottomMargin(margin_b)
+    can.SetTopMargin(margin_t)
+    can.SetLeftMargin(margin_l)
+    can.SetRightMargin(margin_r)
+
     def calc_size(pad):
         pad_width  = pad.XtoPixel(pad.GetX2())
         pad_height = pad.YtoPixel(pad.GetY1())
@@ -224,18 +234,30 @@ def do_plot(plotname,
 
         cup   = ROOT.TPad("u", "u", 0., 0.305, 0.99, 1)
         cdown = ROOT.TPad("d", "d", 0., 0.01, 0.99, 0.295)
-        cup.SetRightMargin(0.05)
-        cup.SetBottomMargin(0.005)
-        cup.SetLeftMargin(0.12)
+        # cup.SetRightMargin(0.05)
+        # cup.SetBottomMargin(0.005)
+        # cup.SetLeftMargin(0.12)
         cup.SetTickx()
         cup.SetTicky()
         cdown.SetTickx()
         cdown.SetTicky()
-        cdown.SetRightMargin(0.05)
-        cdown.SetTopMargin(0.0054)
-        cdown.SetLeftMargin(0.12)
-        cdown.SetBottomMargin(cdown.GetBottomMargin()*1.1)
-        cdown.SetFillColor(ROOT.kWhite)
+        # cdown.SetRightMargin(0.05)
+        # cdown.SetTopMargin(0.0054)
+        # cdown.SetLeftMargin(0.12)
+        # cdown.SetBottomMargin(cdown.GetBottomMargin()*1.1)
+
+        cup.SetBottomMargin(0.005)
+        cup.SetRightMargin (margin_r)
+        cup.SetLeftMargin  (margin_l)
+        cup.SetTopMargin   (margin_t)
+
+        cdown.SetTickx()
+        cdown.SetTicky()
+        cdown.SetTopMargin   (0.0054)
+        cdown.SetRightMargin (margin_r)
+        cdown.SetLeftMargin  (margin_l)
+        cdown.SetBottomMargin(margin_b)
+
         cup.Draw()
         cdown.Draw()
 
@@ -278,6 +300,7 @@ def do_plot(plotname,
     if bkg:
         for name, hist in bkg.iteritems():
             set_style(hist, color=colors_dict[name], fill=True)
+            hist.SetLineWidth(1)
             hist.SetLineColor(ROOT.kBlack)
 
     if signal:
@@ -322,71 +345,9 @@ def do_plot(plotname,
             sm_total_stat.SetMarkerSize(0)
 
 
-    # legend
-    legxmin, legxmax = 0.6, 0.88
-    legymin, legymax = 0.6, 0.88
-    if do_ratio:
-        legymin = 0.64
-        legymax = 0.88
-
-        if legpos == 'left' or legpos == 'top':
-            legxmin = 0.20
-            legxmax = 0.53
-        elif legpos == 'right':
-            legxmin = 0.53
-            legxmax = 0.92
-    else:
-        legymin = 0.80
-        legymax = 0.94
-
-        if legpos == 'left' or legpos == 'top':
-            legxmin = 0.15
-            legxmax = 0.53
-        elif legpos == 'right':
-            legxmin = 0.65
-            legxmax = 0.92
-
-    legend1 = ROOT.TLegend(legxmin, legymin, legxmax, legymax)
-    legend1.SetFillColor(0)
-    legend1.SetBorderSize(0)
-    legend1.SetNColumns(2)
-    legend1.SetTextFont(42)
-    legend1.SetTextSize(legend1.GetTextSize()*0.8)
-    if signal:
-        if legpos == 'top':
-            if data:
-                legend2 = ROOT.TLegend(legxmax+0.02, legymin+0.1, legxmax+0.39, legymax)
-            else:
-                legend2 = ROOT.TLegend(legxmax+0.02, legymin, legxmax+0.39, legymax)
-        else:
-            if data:
-                legend2 = ROOT.TLegend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
-            else:
-                legend2 = ROOT.TLegend(legxmin-0.01, legymin-.20, legxmax-0.01, legymin -.01)
-
-        legend2.SetFillColor(0)
-        legend2.SetBorderSize(0)
-        legend2.SetTextFont(42)
-        legend2.SetTextSize(legend1.GetTextSize())
-
-    if bkg:
-        for name, hist in bkg.iteritems():
-            legend1.AddEntry(hist, labels_dict[name], 'f')
-
-        if do_bkg_total and sm_total is not None:
-            legend1.AddEntry(sm_total_stat, "SM Total", 'f')
-        #legend1.AddEntry(sm_total_all, "stat #oplus syst", 'f')
-    
-    if data:
-        legend1.AddEntry(data, labels_dict['data'], 'pl')
-
     # we don't want to plot signals in Control Regions
     if 'CR' in region_name:
         signal = {}
-
-    if signal:
-        for name, hist in signal.iteritems():
-            legend2.AddEntry(hist, labels_dict[name], 'f')
 
     if do_ratio:
         cup.cd()
@@ -474,9 +435,15 @@ def do_plot(plotname,
 
 
     if data:
-        data_graph = make_poisson_cl_errors(data)
-        set_style(data_graph, msize=1, lwidth=2, color=ROOT.kBlack)
-        data_graph.Draw('P0Z')
+        g_data = make_poisson_cl_errors(data)
+
+        g_data.SetMarkerStyle(20)
+        g_data.SetMarkerSize(1.2)
+        g_data.SetLineWidth(2)
+        g_data.SetLineColor(ROOT.kBlack)
+        g_data.SetMarkerColor(ROOT.kBlack)
+
+        g_data.Draw('P0Z')
 
     if bkg and sm_total is not None:
         sm_total.Draw("histsame")
@@ -486,12 +453,73 @@ def do_plot(plotname,
         h.Draw('histsame')
 
     if data:
-        data_graph.Draw('P0Z') 
+        g_data.Draw('P0Z')
 
     if do_ratio:
         cup.RedrawAxis()
     else:
         can.RedrawAxis()
+
+    # legend
+    legxmin, legxmax = 0.6, 0.88
+    legymin, legymax = 0.6, 0.88
+    if do_ratio:
+        legymin = 0.64
+        legymax = 0.88
+
+        if legpos == 'left' or legpos == 'top':
+            legxmin = 0.20
+            legxmax = 0.53
+        elif legpos == 'right':
+            legxmin = 0.50
+            legxmax = 0.94
+    else:
+        legymin = 0.80
+        legymax = 0.92
+
+        if legpos == 'left' or legpos == 'top':
+            legxmin = 0.15
+            legxmax = 0.53
+        elif legpos == 'right':
+            legxmin = 0.65
+            legxmax = 0.92
+
+    legend1 = ROOT.TLegend(legxmin, legymin, legxmax, legymax)
+    legend1.SetFillColor(0)
+    legend1.SetBorderSize(0)
+    legend1.SetNColumns(2)
+    legend1.SetTextFont(42)
+    legend1.SetTextSize(legend1.GetTextSize()*0.8)
+    if signal:
+        if legpos == 'top':
+            if data:
+                legend2 = ROOT.TLegend(legxmax+0.02, legymin+0.1, legxmax+0.39, legymax)
+            else:
+                legend2 = ROOT.TLegend(legxmax+0.02, legymin, legxmax+0.39, legymax)
+        else:
+            if data:
+                legend2 = ROOT.TLegend(legxmin-0.01, legymin-.15, legxmax-0.01, legymin -.01)
+            else:
+                legend2 = ROOT.TLegend(legxmin-0.01, legymin-.20, legxmax-0.01, legymin -.01)
+
+        legend2.SetFillColor(0)
+        legend2.SetBorderSize(0)
+        legend2.SetTextFont(42)
+        legend2.SetTextSize(legend1.GetTextSize())
+
+    if bkg:
+        for name, hist in bkg.iteritems():
+            legend1.AddEntry(hist, labels_dict[name], 'f')
+
+        if do_bkg_total and sm_total is not None:
+            legend1.AddEntry(sm_total_stat, "SM Total", 'lf')
+    
+    if data:
+        legend1.AddEntry(g_data, labels_dict['data'], 'ep')
+
+    if signal:
+        for name, hist in signal.iteritems():
+            legend2.AddEntry(hist, labels_dict[name], 'f')
 
     legend1.Draw()
     if signal:
@@ -510,7 +538,7 @@ def do_plot(plotname,
             t.DrawLatex(0.58, 0.66, data_label)
         else:
             if legpos == 'right':
-                t.DrawLatex(0.19, 0.76, data_label)
+                t.DrawLatex(0.15, 0.76, data_label)
             else:
                 t.DrawLatex(0.60, 0.76, data_label)
 
@@ -630,7 +658,7 @@ def do_plot(plotname,
 
     elif do_ratio and data and bkg:
 
-        ratio = data_graph.Clone()
+        ratio = g_data.Clone()
         for b in xrange(ratio.GetN()):
             x = ROOT.Double(0.)
             y = ROOT.Double(0.)
@@ -1474,7 +1502,6 @@ def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_lab
         pulls.append(pull)
 
 
-
     ROOT.gStyle.SetOptStat(0000)
 
 
@@ -1518,6 +1545,8 @@ def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_lab
 
     for sam, h in h_bkg_dict.iteritems():
         set_style(h, color=colors_dict[sam], fill=True)
+        h.SetLineWidth(1)
+        h.SetLineColor(ROOT.kBlack)
 
 
     # Total background
@@ -1577,7 +1606,7 @@ def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_lab
     t = ROOT.TLatex(0, 0, data_label)
     t.SetNDC()
     t.SetTextFont(42)
-    t.SetTextSize(0.08)
+    t.SetTextSize(0.05)
     t.SetTextColor(ROOT.kBlack)
 
     if atlas_label:

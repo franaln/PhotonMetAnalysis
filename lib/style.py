@@ -4,12 +4,12 @@ import ROOT
 labels_dict = dict()
 labels_dict['data']         = 'Data'
 labels_dict['photonjet']    = '#gamma + jets'
-labels_dict['gamjet']       = '#gamma + jets'
 labels_dict['ttgamma']       = 't#bar{t}#gamma' # /single-t \\gamma'
 labels_dict['vgamma']       = 'W#gamma/Z#gamma'
 labels_dict['zgamma']       = 'Z#gamma'
 labels_dict['wgamma']       = 'W#gamma'
-labels_dict['znngam']       = 'Z(#nu#nu)#gamma'
+labels_dict['zllgamma']     = 'Z(ll)#gamma'
+labels_dict['znunugamma']   = 'Z(#nu#nu)#gamma' 
 labels_dict['efake']        = 'e#rightarrow#gamma fake'
 labels_dict['jfake']        = 'jet#rightarrow#gamma fake'
 labels_dict['multijet']     = 'Multijet'
@@ -18,11 +18,8 @@ labels_dict['zjets']        = 'Z + jets'
 labels_dict['vjets']        = 'W/Z + jets'
 labels_dict['ttbar']        = 'tt'
 labels_dict['diphoton']     = '#gamma#gamma/W#gamma#gamma/Z#gamma#gamma'
-labels_dict['others']       = 'Others'
-labels_dict['fakes']        = '#gamma fakes'
+labels_dict['fakes']        = 'e#rightarrow#gamma/j#rightarrow#gamma'
 
-labels_dict['zllgamma'] = ''
-labels_dict['znunugamma'] = ''
 
 mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.6]{#lower[-0.6]{#scale[0.6]{0}}}}'
 
