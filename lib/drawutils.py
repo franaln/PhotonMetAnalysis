@@ -850,7 +850,7 @@ def do_plot(plotname,
 
 def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
                zmin=None, zmax=None, xmin=None, xmax=None, ymin=None, ymax=None,
-               drawopts='colz', text=None, extensions=['pdf',]):
+               drawopts='colz', text=None):
 
     if 'text' in drawopts:
         for bx in xrange(hist.GetNbinsX()):
@@ -860,10 +860,10 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
 
     varx, vary = variable.split(':')
 
-    confx, confy = style.get_plotconf(variable)
+    confx, confy = get_plotconf(variable)
 
-    xtitle = confx.xtitle
-    ytitle = confy.xtitle
+    xtitle = confx['xtitle']
+    ytitle = confy['xtitle']
 
     hist.GetXaxis().SetTitle(xtitle)
     hist.GetYaxis().SetTitle(ytitle)
@@ -880,7 +880,7 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     hist.GetYaxis().SetTitleOffset(1.5)
     hist.GetZaxis().SetTitleOffset(1.2)
 
-    can = canvas(plotname, plotname, 800, 800)
+    can = ROOT.TCanvas('', '', 800, 800)
     can.cd()
     
     if logx:
@@ -923,11 +923,10 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     can.RedrawAxis()
     can.Update()
 
-    for ext in extensions:
-        can.SaveAs(outname+'.'+ext)
+    can.SaveAs(outname)
         
 
-def do_plot_cmp(plotname, 
+def do_plot_cmp(outname, 
                 variable, 
                 histograms,
                 do_ratio=True, 
@@ -938,7 +937,7 @@ def do_plot_cmp(plotname,
                 logy=True,
                 conf=None,
                 text='',
-                extensions=['pdf',]):
+                drawopts='hist'):
     
 
     if isinstance(histograms, dict):
@@ -958,15 +957,12 @@ def do_plot_cmp(plotname,
 
     if conf is not None:
         pass
-    elif variable not in style.plots_conf:
-        vartmp = variable[:variable.find('[')]
-        conf = style.plots_conf.get(vartmp, style.plots_conf['default'])
     else:
-        conf = style.plots_conf.get(variable, style.plots_conf['default'])
+        conf = get_plotconf(variable)
 
-    xtitle, ytitle, legpos = conf.xtitle, conf.ytitle, conf.legpos
+    xtitle, ytitle, legpos = conf['xtitle'], conf['ytitle'], conf['legpos']
 
-    can = canvas(plotname, plotname, 800, 800)
+    can = ROOT.TCanvas('', '', 800, 800)
     can.cd()
 
     can.SetLeftMargin(0.2)
@@ -993,13 +989,13 @@ def do_plot_cmp(plotname,
         cdown.SetTickx()
         cdown.SetTicky()
         cdown.SetRightMargin(0.05)
-        cdown.SetBottomMargin(0.3)
+        cdown.SetBottomMargin(0.25)
         cdown.SetTopMargin(0.0054)
         cdown.SetFillColor(ROOT.kWhite)
         cup.Draw()
         cdown.Draw()
 
-        if logy and conf.logy:
+        if logy and conf['logy']:
             cup.SetLogy()
 
         cup.SetTopMargin(0.08)
@@ -1009,7 +1005,7 @@ def do_plot_cmp(plotname,
         dn_size = calc_size(cdown)
 
     else:
-        if logy and conf.logy:
+        if logy and conf['logy']:
             can.SetLogy()
 
         can.SetTicks()
@@ -1050,9 +1046,11 @@ def do_plot_cmp(plotname,
             legxmax1 = 0.88
 
     if len(histograms) > 5:
-        legend1 = legend(legxmin1, legymin, legxmax1, legymax, columns=2)
+        legend1 = ROOT.TLegend(legxmin1, legymin, legxmax1, legymax, columns=2)
     else:
-        legend1 = legend(legxmin1, legymin, legxmax1, legymax)
+        legend1 = ROOT.TLegend(legxmin1, legymin, legxmax1, legymax)
+
+    legend1.SetBorderSize(0)
 
     for (name, hist) in histograms:
         legend1.AddEntry(hist, labels_dict.get(name, name))
@@ -1063,8 +1061,8 @@ def do_plot_cmp(plotname,
     # first histogram to configure (ROOT de mierda)
     (cname, chist) = histograms[0]
 
-    if conf.xmin is not None and conf.xmax is not None:
-        chist.GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
+    if conf['xmin'] is not None and conf['xmax'] is not None:
+        chist.GetXaxis().SetRangeUser(conf['xmin'], conf['xmax'])
 
     if chist.GetXaxis().GetXmax() < 5.:
         chist.GetXaxis().SetNdivisions(512)
@@ -1083,7 +1081,7 @@ def do_plot_cmp(plotname,
     else:
         chist.SetMinimum(0.01)
 
-    if logy and conf.logy:
+    if logy and conf['logy']:
         if 'dphi' in variable:
             chist.SetMaximum(chist.GetMaximum()*100000)
         else:
@@ -1110,20 +1108,17 @@ def do_plot_cmp(plotname,
 
     chist.GetYaxis().SetTitle(ytitle)
     chist.GetYaxis().SetTitleOffset(1.)
-    
 
-    if histograms[0][0].lower() == 'data':
-        chist.Draw()
-    else:
-        chist.Draw('hist')
-    for (name, hist) in histograms[1:]:
-        hist.Draw('hist same')
+    if isinstance(drawopts, str):
+        drawopts = [ drawopts for h in histograms ]
+
+    for (name, hist), drawopt in zip(histograms, drawopts):
+        hist.Draw('%s same' % drawopt)
 
     if do_ratio:
         cup.RedrawAxis()
     else:
         can.RedrawAxis()
-
 
     if text:
         ltext = ROOT.TLatex(0.1, 0.95, text)
@@ -1183,8 +1178,8 @@ def do_plot_cmp(plotname,
 
         # x axis
         ratios[0].GetXaxis().SetTitle(xtitle)
-        if conf.xmin is not None and conf.xmax is not None:
-            ratios[0].GetXaxis().SetRangeUser(conf.xmin, conf.xmax)
+        if conf['xmin'] is not None and conf['xmax'] is not None:
+            ratios[0].GetXaxis().SetRangeUser(conf['xmin'], conf['xmax'])
         ratios[0].GetXaxis().SetLabelSize(ratio_xlabel_size)
         ratios[0].GetXaxis().SetTitleSize(ratio_xtitle_size)
         ratios[0].GetXaxis().SetTitleOffset(1.)
@@ -1214,18 +1209,16 @@ def do_plot_cmp(plotname,
         xmax     = ratios[0].GetXaxis().GetBinUpEdge(lastbin)
         xmin     = ratios[0].GetXaxis().GetBinLowEdge(firstbin)
 
-
-        ratios[0].Draw('hist')
+        ratios[0].Draw(drawopts[0])
 
         draw_ratio_lines(xmin, xmax)
 
-        for ratio in ratios:
-            ratio.Draw('hist same')
+        for i, ratio in enumerate(ratios):
+            ratio.Draw('%s same' % drawopts[i+1])
             
 
-    for ext in extensions:
-        outputname = plotname.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace(' ', '').replace(',', '')
-        can.Print(outputname+'.'+ext)
+        outputname = outname.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace(' ', '').replace(',', '')
+        can.Print(outputname)
 
 
 ## Limits

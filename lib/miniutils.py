@@ -507,7 +507,7 @@ def sum_histograms(histograms):
     return new_histograms
 
 
-def update_progressbar(name, total, progress):
+def print_progressbar(name, total, progress):
 
     bar_length, status = 60, ""
     progress = float(progress) / float(total)
@@ -554,7 +554,7 @@ def get_histograms(name, **kwargs):
 
     histograms = []
 
-    update_progressbar(name, len(datasets), 0) 
+    print_progressbar(name, len(datasets), 0) 
     for ids, ds in enumerate(datasets):
 
         histograms_ds = _get_multi_histograms(ds, **kwargs)
@@ -566,7 +566,7 @@ def get_histograms(name, **kwargs):
             for hall, hnew in zip(histograms, histograms_ds):
                 hall.Add(hnew, 1)
 
-        update_progressbar(name, len(datasets), ids+1) 
+        print_progressbar(name, len(datasets), ids+1) 
 
 
     # Fix histogram name

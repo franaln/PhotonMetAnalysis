@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.7
+#! /usr/bin/env python
 
 
 #                        -c   +------------------+   -f     +-----------+  -t
@@ -440,7 +440,7 @@ def get_histogram_from_file(file_, sample, variable, region, syst='Nom'):
     return hist.Clone()
 
 
-def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_label):
+def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_label, unblind=False):
 
     # histograms file
     file_ = ROOT.TFile.Open(histograms_path)
@@ -455,6 +455,9 @@ def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_
             print 'plotting %s in region %s ...' % (variable, region)
 
             ## data
+            if region.startswith('SR') and not unblind:
+                continue #h_data = None
+
             h_data = get_histogram_from_file(file_, 'data', variable, region, syst)
 
             ## backgrounds
@@ -820,7 +823,7 @@ def main():
         do_regions_pull_plot(ws, plots_dir+'/regions_pull.pdf', backgrounds, plot_bkgs, regions, bkg_merge_dict, unblind=unblind, data_label=data_label)
 
         ## Distributions
-        do_plots(histograms_plots_after_path, plots_dir, regions, plot_bkgs, variables, data_label)
+        do_plots(histograms_plots_after_path, plots_dir, regions, plot_bkgs, variables, data_label, unblind=unblind)
         
 
         
