@@ -440,6 +440,15 @@ samples_dict = {
         'mc16_13TeV.361062.Sherpa_CT10_SinglePhotonPt4000_BFilter',
         ],
 
+    'photonjet_nnlo':
+        [
+         'mc16_13TeV.364543.Sherpa_222_NNPDF30NNLO_SinglePhoton_pty_70_140',
+         'mc16_13TeV.364544.Sherpa_222_NNPDF30NNLO_SinglePhoton_pty_140_280',
+         'mc16_13TeV.364545.Sherpa_222_NNPDF30NNLO_SinglePhoton_pty_280_500',
+         'mc16_13TeV.364546.Sherpa_222_NNPDF30NNLO_SinglePhoton_pty_500_1000',
+         'mc16_13TeV.364547.Sherpa_222_NNPDF30NNLO_SinglePhoton_pty_1000_E_CMS',
+         ],
+
     'ttgamma': [
         'mc16_13TeV.410084.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma80_noallhad',
         ],
