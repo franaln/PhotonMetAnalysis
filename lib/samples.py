@@ -625,6 +625,23 @@ samples_dict = {
         'mc16_13TeV.407026.Sherpa_CT10_ZmumugammagammaPt50GeV',
         'mc16_13TeV.407027.Sherpa_CT10_ZtautaugammagammaPt50GeV',
         'mc16_13TeV.407028.Sherpa_CT10_ZnunugammagammaPt50GeV',
+
+        'mc16_13TeV.303727.Sherpa_CT10_2DP20_myy_0_55',
+        'mc16_13TeV.303728.Sherpa_CT10_2DP20_myy_55_100',
+        'mc16_13TeV.303729.Sherpa_CT10_2DP20_myy_100_160',
+        'mc16_13TeV.303730.Sherpa_CT10_2DP20_myy_160_250',
+        'mc16_13TeV.303731.Sherpa_CT10_2DP20_myy_250_400',
+        'mc16_13TeV.303732.Sherpa_CT10_2DP20_myy_400_650',
+        'mc16_13TeV.303733.Sherpa_CT10_2DP20_myy_650_1000',
+        'mc16_13TeV.303734.Sherpa_CT10_2DP20_myy_1000_1500',
+        'mc16_13TeV.303735.Sherpa_CT10_2DP20_myy_1500_2000',
+        'mc16_13TeV.303736.Sherpa_CT10_2DP20_myy_2000_2500',
+        'mc16_13TeV.303737.Sherpa_CT10_2DP20_myy_2500_3000',
+        'mc16_13TeV.303738.Sherpa_CT10_2DP20_myy_3000_3500',
+        'mc16_13TeV.303739.Sherpa_CT10_2DP20_myy_3500_4000',
+        'mc16_13TeV.303740.Sherpa_CT10_2DP20_myy_4000_4500',
+        'mc16_13TeV.303741.Sherpa_CT10_2DP20_myy_4500_5000',
+        'mc16_13TeV.303742.Sherpa_CT10_2DP20_myy_5000_inf',
         ],
 
     }
@@ -640,6 +657,7 @@ samples_dict['jfake17'] = [ i.replace('data17_13TeV', 'jfake17') for i in sample
 
 samples_dict['efake'] = 'efake15 + efake16 + efake17'
 samples_dict['jfake'] = 'jfake15 + jfake16 + jfake17'
+
 
 
 ## Samples 20.7 (just to make some comparisons)
