@@ -310,17 +310,16 @@ def _get_multi_histograms(ds, **kwargs):
     variables   = kwargs.get('variables', [])
     systematics = kwargs.get('systematics', ['Nom',])
 
-    year = kwargs.get('year')
-
-    scale      = kwargs.get('scale', True)
-    # lumi_str   = kwargs.get('lumi', None)
-    # version    = kwargs.get('version', None)
+    lumi  = kwargs.get('lumi')
+    scale = kwargs.get('scale', True)
 
     use_lumiw   = kwargs.get('use_lumiw',   True)
     use_sfw     = kwargs.get('use_sfw',     True)
     use_mcw     = kwargs.get('use_mcw',     True)
     use_purw    = kwargs.get('use_purw',    True)
     use_mcveto  = kwargs.get('use_mcveto',  True)
+
+    do_remove_var  = kwargs.get('do_remove_var',  False)
 
     is_mc = ds['project'].startswith('mc')
     is_fake = ('efake' in ds['name'] or 'jfake' in ds['name'])
@@ -333,9 +332,7 @@ def _get_multi_histograms(ds, **kwargs):
 
     # Lumi weight is the same for all histograms
     if is_mc and use_lumiw:
-        luminosity = lumi_dict[year]
-        
-        lumi_weight = get_lumi_weight(ds, luminosity)
+        lumi_weight = get_lumi_weight(ds, lumi)
 
     #---------------------------------------------
     # Create histograms and "tuples" for MultiDraw
@@ -399,8 +396,8 @@ def _get_multi_histograms(ds, **kwargs):
                         selection = 'mcveto==0'
 
                 ## Remove variable from selection if n-1
-                # if do_remove_var and variable in selection and not variable == 'cuts':
-                #     selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
+                if do_remove_var and variable in selection and not variable == 'cuts':
+                    selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
     
                 # if do_remove_var and (':' in variable):
                 #     if varx in selection:
@@ -529,8 +526,11 @@ def get_histograms(name, **kwargs):
     """
 
     year = kwargs.get('year')
+    version = kwargs.get('version', None)
+    is_mc = (not 'data' in name and not 'efake' in name and not 'jfake' in name)
 
-    if year is not None and '+' in year:
+    if '+' in year and (not is_mc or year!='2015+2016'):
+
         del kwargs['year']
 
         years = year.split('+')
@@ -538,18 +538,27 @@ def get_histograms(name, **kwargs):
         return sum_histograms([ get_histograms(name, year=y, **kwargs) for y in years ])
 
 
-    version = kwargs.get('version', None)
-    is_mc = (not 'data' in name and not 'efake' in name and not 'jfake' in name)
-
+    # Data type/MC campaign 
     mc_campaign = None
-    if is_mc and version != '56':
-        if year in ('2015', '2016'):
+    if is_mc:
+        if year in ('2015', '2016', '2015+2016'):
             mc_campaign = 'mc16a'
         elif year == '2017':
-            mc_campaign = 'mc16c'
+            mc_campaign = 'mc16d'
     elif name in ['data', 'efake', 'jfake']:
         name = name+year[-2:]
+
+    # lumi
+    lumi = 0.
+    if is_mc:
+        if year == '2015+2016':
+            lumi = lumi_dict['2015'] + lumi_dict['2016']
+        else:
+            lumi = lumi_dict[year]
+
+        kwargs['lumi'] = lumi
        
+
     datasets = get_datasets(name, version, mc_campaign, kwargs.get('ignore_missing', False))
 
     histograms = []

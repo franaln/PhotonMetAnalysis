@@ -610,7 +610,7 @@ def main():
     step_tables = args.tables
     step_plots  = args.plots
 
-    if not any([step_chist, step_dhist, step_fit, step_tables, step_plots]) or args.output_dir is None:
+    if not any([step_chist, step_dhist, step_fit, step_tables, step_plots]) or args.output_dir is None or args.version is None or args.data is None:
         parser.print_usage()
         sys.exit(1)
 
@@ -674,7 +674,7 @@ def main():
         'zllgamma', 
         'znunugamma',
         'ttgamma',
-        #'diphoton',
+        'diphoton',
         ]
 
     mc_fake_samples = [ 'ttbar', 'multijet', 'wjets', 'zjets' ]
