@@ -15,19 +15,19 @@ Bkg-only fit
 
 - Create histograms
 
-    analysis.py -v XXX --tag YYY --data 2017 -c -d
+    analysis.py -v XXX -o OUTPUT_DIR --data 2017 -c -d
 
 - Bkg-only fit
 
-    analysis.py -v XXX --tag YYY --data 2017 -f
+    analysis.py -v XXX -o OUTPUT_DIR --data 2017 -f
 
 - Tables
 
-    analysis.py -v XXX --tag YYY --data 2017 -t
+    analysis.py -v XXX -o OUTPUT_DIR --data 2017 -t
 
 - Plots
 
-    analysis.py -v XXX --tag YYY --data 2017 -p
+    analysis.py -v XXX -o OUTPUT_DIR --data 2017 -p
 
 
 Discovery significance

@@ -27,36 +27,10 @@ ROOT, HistFitter, rootutils
 
 ## Setup
 
-
     source setup.sh
 
 
+## Update cross-section database (data/CrossSectionData.txt) from here:
 
-## Analysis framework
+    http://atlas.web.cern.ch/Atlas/GROUPS/DATABASE/GroupData/dev/PMGTools/PMGxsecDB_mc16.txt
 
-                           +-------------------+   [ Data
-                           |    Mini ntuples   |---[ MC
-                           +---------+---------+   [ Fakes
-                                     |
-                                     |
-                regions, XS, ...     |
-               +-------------------------------------+
-               |                                     |
-     +---------+-----------+                   +-----+---------------+
-     | Events (1-bin       |                   | Variable histograms |
-     | "cuts" histograms)  |                   +-----+---------------+
-     +---------+-----------+                         |
-               |                                     |
-     +---------+-----------+                         |
-     | Bkg-only fit        |                         |
-     | (using HistFitter)  |                         |
-     +---------+-----------+                         |
-               |                                     |
-               | CR->SR scale factors                |
-               +-------------------------------------+
-               |                                     |
-     +---------+-------------+                   +-----+-----------------------+
-     | Tables with expected  |                   | Plots of relevant variables |
-     | events andsystematics |                   | in all regions              |
-     | in all regions        |                   +-----------------------------+
-     +-----------------------+
