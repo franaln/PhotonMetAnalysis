@@ -452,11 +452,11 @@ def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_
 
         for variable in variables:
 
-            print 'plotting %s in region %s ...' % (variable, region)
-
             ## data
             if region.startswith('SR') and not unblind:
                 continue #h_data = None
+
+            print 'plotting %s in region %s ...' % (variable, region)
 
             h_data = get_histogram_from_file(file_, 'data', variable, region, syst)
 
