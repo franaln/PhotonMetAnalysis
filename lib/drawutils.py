@@ -1593,7 +1593,7 @@ def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_lab
     for name, hist in h_bkg_dict.iteritems():
         legend1.AddEntry(hist, labels_dict[name], 'f')
 
-    legend1.AddEntry(h_bkg_total, "stat #oplus syst", 'f')
+    legend1.AddEntry(h_bkg_total, "SM Total", 'f')
     legend1.AddEntry(g_obs, 'Data', 'pl')
 
     t = ROOT.TLatex(0, 0, data_label)

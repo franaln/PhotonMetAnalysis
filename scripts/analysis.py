@@ -715,7 +715,7 @@ def main():
 
     variables_str = ','.join(variables)
 
-    plot_bkgs = ['photonjet', 'wgamma','zgamma', 'fakes', 'ttgamma']
+    plot_bkgs = ['photonjet', 'wgamma','zgamma', 'fakes', 'ttgamma', 'diphoton']
 
     bkg_merge_dict = {
         'zgamma': ['zllgamma', 'znunugamma',],
