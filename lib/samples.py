@@ -450,7 +450,8 @@ samples_dict = {
          ],
 
     'ttgamma': [
-        'mc16_13TeV.410084.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma80_noallhad',
+        #'mc16_13TeV.410084.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma80_noallhad',
+        'mc16_13TeV.407320.aMcAtNloPythia8EvtGen_MEN30NLO_A14N23LO_tta140',
         ],
 
     'zllgamma': [

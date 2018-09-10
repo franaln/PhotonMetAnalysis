@@ -363,7 +363,6 @@ def _get_multi_histograms(ds, **kwargs):
                 if binning is None:
                     binning = get_binning(variable)
 
-
                 # name to avoid the ROOT warning, not used
                 hname = 'h__%s__%s_%s_obs_%s' % (ds['did'], systname, region, variable)
     
@@ -439,7 +438,6 @@ def _get_multi_histograms(ds, **kwargs):
                         else:
                             w_list.append('weight_pu')
 
-
                 elif is_fake:
                     if syst == 'Nom':
                         w_list.append('weight_ff')
@@ -447,7 +445,6 @@ def _get_multi_histograms(ds, **kwargs):
                         w_list.append('weight_ff_dn')
                     elif syst == 'EFAKE_SYST__1up' or syst == 'JFAKE_SYST__1up':
                         w_list.append('weight_ff_up')
-
 
                 if not scale:
                     w_str = ''

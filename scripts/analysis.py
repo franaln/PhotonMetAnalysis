@@ -368,8 +368,8 @@ def do_plots_histograms(output_path, regions, samples, variables, year, version,
         fin.Close()
 
 
-def do_plots_histograms_after_fit(input_path, output_path, regions, backgrounds, variables,
-                                  ws=None, merge_dict={}, norm_dict={}):
+def prepare_histograms_for_plots(input_path, output_path, regions, backgrounds, variables,
+                                 ws=None, merge_dict={}, norm_dict={}):
 
     syst = 'Nom' # only nominal for now
 
@@ -377,7 +377,7 @@ def do_plots_histograms_after_fit(input_path, output_path, regions, backgrounds,
 
     h_data = []
 
-    h_bkg = { name: [] for name in backgrounds }
+    h_bkg       = { name: [] for name in backgrounds }
 
     for region in regions:
 
@@ -440,7 +440,7 @@ def get_histogram_from_file(file_, sample, variable, region, syst='Nom'):
     return hist.Clone()
 
 
-def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_label, unblind=False):
+def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_label, unblind=False, output_label='afterFit'):
 
     # histograms file
     file_ = ROOT.TFile.Open(histograms_path)
@@ -487,7 +487,7 @@ def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_
 
             varname = variable.replace('[', '').replace(']', '')
                 
-            outname = os.path.join(output_dir, 'can_{}_{}_afterFit'.format(region, varname))
+            outname = os.path.join(output_dir, 'can_{}_{}_{}'.format(region, varname, output_label))
             
             do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, do_ratio=True, data_label=data_label)
 
@@ -770,6 +770,7 @@ def main():
 
     # Observables distributions
     histograms_plots_path           = '%s/histograms_plots.root' % (histograms_dir)
+    histograms_plots_before_path    = '%s/histograms_plots_before.root' % (histograms_dir)
     histograms_plots_after_path     = '%s/histograms_plots_after.root' % (histograms_dir)
 
     if step_dhist and (not os.path.isfile(histograms_plots_path) or args.force or args.sample is not None):
@@ -810,20 +811,26 @@ def main():
     # Plots
     #-------
     if step_plots:
-        print('Creating plots histograms after fit -> %s' % histograms_plots_after_path)
 
-        do_plots_histograms_after_fit(histograms_plots_path, histograms_plots_after_path, regions, backgrounds, variables, ws=ws, merge_dict=bkg_merge_dict, norm_dict=bkg_norm_dict)
+        print('Preparing histograms for plots...')
+        prepare_histograms_for_plots(histograms_plots_path, histograms_plots_before_path, regions, backgrounds, variables, merge_dict=bkg_merge_dict)
+        prepare_histograms_for_plots(histograms_plots_path, histograms_plots_after_path, regions, backgrounds, variables, ws=ws, merge_dict=bkg_merge_dict, norm_dict=bkg_norm_dict)
 
-
-        print('Creating plots ...')
-        
-        set_atlas_style()
 
         ## Pull plot
+        print('Creating pull plot ...')
         do_regions_pull_plot(ws, plots_dir+'/regions_pull.pdf', backgrounds, plot_bkgs, regions, bkg_merge_dict, unblind=unblind, data_label=data_label)
 
-        ## Distributions
-        do_plots(histograms_plots_after_path, plots_dir, regions, plot_bkgs, variables, data_label, unblind=unblind)
+
+        set_atlas_style()
+
+        # Before fit plots
+        print('Creating before-fit plots ...')
+        do_plots(histograms_plots_before_path, plots_dir, regions, plot_bkgs, variables, data_label, unblind=unblind, output_label='beforeFit')
+
+        # After fit plots
+        print('Creating after-fit plots ...')
+        do_plots(histograms_plots_after_path, plots_dir, regions, plot_bkgs, variables, data_label, unblind=unblind, output_label='afterFit')
         
 
         
