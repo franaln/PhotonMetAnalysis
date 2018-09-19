@@ -122,7 +122,7 @@ def split_cut(s):
             var, value = s.split(op)
             return (var.strip(), op, value.strip())
 
-            
+
 def revert_cut(s):
     (var, op, value) = split_cut(s)
 
@@ -169,12 +169,20 @@ def replace_var(selection, oldvar, newvar):
 def get_sumw(ds):
 
     sumw = 0
-    f = ROOT.TFile.Open(ds['path'])
 
-    tmp = f.Get('events')
-    sumw = tmp.GetBinContent(3) # bin 3 is the initial sumw
-
-    f.Close()
+    path = ds['path']
+    if os.path.isdir(path):
+        all_files = glob.glob(path+'/*root*')
+        for fpath in all_files:
+            f = ROOT.TFile.Open(fpath)
+            tmp = f.Get('events')
+            sumw += tmp.GetBinContent(3) # bin 3 is the initial sumw
+            f.Close()
+    else:
+        f = ROOT.TFile.Open(path)
+        tmp = f.Get('events')
+        sumw = tmp.GetBinContent(3) # bin 3 is the initial sumw
+        f.Close()
 
     return sumw
 
@@ -194,7 +202,7 @@ def get_lumi_weight(ds, lumi, fs=None):
         weight = (luminosity * xs) / sumw
     except:
         weight = 0.
-        
+
     return weight
 
 
@@ -286,7 +294,7 @@ def get_datasets(name, version=None, mc_campaign=None, ignore_missing=False):
         datasets.append(dataset)
 
     return datasets
-    
+
 
 #---------------
 # Histogram
@@ -327,8 +335,17 @@ def _get_multi_histograms(ds, **kwargs):
     #-----------
     # File/Chain
     #-----------
-    file_ = ROOT.TFile.Open(ds['path'])
-    tree = file_.Get('mini')
+    path = ds['path']
+
+    if os.path.isdir(path):
+        tree = ROOT.TChain('mini')
+
+        all_files = glob.glob(path+'/*root*')
+        for fpath in all_files:
+            tree.Add(fpath)
+    else:
+        file_ = ROOT.TFile.Open(path)
+        tree = file_.Get('mini')
 
     # Lumi weight is the same for all histograms
     if is_mc and use_lumiw:
@@ -347,7 +364,7 @@ def _get_multi_histograms(ds, **kwargs):
         selections = [ getattr(regions_, reg) for reg in regions ]
     elif selections and not regions:
         regions = [ 'R' for sel in selections ]
-    
+
 
     for region, selection in zip(regions, selections):
         for variable in variables:
@@ -365,7 +382,7 @@ def _get_multi_histograms(ds, **kwargs):
 
                 # name to avoid the ROOT warning, not used
                 hname = 'h__%s__%s_%s_obs_%s' % (ds['did'], systname, region, variable)
-    
+
                 if is_2d_variable(variable):
                     htemp = ROOT.TH2D(hname, hname, *binning)
                     htemp.Sumw2()
@@ -397,19 +414,19 @@ def _get_multi_histograms(ds, **kwargs):
                 ## Remove variable from selection if n-1
                 if do_remove_var and variable in selection and not variable == 'cuts':
                     selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
-    
+
                 # if do_remove_var and (':' in variable):
                 #     if varx in selection:
                 #         selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == varx ])
                 #     if vary in selection:
                 #         selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == vary ])
 
-            
+
                 ## change selection and variable for systematics
                 if syst != 'Nom' and systematics_.affects_kinematics(syst):
                     for var in systematics_.get_affected_variables(syst):
                         selection = replace_var(selection, var, '%s_%s' % (var, syst))
-                    
+
                 # Weights
                 w_list = []
                 if is_mc:
@@ -464,7 +481,7 @@ def _get_multi_histograms(ds, **kwargs):
 
                 if variable == 'cuts':
                     draw_list.append((hname, '1', varexp))
-                else: 
+                else:
                     draw_list.append((hname, variable, varexp))
 
 
@@ -479,7 +496,11 @@ def _get_multi_histograms(ds, **kwargs):
     for hist in histograms:
         hist.SetDirectory(0)
 
-    file_.Close()
+
+    try:
+        file_.Close()
+    except:
+        tree.Reset()
 
     return histograms
 
@@ -508,7 +529,7 @@ def print_progressbar(name, total, progress):
     if progress >= 1.:
         progress, status = 1, "\r\n"
     block = int(round(bar_length * progress))
-    text = "\rProcessing {:10}  [{}] {:.0f}% {}".format(name, 
+    text = "\rProcessing {:10}  [{}] {:.0f}% {}".format(name,
         "#" * block + "-" * (bar_length - block), round(progress * 100, 0),
         status)
     sys.stdout.write(text)
@@ -535,7 +556,7 @@ def get_histograms(name, **kwargs):
         return sum_histograms([ get_histograms(name, year=y, **kwargs) for y in years ])
 
 
-    # Data type/MC campaign 
+    # Data type/MC campaign
     mc_campaign = None
     if is_mc:
         if year in ('2015', '2016', '2015+2016'):
@@ -554,13 +575,13 @@ def get_histograms(name, **kwargs):
             lumi = lumi_dict[year]
 
         kwargs['lumi'] = lumi
-       
+
 
     datasets = get_datasets(name, version, mc_campaign, kwargs.get('ignore_missing', False))
 
     histograms = []
 
-    print_progressbar(name, len(datasets), 0) 
+    print_progressbar(name, len(datasets), 0)
     for ids, ds in enumerate(datasets):
 
         histograms_ds = _get_multi_histograms(ds, **kwargs)
@@ -572,7 +593,7 @@ def get_histograms(name, **kwargs):
             for hall, hnew in zip(histograms, histograms_ds):
                 hall.Add(hnew, 1)
 
-        print_progressbar(name, len(datasets), ids+1) 
+        print_progressbar(name, len(datasets), ids+1)
 
 
     # Fix histogram name
@@ -644,7 +665,7 @@ def get_multi_events(name, **kwargs):
         mean  = hist.GetBinContent(1)
         error = hist.GetBinError(1)
 
-        hlist.append( (name, mean, error) ) 
+        hlist.append( (name, mean, error) )
 
 
     return hlist

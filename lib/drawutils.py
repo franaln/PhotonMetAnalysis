@@ -4,7 +4,7 @@ from array import array
 ROOT.gROOT.SetBatch(1)
 
 from rootutils import set_style
-from statutils import make_poisson_cl_errors
+from statutils import make_poisson_cl_errors, pvalue_to_significance, pvalue_poisson_error
 from style import labels_dict, colors_dict, get_plotconf
 
 # Gauginos labels
@@ -90,8 +90,8 @@ def draw_grid_frame(xsize=800, ysize=600, xmin=glmin, xmax=glmax, ymin=n1min, ym
     canvas.SetRightMargin (0.05)
     canvas.SetTopMargin   (0.05)
 
-    frame.SetLabelOffset(0.012, "X") 
-    frame.SetLabelOffset(0.012, "Y") 
+    frame.SetLabelOffset(0.012, "X")
+    frame.SetLabelOffset(0.012, "Y")
     frame.SetXTitle('m_{#tilde{g}} [GeV]')
     frame.SetYTitle('%s [GeV]' % mn1_text)
     frame.GetXaxis().SetTitleSize(0.035)
@@ -145,7 +145,7 @@ def draw_ratio_lines(xmin, xmax):
     line1 = ROOT.TLine(xmin, 0.5,xmax, 0.5)
     line2 = ROOT.TLine(xmin, 1.5,xmax, 1.5)
     line3 = ROOT.TLine(xmin, 2.0,xmax, 2.0)
-    
+
     ROOT.SetOwnership(line0, False)
     ROOT.SetOwnership(line1, False)
     ROOT.SetOwnership(line2, False)
@@ -169,16 +169,16 @@ def save_with_mathtext(can, outname):
 
 def fix_output_name(name):
     name = name.replace(':', '_').replace('[','').replace(']', '').replace('(', '').replace(')','')
-    return name 
+    return name
 
 
-def do_plot(plotname, 
-            variable, 
-            data={}, bkg={}, signal={}, 
-            do_bkg_total=True, 
-            do_ratio=True, 
+def do_plot(plotname,
+            variable,
+            data={}, bkg={}, signal={},
+            do_bkg_total=True,
+            do_ratio=True,
             region_name='',
-            ratio_type='', 
+            ratio_type='',
             normalize=False,
             do_fit=False,
             logy=True,
@@ -274,7 +274,7 @@ def do_plot(plotname,
         dn_size = calc_size(cdown)
 
     else:
-        if logy: 
+        if logy:
             can.SetLogy()
         if logx:
             can.SetLogx()
@@ -284,14 +284,14 @@ def do_plot(plotname,
         can.SetBottomMargin(0.1)
         can.SetRightMargin(0.04)
         can.SetTopMargin(0.04)
-        
+
         up_size = calc_size(can)
-        dn_size = calc_size(can) 
+        dn_size = calc_size(can)
 
 
     if big_label:
         up_size *= 1.2
-        dn_size *= 1.2 
+        dn_size *= 1.2
 
     # configure histograms
     if data:
@@ -325,7 +325,7 @@ def do_plot(plotname,
         sm_totalerr = None
         sm_total_style = 3354
         sm_total_color = ROOT.kGray+3
-        
+
         sm_stat_color = ROOT.kGray+1
         sm_syst_color = ROOT.kGray+3
 
@@ -337,7 +337,7 @@ def do_plot(plotname,
             sm_total.SetLineColor(sm_total_color)
             sm_total.SetFillColor(0)
             sm_total.SetMarkerSize(0)
-            
+
             sm_total_stat.SetFillColor(sm_total_color)
             sm_total_stat.SetLineColor(sm_total_color)
             sm_total_stat.SetFillStyle(sm_total_style)
@@ -414,7 +414,7 @@ def do_plot(plotname,
         chist.GetXaxis().SetTitleOffset(x_offset)
         chist.GetXaxis().SetLabelSize(up_size)
         chist.GetXaxis().SetTitleSize(up_size)
- 
+
     # y-axis
     if 'BIN' in ytitle:
         if bkg:
@@ -513,7 +513,7 @@ def do_plot(plotname,
 
         if do_bkg_total and sm_total is not None:
             legend1.AddEntry(sm_total_stat, "SM Total", 'lf')
-    
+
     if data:
         legend1.AddEntry(g_data, labels_dict['data'], 'ep')
 
@@ -544,9 +544,9 @@ def do_plot(plotname,
 
     # Region line
     # if region_line is not None:
-        
+
         # xline = float(region_line)
-                
+
     # l = ROOT.TLine(200, 0.01, 200, data.GetMaximum())
     # l.SetLineWidth(2)
     # l.SetLineStyle(2)
@@ -560,10 +560,10 @@ def do_plot(plotname,
 
     ratio_ylabel_size = dn_size
     ratio_ytitle_size = dn_size
-    
+
     ratio_xlabel_size = dn_size
     ratio_xtitle_size = dn_size
-    
+
     if do_ratio and data and bkg and ratio_type == 'significance':
 
         ratio = data.Clone()
@@ -614,7 +614,7 @@ def do_plot(plotname,
                     exp = obs
                 else:
                     exp = model.Eval(x)
-                
+
             z = poisson_significance(obs, exp)
             ratio.SetBinContent(bx+1, z)
 
@@ -643,7 +643,7 @@ def do_plot(plotname,
 
         ratio.GetYaxis().SetLabelSize(0.)
 
-        x = xmin - ratio.GetBinWidth(1) 
+        x = xmin - ratio.GetBinWidth(1)
         t = ROOT.TLatex()
         t.SetTextSize(0.12)
         t.SetTextAlign(32)
@@ -671,7 +671,7 @@ def do_plot(plotname,
 
             eyl = ratio.GetErrorYlow(b)
             eyh = ratio.GetErrorYhigh(b)
-            
+
             try:
                 ratio_y   = y/sm_y
                 ratio_eyl = eyl/sm_y
@@ -882,7 +882,7 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
 
     can = ROOT.TCanvas('', '', 800, 800)
     can.cd()
-    
+
     if logx:
         can.SetLogx()
     if logy:
@@ -908,7 +908,7 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
         hist.Draw(drawopts)
 
     if text is not None:
-        
+
         tx, ty, ttext = text
 
         l = ROOT.TLatex()
@@ -924,12 +924,12 @@ def do_plot_2d(plotname, variable, hist, logx=False, logy=False, logz=False,
     can.Update()
 
     can.SaveAs(outname)
-        
 
-def do_plot_cmp(outname, 
-                variable, 
+
+def do_plot_cmp(outname,
+                variable,
                 histograms,
-                do_ratio=True, 
+                do_ratio=True,
                 ratio_type='ratio',
                 ratio_cmp=None,
                 ratio_text='Ratio',
@@ -938,7 +938,7 @@ def do_plot_cmp(outname,
                 conf=None,
                 text='',
                 drawopts='hist'):
-    
+
 
     if isinstance(histograms, dict):
         tmp = ()
@@ -1012,7 +1012,7 @@ def do_plot_cmp(outname,
         can.SetLeftMargin(0.15)
         can.SetBottomMargin(0.1)
         up_size = calc_size(can)
-        dn_size = calc_size(can) 
+        dn_size = calc_size(can)
 
 
     # add entries to legend
@@ -1046,7 +1046,8 @@ def do_plot_cmp(outname,
             legxmax1 = 0.88
 
     if len(histograms) > 5:
-        legend1 = ROOT.TLegend(legxmin1, legymin, legxmax1, legymax, columns=2)
+        legend1 = ROOT.TLegend(legxmin1, legymin, legxmax1, legymax)
+        legend1.SetNColumns(2)
     else:
         legend1 = ROOT.TLegend(legxmin1, legymin, legxmax1, legymax)
 
@@ -1097,7 +1098,7 @@ def do_plot_cmp(outname,
     chist.GetXaxis().SetTitleSize(up_size)
     chist.GetYaxis().SetLabelSize(up_size)
     chist.GetYaxis().SetTitleSize(up_size)
- 
+
     if 'BIN' in ytitle:
         width = chist.GetBinWidth(1)
 
@@ -1127,16 +1128,16 @@ def do_plot_cmp(outname,
         ltext.SetTextSize(0.03)
         ltext.SetTextFont(42)
         ltext.SetTextColor(ROOT.kBlack)
-        ltext.Draw() 
+        ltext.Draw()
 
     legend1.Draw()
 
     ratio_ylabel_size = dn_size
     ratio_ytitle_size = dn_size
-    
+
     ratio_xlabel_size = dn_size
     ratio_xtitle_size = dn_size
-    
+
     if do_ratio and len(histograms) > 1:
 
         ratios = []
@@ -1157,11 +1158,11 @@ def do_plot_cmp(outname,
 
             if ratio_cmp is not None:
                 ratio_cmp = ratio_cmp.split(',')
-                
+
                 for cmp_str in ratio_cmp:
-                    
+
                     nom, oth = [ int(s)-1 for s in cmp_str.split('-') ]
-                    
+
                     ratio = histograms[oth][1].Clone()
                     ratio.Divide(histograms[nom][1])
                     ratios.append(ratio)
@@ -1215,7 +1216,7 @@ def do_plot_cmp(outname,
 
         for i, ratio in enumerate(ratios):
             ratio.Draw('%s same' % drawopts[i+1])
-            
+
 
         outputname = outname.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace(' ', '').replace(',', '')
         can.Print(outputname)
@@ -1360,7 +1361,7 @@ def make_exclusion_band(g_nom, g_up, g_dn):
     n_nom   = int(g_nom.GetN())
     n_up    = int(g_up.GetN())
     n_dn    = int(g_dn.GetN())
-    
+
     x_nom, y_nom  = [], []
     x_up, y_up    = [], []
     x_dn, y_dn    = [], []
@@ -1377,7 +1378,7 @@ def make_exclusion_band(g_nom, g_up, g_dn):
         for i in xrange(n_nom, nbins) :
             x_nom.append(x_nom[n_nom-1])
             y_nom.append(y_nom[n_nom-1])
-    
+
     # fill the up-variation points
     for i in xrange(n_up) :
         x, y = ROOT.Double(0), ROOT.Double(0)
@@ -1390,7 +1391,7 @@ def make_exclusion_band(g_nom, g_up, g_dn):
         for i in xrange(n_up, nbins):
             x_up.append(x_up[n_up-1])
             y_up.append(y_up[n_up-1])
-    
+
     # fill the down-variation points
     for i in xrange(n_dn):
         x, y = ROOT.Double(0), ROOT.Double(0)
@@ -1410,7 +1411,7 @@ def make_exclusion_band(g_nom, g_up, g_dn):
     y = y_up + y_dn
 
     # make the values into an array of doubles so that the
-    # TGraph receives the Double_t* 
+    # TGraph receives the Double_t*
     x_nom_arr  = array('d', x_nom)
     y_nom_arr  = array('d', y_nom)
     x_arr      = array('d', x)
@@ -1418,7 +1419,7 @@ def make_exclusion_band(g_nom, g_up, g_dn):
 
     gr       = ROOT.TGraph(nbins, x_nom_arr, y_nom_arr)
     gr_shade = ROOT.TGraph(nbins, x_arr, y_arr)
-    
+
     for i in xrange(nbins):
         # set the points for the "upper semi-circle" of the band
         gr_shade.SetPoint(i, x_up[i], y_up[i])
@@ -1437,7 +1438,7 @@ def get_poisson_error(obs):
     return (posError, negError)
 
 
-def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_label='', max_pull=3.0):
+def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_label='', max_pull=3.0, plot_significance=False):
 
     g_obs = make_poisson_cl_errors(h_obs)
 
@@ -1460,16 +1461,16 @@ def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_lab
 
         n_obs = h_obs.GetBinContent(b)
         n_exp = h_exp.GetBinContent(b)
-        
+
         exp_syst = h_exp.GetBinError(b)
-        
+
         exp_stat = 0
         exp_stat_up = 0
         exp_stat_dn = 0
         if n_exp > 0:
             exp_stat = ROOT.TMath.Sqrt(n_exp)
             exp_stat_up, exp_stat_dn = get_poisson_error(n_exp)
-        
+
         exp_total = 0
         exp_total_up = 0
         exp_total_dn = 0
@@ -1478,19 +1479,29 @@ def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_lab
         exp_total_up = ROOT.TMath.Sqrt(exp_stat_up*exp_stat_up + exp_syst*exp_syst)
         exp_total_dn = ROOT.TMath.Sqrt(exp_stat_dn*exp_stat_dn + exp_syst*exp_syst)
 
-        pull = 0
-        if (n_obs - n_exp) > 0 and exp_total_up != 0:
-            pull = (n_obs - n_exp)/exp_total_up
-        if (n_obs - n_exp) <= 0 and exp_total_dn != 0:
-            pull = (n_obs - n_exp)/exp_total_dn
+        if plot_significance:
+            pvalue = pvalue_poisson_error(int(n_obs), n_exp, exp_syst*exp_syst)
 
-        if -0.02 < pull < 0: 
-            pull = -0.02 ###ATT: ugly
-        if 0 < pull < 0.02:  
-            pull = 0.02 ###ATT: ugly
+            if pvalue < 0.5:
+                pull = pvalue_to_significance(pvalue, (n_obs > n_exp))
+            else:
+                pull = 0.0001
 
-        if n_obs < 0.0001:
-            pull = 0.
+        else:
+            pull = 0
+            if (n_obs - n_exp) > 0 and exp_total_up != 0:
+                pull = (n_obs - n_exp)/exp_total_up
+            if (n_obs - n_exp) <= 0 and exp_total_dn != 0:
+                pull = (n_obs - n_exp)/exp_total_dn
+
+            if -0.02 < pull < 0:
+                pull = -0.02 ###ATT: ugly
+            if 0 < pull < 0.02:
+                pull = 0.02 ###ATT: ugly
+
+            if n_obs < 0.0001:
+                pull = 0.
+
 
         pulls.append(pull)
 
@@ -1622,8 +1633,11 @@ def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_lab
     frame.GetXaxis().SetLabelSize(0.12)
     frame.GetYaxis().SetLabelSize(0.12)
     frame.GetYaxis().SetNdivisions(4)
-    frame.SetYTitle("(n_{#lower[-0.3]{obs}} - n_{exp}) / #sigma_{tot}")
-        
+    if plot_significance:
+        frame.SetYTitle("Significance")
+    else:
+        frame.SetYTitle("(n_{#lower[-0.3]{obs}} - n_{exp}) / #sigma_{tot}")
+
     # global style settings
     ROOT.gPad.SetTicks();
     frame.SetLabelFont(42, "X");
@@ -1640,13 +1654,13 @@ def do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict, atlas_label='', data_lab
 
     l1 = ROOT.TLine(0, -1., len(pulls), -1.)
     l2 = ROOT.TLine(0,  1., len(pulls),  1.)
-    
+
     ROOT.SetOwnership(l1, False)
     ROOT.SetOwnership(l2, False)
-    
+
     l1.SetLineStyle(3)
     l2.SetLineStyle(3)
-    
+
     l1.Draw()
     l2.Draw()
 
