@@ -44,7 +44,7 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
 
     ## one-sided systematics
     systematics_exp_os = systematics_.get_one_side_systematics()
-  
+
     # Histograms "manager"
     hlist = []
 
@@ -64,8 +64,8 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
 
         regions = fixed_regions
 
-        get_events = partial(miniutils.get_multi_events, sample, 
-                             variables=['cuts'], regions=regions, selections=selections, 
+        get_events = partial(miniutils.get_multi_events, sample,
+                             variables=['cuts'], regions=regions, selections=selections,
                              year=year, version=version)
 
 
@@ -73,23 +73,23 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
 
         # DD backgrounds systematics
         if do_dd_syst:
-            ## efakes 
+            ## efakes
             if sample.startswith('efake'):
                 systematics_list.append('EFAKE_SYST__1down')
                 systematics_list.append('EFAKE_SYST__1up')
 
-            ## jet fakes 
+            ## jet fakes
             elif sample.startswith('jfake'):
                 systematics_list.append('JFAKE_SYST__1down')
                 systematics_list.append('JFAKE_SYST__1up')
 
         # Detector systematics
         if do_det_syst:
-                    
-            if (not sample.startswith('efake') and 
-                not sample.startswith('jfake') and 
+
+            if (not sample.startswith('efake') and
+                not sample.startswith('jfake') and
                 not 'data' in sample):
-                # and 
+                # and
                 #                not 'GGM' in sample):
 
                 # one side systematics
@@ -100,8 +100,8 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
                 for syst in systematics_exp_hl:
                     systematics_list.append(syst+'__1down')
                     systematics_list.append(syst+'__1up')
-                            
-                    
+
+
         # Get histograms
         histograms = get_events(systematics=systematics_list)
 
@@ -113,7 +113,7 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
                 # blind SR for now
                 if 'SR' in hname and not unblind:
                     mean, unc = 0., 0.
-                
+
                 hlist.append((hname, mean, unc))
 
 
@@ -149,7 +149,7 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
         #         hlist.append(('hjfakeJFAKE_SYSTHigh_SRH_obs_cuts', 0.09, 0.09))
 
         #     for (hname, mean, unc) in histograms:
-                
+
         #         if 'SR' in hname:
         #             continue
 
@@ -165,7 +165,7 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
 
         # # e fakes
         # elif sample == 'efake':
-            
+
         #     # SRH
         #     if 'SRH' in regions:
         #         hlist.append(('hefakeNom_SRH_obs_cuts',            0.044, 0.044))
@@ -194,11 +194,11 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
 
         # MC SUSY signal
         elif 'GGM' in sample:
-            
+
             for (hname, mean, unc) in histograms:
 
                 hlist.append((hname, mean, unc))
-                
+
                 # if 'Nom' in hname:
 
                 #     xs, unc = get_xs_from_did(sample, 2)
@@ -220,11 +220,11 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
             for (hname, mean, unc) in histograms:
 
                 rname = hname.split('_')[1]
-                
+
                 hlist.append((hname, mean, unc))
 
 
-        
+
     # close/save histograms
     output_name_txt  = output_path.replace('.root', '.txt')
     output_name_root = output_path
@@ -244,7 +244,7 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
         hist.SetBinError(1, err)
 
         hist.Write(name)
-        
+
     fin.Close()
 
 
@@ -291,7 +291,7 @@ def do_bkgonlyfit(configfile, input_file, output_dir, region, lumi, do_validatio
     if logfile is not None:
         os.system('mv hf.log %s' % os.path.join(old_pwd, logfile))
 
-    # mv from results dir to output dir    
+    # mv from results dir to output dir
     mv_cmd = 'cp %s/* %s/' % (results_dir, output_dir)
     os.system(mv_cmd)
 
@@ -311,36 +311,36 @@ def do_tables(ws, output_dir, backgrounds, regions, sr_str, do_validation, unbli
         yieldstable(ws, backgrounds_str, 'VRM1L,VRM2L,VRM3L,VRM1H,VRM2H,VRM3H', output_dir+'/table_vrm.tex', 'VRM')
 
         yieldstable(ws, backgrounds_str, 'VRL1,VRL2,VRL3,VRL4', output_dir+'/table_vrl.tex', 'VRL')
-        
+
         yieldstable(ws, backgrounds_str, 'VRE', output_dir+'/table_vre.tex', 'Fakes VR')
 
     ## SR
     yieldstable(ws, backgrounds_str, sr_str, output_dir+'/table_sr.tex', 'Signal Regions', unblind=unblind)
 
     # Systematic tables
-    if do_syst_tables:
-        systable(ws, '', 'SRL200', '%s/table_syst_srl200.tex' % output_dir)
-        systable(ws, '', 'SRL300', '%s/table_syst_srl300.tex' % output_dir)
-        systable(ws, '', 'SRH',    '%s/table_syst_srh.tex' % output_dir)
+    # if do_syst_tables:
+    #     systable(ws, '', 'SRL200', '%s/table_syst_srl200.tex' % output_dir)
+    #     systable(ws, '', 'SRL300', '%s/table_syst_srl300.tex' % output_dir)
+    #     systable(ws, '', 'SRH',    '%s/table_syst_srh.tex' % output_dir)
 
-        systable(ws, '', 'CRQ', '%s/table_syst_crq.tex' % output_dir)
-        systable(ws, '', 'CRW', '%s/table_syst_crw.tex' % output_dir)
-        systable(ws, '', 'CRT', '%s/table_syst_crt.tex' % output_dir)
+    #     systable(ws, '', 'CRQ', '%s/table_syst_crq.tex' % output_dir)
+    #     systable(ws, '', 'CRW', '%s/table_syst_crw.tex' % output_dir)
+    #     systable(ws, '', 'CRT', '%s/table_syst_crt.tex' % output_dir)
 
-        for bkg in backgrounds:
-            systable(ws, bkg,             sr_str, '%s/table_syst_%s.tex' % (output_dir, bkg))
+    #     for bkg in backgrounds:
+    #         systable(ws, bkg,             sr_str, '%s/table_syst_%s.tex' % (output_dir, bkg))
 
-        if do_validation:
-            systable(ws, '', 'VRL1', '%s/table_syst_vrl1.tex' % output_dir)
-            systable(ws, '', 'VRL2', '%s/table_syst_vrl2.tex' % output_dir)
-            systable(ws, '', 'VRL3', '%s/table_syst_vrl3.tex' % output_dir)
-            systable(ws, '', 'VRL4', '%s/table_syst_vrl4.tex' % output_dir)
-            systable(ws, '', 'VRM1L', '%s/table_syst_vrm1l.tex' % output_dir)
-            systable(ws, '', 'VRM1H', '%s/table_syst_vrm1h.tex' % output_dir)
-            systable(ws, '', 'VRM2L', '%s/table_syst_vrm2l.tex' % output_dir)
-            systable(ws, '', 'VRM2H', '%s/table_syst_vrm2h.tex' % output_dir)
-            systable(ws, '', 'VRM3L', '%s/table_syst_vrm3l.tex' % output_dir)
-            systable(ws, '', 'VRM3H', '%s/table_syst_vrm3h.tex' % output_dir)
+    #     if do_validation:
+    #         systable(ws, '', 'VRL1', '%s/table_syst_vrl1.tex' % output_dir)
+    #         systable(ws, '', 'VRL2', '%s/table_syst_vrl2.tex' % output_dir)
+    #         systable(ws, '', 'VRL3', '%s/table_syst_vrl3.tex' % output_dir)
+    #         systable(ws, '', 'VRL4', '%s/table_syst_vrl4.tex' % output_dir)
+    #         systable(ws, '', 'VRM1L', '%s/table_syst_vrm1l.tex' % output_dir)
+    #         systable(ws, '', 'VRM1H', '%s/table_syst_vrm1h.tex' % output_dir)
+    #         systable(ws, '', 'VRM2L', '%s/table_syst_vrm2l.tex' % output_dir)
+    #         systable(ws, '', 'VRM2H', '%s/table_syst_vrm2h.tex' % output_dir)
+    #         systable(ws, '', 'VRM3L', '%s/table_syst_vrm3l.tex' % output_dir)
+    #         systable(ws, '', 'VRM3H', '%s/table_syst_vrm3h.tex' % output_dir)
 
 
 
@@ -358,13 +358,13 @@ def do_plots_histograms(output_path, regions, samples, variables, year, version,
 
     for sample in samples:
 
-        hlist = get_histograms(sample) 
+        hlist = get_histograms(sample)
 
         fin = ROOT.TFile(output_path, 'update')
-        
+
         for hist in hlist:
             hist.Write(hist.GetName(), ROOT.TObject.kOverwrite)
-            
+
         fin.Close()
 
 
@@ -411,7 +411,7 @@ def prepare_histograms_for_plots(input_path, output_path, regions, backgrounds, 
             for name in merge_list[1:]:
                 for h1, h2 in zip(h_bkg[merge_name], h_bkg[name]):
                     h1.Add(h2, 1)
-                    
+
             for name in merge_list:
                 del h_bkg[name]
 
@@ -423,13 +423,13 @@ def prepare_histograms_for_plots(input_path, output_path, regions, backgrounds, 
     for hlist in h_bkg.itervalues():
         for hist in hlist:
             hist.Write(hist.GetName())
-            
+
     fin.Close()
 
 
 
 def get_histogram_from_file(file_, sample, variable, region, syst='Nom'):
-    
+
     if sample.startswith('data'):
         syst = ''
 
@@ -481,14 +481,14 @@ def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_
             #     else:
             #         signal1 = 'GGM_GG_bhmix_1900_650'
             #         signal2 = 'GGM_GG_bhmix_1900_1650'
-                    
+
             #     h_signal[signal1] = get_histogram(signal1, variable=variable, region=region_name, selection=selection, syst=syst)
             #     h_signal[signal2] = get_histogram(signal2, variable=variable, region=region_name, selection=selection, syst=syst)
 
             varname = variable.replace('[', '').replace(']', '')
-                
+
             outname = os.path.join(output_dir, 'can_{}_{}_{}'.format(region, varname, output_label))
-            
+
             do_plot(outname, variable, data=h_data, bkg=h_bkg, signal=h_signal, region_name=region, do_ratio=True, data_label=data_label)
 
 
@@ -497,7 +497,7 @@ def do_plots(histograms_path, output_dir, regions, backgrounds, variables, data_
 
 
 # Regions pull pot
-def do_regions_pull_plot(ws, output_name, backgrounds, plot_bkgs, regions, merge_dict={}, unblind=False, data_label=''):
+def do_regions_pull_plot(ws, output_name, backgrounds, plot_bkgs, regions, merge_dict={}, unblind=False, data_label='', plot_significance=False):
 
     backgrounds_str = ','.join(backgrounds)
     regions_str     = ','.join(regions)
@@ -516,7 +516,7 @@ def do_regions_pull_plot(ws, output_name, backgrounds, plot_bkgs, regions, merge
         h_bkg_dict[name] = ROOT.TH1F("h_bkg_"+name,"h_bkg_"+name, n_regions, 0, n_regions)
 
     # loop over all the regions
-    for counter, region in enumerate(regions): 
+    for counter, region in enumerate(regions):
 
         index = mydict["names"].index(region+'_cuts')
 
@@ -550,19 +550,19 @@ def do_regions_pull_plot(ws, output_name, backgrounds, plot_bkgs, regions, merge
 
             for name in merge_list[1:]:
                 h_bkg_dict[merge_name].Add(h_bkg_dict[name], 1)
-            
+
             for name in merge_list:
                 del h_bkg_dict[name]
-            
+
     h_bkg_dict_sorted = OrderedDict()
     for name in plot_bkgs:
         h_bkg_dict_sorted[name] = h_bkg_dict[name]
 
-    do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict_sorted, data_label=data_label)
+    do_pull_plot(output_name, h_obs, h_exp, h_bkg_dict_sorted, data_label=data_label, plot_significance=plot_significance)
 
 
 
-    
+
 
 
 
@@ -592,7 +592,7 @@ def main():
 
     # Extra options
     parser.add_argument('--conf', help='HistFitter config file')
-    parser.add_argument('--unblind', action='store_true', help='Unblind Signal Regions! Use with caution, you can discover SUSY') 
+    parser.add_argument('--unblind', action='store_true', help='Unblind Signal Regions! Use with caution, you can discover SUSY')
     parser.add_argument('--val', action='store_true', help='Include Validation Regions')
     parser.add_argument('--mc', action='store_true', help='Use only MC')
 
@@ -650,10 +650,10 @@ def main():
     srs = ['SRL200', 'SRL300', 'SRH']
     crs = ['CRQ', 'CRW', 'CRT']
     vrs = [
-        'VRM1L', 'VRM2L', 'VRM3L', 
-        'VRM1H', 'VRM2H', 'VRM3H', 
-        'VRL1', 'VRL2', 'VRL3', 'VRL4', 
-        
+        'VRM1L', 'VRM2L', 'VRM3L',
+        'VRM1H', 'VRM2H', 'VRM3H',
+        'VRL1', 'VRL2', 'VRL3', 'VRL4',
+
         'VRE'
     ]
 
@@ -671,14 +671,14 @@ def main():
     mc_samples = [
         'photonjet',
         'wgamma',
-        'zllgamma', 
+        'zllgamma',
         'znunugamma',
         'ttgamma',
         'diphoton',
         ]
 
     mc_fake_samples = [ 'ttbar', 'multijet', 'wjets', 'zjets' ]
-        
+
     dd_samples = [
         'efake',
         'jfake',
@@ -721,7 +721,7 @@ def main():
         'zgamma': ['zllgamma', 'znunugamma',],
         'fakes': ['efake', 'jfake']
         }
-    
+
     bkg_norm_dict = {
         'CRQ': 'photonjet',
         'CRW': 'wgamma',
@@ -733,7 +733,7 @@ def main():
         lumi += miniutils.lumi_dict.get(year, 0.)
 
     lumi /= 1000.
- 
+
     data_label = '#sqrt{s} = 13 TeV, %.1f fb^{-1}' % lumi
 
     # ------------------
@@ -756,7 +756,7 @@ def main():
     mkdirp(fit_dir)
     mkdirp(tables_dir)
     mkdirp(plots_dir)
-    
+
 
     #-------------------
     # Create Histograms
@@ -821,6 +821,8 @@ def main():
         print('Creating pull plot ...')
         do_regions_pull_plot(ws, plots_dir+'/regions_pull.pdf', backgrounds, plot_bkgs, regions, bkg_merge_dict, unblind=unblind, data_label=data_label)
 
+        do_regions_pull_plot(ws, plots_dir+'/regions_pull_significance.pdf', backgrounds, plot_bkgs, regions, bkg_merge_dict, unblind=unblind, data_label=data_label, plot_significance=True)
+
 
         set_atlas_style()
 
@@ -831,9 +833,9 @@ def main():
         # After fit plots
         print('Creating after-fit plots ...')
         do_plots(histograms_plots_after_path, plots_dir, regions, plot_bkgs, variables, data_label, unblind=unblind, output_label='afterFit')
-        
 
-        
+
+
 
 
 
