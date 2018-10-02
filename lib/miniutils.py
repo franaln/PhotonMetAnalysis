@@ -210,7 +210,7 @@ def get_lumi_weight(ds, lumi, fs=None):
 # Samples
 #----------
 
-r_ds = re.compile('(mc15_13TeV|mc16_13TeV|data15_13TeV|data16_13TeV|data17_13TeV|efake15|efake16|efak17|jfake15|jfake16|jfake17)\.([0-9]*)\.(.*)')
+r_ds = re.compile('(mc15_13TeV|mc16_13TeV|data15_13TeV|data16_13TeV|data17_13TeV|efake15|efake16|efake17|jfake15|jfake16|jfake17)\.([0-9]*)\.(.*)')
 
 def find_path(project, did, short_name, version, mc_campaign):
 
