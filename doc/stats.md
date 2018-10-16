@@ -1,15 +1,15 @@
 Bkg-only fit
 ============
 
-                       -c   +------------------+   -f     +-----------+  -t
-                     +----> | cuts histograms  +--------> | workspace +------> Tables
-                     |      +------------------+   Fit    +-----+-----+
-  +--------------+   |                                          |
-  | mini ntuples +---+                                          | mu (CR -> SR)
-  +--------------+   |                                          |
-     |- Data         |      +------------------+                |        -p
-     |- MC           +----> | plots histograms +----------------+------------> Plots
-     |- Fakes          -d   +------------------+
+                         -c   +------------------+   -f     +-----------+  -t
+                       +----> | cuts histograms  +--------> | workspace +------> Tables
+                       |      +------------------+   Fit    +-----+-----+
+    +--------------+   |                                          |
+    | mini ntuples +---+                                          | mu (CR -> SR)
+    +--------------+   |                                          |
+       |- Data         |      +------------------+                |        -p
+       |- MC           +----> | plots histograms +----------------+------------> Plots
+       |- Fakes          -d   +------------------+
 
 
 
@@ -36,7 +36,7 @@ Discovery significance
 XXX
 
 
-Model independent limit 
+Model independent limit
 =======================
 
 1. Run the jobs in batch
@@ -59,14 +59,14 @@ Exclusion limits (batch)
 1. Send jobs to batch:
 
     ```
-    run_excl_batch.py -i histograms.root -o output_dir --sr SR --data data --ntoys 5000 --queue 8nh 
+    run_excl_batch.py -i histograms.root -o output_dir --sr SR --data data --ntoys 5000 --queue 8nh
     ```
 
 2. Merge batch output (different runs and different points)
 
     ```
     merge_hypotest.py output_dir input_dir1 input_dir2 ...
-    ``` 
+    ```
 
 3. Create list and contours
 
@@ -87,7 +87,7 @@ Exclusion limits (batch)
 
 ## Combine SRs
 
-    plot_exclusion.py --combine 
+    plot_exclusion.py --combine
 
 
 Model dependent UL

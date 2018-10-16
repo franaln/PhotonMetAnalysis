@@ -28,8 +28,9 @@ versions_ = ['56', ] # v56: last r20.7 version used for paper (not used for r21)
 lumi_dict = {
     '2015':  3219.56,
     '2016': 32965.30,
-    '2017': 44307.40,  ## CHECK/UPDATE
-}
+    '2017': 44307.40,
+    '2018': 47824.70, ## Last GRL up to TS2
+    }
 
 # --------
 # Binning
@@ -327,7 +328,7 @@ def _get_multi_histograms(ds, **kwargs):
     use_purw    = kwargs.get('use_purw',    True)
     use_mcveto  = kwargs.get('use_mcveto',  True)
 
-    do_remove_var  = kwargs.get('do_remove_var',  False)
+    remove_var_cut  = kwargs.get('remove_var_cut',  False)
 
     is_mc = ds['project'].startswith('mc')
     is_fake = ('efake' in ds['name'] or 'jfake' in ds['name'])
@@ -412,7 +413,7 @@ def _get_multi_histograms(ds, **kwargs):
                         selection = 'mcveto==0'
 
                 ## Remove variable from selection if n-1
-                if do_remove_var and variable in selection and not variable == 'cuts':
+                if remove_var_cut and variable in selection and not variable == 'cuts':
                     selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
 
                 # if do_remove_var and (':' in variable):
@@ -463,10 +464,10 @@ def _get_multi_histograms(ds, **kwargs):
                     elif syst == 'EFAKE_SYST__1up' or syst == 'JFAKE_SYST__1up':
                         w_list.append('weight_ff_up')
 
-                if not scale:
-                    w_str = ''
-                else:
+                if scale:
                     w_str = '*'.join(w_list)
+                else:
+                    w_str = ''
 
                 # Add histogram and draw tuple
                 varexp = ''
@@ -492,10 +493,8 @@ def _get_multi_histograms(ds, **kwargs):
         hname, variable, selection = draw_list[0]
         tree.Project(hname, variable, selection)
 
-
     for hist in histograms:
         hist.SetDirectory(0)
-
 
     try:
         file_.Close()
@@ -547,6 +546,8 @@ def get_histograms(name, **kwargs):
     version = kwargs.get('version', None)
     is_mc = (not 'data' in name and not 'efake' in name and not 'jfake' in name)
 
+    show_progress = kwargs.get('show_progress', True)
+
     if '+' in year and (not is_mc or year!='2015+2016'):
 
         del kwargs['year']
@@ -581,7 +582,8 @@ def get_histograms(name, **kwargs):
 
     histograms = []
 
-    print_progressbar(name, len(datasets), 0)
+    if show_progress:
+        print_progressbar(name, len(datasets), 0)
     for ids, ds in enumerate(datasets):
 
         histograms_ds = _get_multi_histograms(ds, **kwargs)
@@ -593,7 +595,8 @@ def get_histograms(name, **kwargs):
             for hall, hnew in zip(histograms, histograms_ds):
                 hall.Add(hnew, 1)
 
-        print_progressbar(name, len(datasets), ids+1)
+        if show_progress:
+            print_progressbar(name, len(datasets), ids+1)
 
 
     # Fix histogram name
