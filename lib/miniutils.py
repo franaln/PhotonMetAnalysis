@@ -21,9 +21,6 @@ MiniDirs = [
     '/eos/user/f/falonso/data/mini2',
     ]
 
-# Mini version
-versions_ = ['56', ] # v56: last r20.7 version used for paper (not used for r21)
-
 # Luminosity
 lumi_dict = {
     '2015':  3219.56,
@@ -542,7 +539,7 @@ def get_histograms(name, **kwargs):
     and some regions, variables, systematics
     """
 
-    year = kwargs.get('year')
+    year = kwargs.get('year') # 2015+2016, 2017 or 2018. Also 2015+2016+2017+2018.
     version = kwargs.get('version', None)
     is_mc = (not 'data' in name and not 'efake' in name and not 'jfake' in name)
 
@@ -564,6 +561,8 @@ def get_histograms(name, **kwargs):
             mc_campaign = 'mc16a'
         elif year == '2017':
             mc_campaign = 'mc16d'
+        elif year == '2018':
+            mc_campaign = 'mc16e'
     elif name in ['data', 'efake', 'jfake']:
         name = name+year[-2:]
 
@@ -604,12 +603,15 @@ def get_histograms(name, **kwargs):
         'efake15': 'efake',
         'efake16': 'efake',
         'efake17': 'efake',
+        'efake18': 'efake',
         'jfake15': 'jfake',
         'jfake16': 'jfake',
         'jfake17': 'jfake',
+        'jfake18': 'jfake',
         'data15Nom': 'data',
         'data16Nom': 'data',
         'data17Nom': 'data',
+        'data18Nom': 'data',
         }
 
     for hist in histograms:
