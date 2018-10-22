@@ -352,7 +352,7 @@ def do_plots_histograms(output_path, regions, samples, variables, year, version,
     for region in regions:
         selections.append(getattr(regions_, region))
 
-    get_histograms = partial(miniutils.get_histograms, year=year, version=version, remove_var=n1, syst=syst,
+    get_histograms = partial(miniutils.get_histograms, year=year, version=version, remove_var_cut=n1, syst=syst,
                              variables=variables, regions=regions, selections=selections)
 
 
