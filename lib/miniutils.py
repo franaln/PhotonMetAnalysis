@@ -19,6 +19,7 @@ import regions as regions_
 
 MiniDirs = [
     '/eos/user/f/falonso/data/mini2',
+    '/eos/user/f/falonso/data/mini2/checks',
     ]
 
 # Luminosity
@@ -208,7 +209,7 @@ def get_lumi_weight(ds, lumi, fs=None):
 # Samples
 #----------
 
-r_ds = re.compile('(mc15_13TeV|mc16_13TeV|data15_13TeV|data16_13TeV|data17_13TeV|efake15|efake16|efake17|jfake15|jfake16|jfake17)\.([0-9]*)\.(.*)')
+r_ds = re.compile('(mc15_13TeV|mc16_13TeV|data15_13TeV|data16_13TeV|data17_13TeV|data18_13TeV|efake15|efake16|efake17|efake18|jfake15|jfake16|jfake17|jfake18)\.([0-9]*)\.(.*)')
 
 def find_path(project, did, short_name, version, mc_campaign):
 
@@ -229,7 +230,6 @@ def find_path(project, did, short_name, version, mc_campaign):
                 return paths[0]
         except:
             pass
-
 
     return None
 
@@ -362,7 +362,6 @@ def _get_multi_histograms(ds, **kwargs):
         selections = [ getattr(regions_, reg) for reg in regions ]
     elif selections and not regions:
         regions = [ 'R' for sel in selections ]
-
 
     for region, selection in zip(regions, selections):
         for variable in variables:
@@ -575,7 +574,6 @@ def get_histograms(name, **kwargs):
             lumi = lumi_dict[year]
 
         kwargs['lumi'] = lumi
-
 
     datasets = get_datasets(name, version, mc_campaign, kwargs.get('ignore_missing', False))
 
