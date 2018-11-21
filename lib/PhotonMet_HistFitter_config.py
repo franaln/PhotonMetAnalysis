@@ -49,10 +49,10 @@ userArg = [ i.replace('"', '') for i in configMgr.userArg.split() ]
 args = parser.parse_args(userArg)
 print "Parsed user args %s" % str(args)
 
-hist_file     = args.hist_file 
+hist_file     = args.hist_file
 signal_region = args.signal_region
-do_validation = args.val 
-use_mc_bkgs   = args.mc 
+do_validation = args.val
+use_mc_bkgs   = args.mc
 
 do_detector_syst = args.detsyst or args.syst
 do_dd_syst       = args.ddsyst or args.syst
@@ -64,7 +64,7 @@ nom_name  = 'Nom'
 model_hypo_test = 'GGM'
 do_signal_theory_unc = args.sigxs
 variable = 'cuts'
-binning  = (1, 0.5, 1.5) 
+binning  = (1, 0.5, 1.5)
 
 configMgr.writeXML = True  #for debugging
 
@@ -119,7 +119,7 @@ if args.rm and configMgr.analysisName:
 
 ## Read the histograms already produced
 inputFileNames = [configMgr.histCacheFile, ]
-    
+
 ## Scaling calculated by outputLumi / inputLumi
 configMgr.inputLumi  = args.lumi # Luminosity of input TTree after weighting
 configMgr.outputLumi = args.lumi # Luminosity required for output histograms
@@ -130,10 +130,10 @@ srs = signal_region.split(',')
 
 regions = [
     'CRQ', 'CRW', 'CRT',
-    
-    'VRM1L', 'VRM2L', 'VRM3L', 
-    'VRM1H', 'VRM2H', 'VRM3H', 
-    
+
+    'VRM1L', 'VRM2L', 'VRM3L',
+    'VRM1H', 'VRM2H', 'VRM3H',
+
     'VRL1', 'VRL2', 'VRL3', 'VRL4', 'VRE',
     ]
 
@@ -144,7 +144,7 @@ for r in regions:
 
 
 #-----------------
-# Samples 
+# Samples
 #-----------------
 
 # W/Z + jets
@@ -159,7 +159,7 @@ ttbar_sample  = Sample('ttbar',   color("ttbar"))
 ttbarg_sample = Sample('ttgamma', color("ttbarg"))
 
 ttbar_sample.setNormByTheory()
-ttbarg_sample.setNormFactor("mu_t", 1., 0., 2.)   
+ttbarg_sample.setNormFactor("mu_t", 1., 0., 2.)
 
 # W/Z gamma
 wgamma_sample     = Sample('wgamma', color("wgamma"))
@@ -223,7 +223,7 @@ data_samples = [data_sample,]
 
 if use_mc_bkgs:
     bkg_samples = [
-        wgamma_sample, 
+        wgamma_sample,
         zllgamma_sample,
         znunugamma_sample,
         wjets_sample,
@@ -235,7 +235,7 @@ if use_mc_bkgs:
         ]
 else:
     bkg_samples = [
-        wgamma_sample, 
+        wgamma_sample,
         zllgamma_sample,
         znunugamma_sample,
         ttbarg_sample,
@@ -273,7 +273,7 @@ syst_to_all = [
     HistSys('JET_GroupedNP_3'),
     Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NPHigh', nom_name, 'tree','histoSysOneSide'),
 
-    # met 
+    # met
     Systematic('MET_SoftTrk_ResoPara', nom_name, '_MET_SoftTrk_ResoParaHigh', nom_name, 'tree', 'histoSysOneSide'),
     Systematic('MET_SoftTrk_ResoPerp', nom_name, '_MET_SoftTrk_ResoPerpHigh', nom_name, 'tree', 'histoSysOneSide'),
     Systematic('MET_SoftTrk_Scale',    nom_name, '_MET_SoftTrk_ScaleHigh', '_MET_SoftTrk_ScaleLow', 'tree', 'overallSys'),
@@ -291,7 +291,7 @@ syst_gamjet_flat_SR  = Systematic("flat100GJ", 1, 1+sigma_gamjet_flat, 1-sigma_g
 ## e->g
 syst_feg      = HistSys('EFAKE_SYST')
 syst_stat_feg = Systematic('EFAKE_STAT', nom_name, nom_name, nom_name, 'tree', 'shapeStat') ##, constraint='Poisson')
-#syst_stat_feg = HistSys('EFAKE_STAT') 
+#syst_stat_feg = HistSys('EFAKE_STAT')
 
 ## j->g
 syst_fjg      = HistSys('JFAKE_SYST')
@@ -315,7 +315,7 @@ syst_zgamma_theo_crt = Systematic("theoSysZG", 1, 1+sigma_zgamma_crt, 1-sigma_zg
 syst_zgamma_theo_vrl = Systematic("theoSysZG", 1, 1+sigma_zgamma_vrl, 1-sigma_zgamma_vrl, "user", "userOverallSys")
 
 ## gamjet
-sigma_gamjet_all = 0.29 
+sigma_gamjet_all = 0.29
 
 syst_gamjet_theo_all  = Systematic("theoSysGJ", 1, 1+sigma_gamjet_all, 1-sigma_gamjet_all, "user", "userOverallSys")
 
@@ -378,6 +378,10 @@ if do_dd_syst:
 if do_mc_syst:
     photonjet_sample.addSystematic(syst_gamjet_theo_all)
 
+# if not do_detector_syst and not do_dd_syst and not do_mc_syst:
+#     ucb = Systematic("uncorrl_bkg", None, 1+0.30, 1-0.30, "user", "userOverallSys")  # 30% error up and down
+#     for sample in bkg_samples:
+#         sample.addSystematic(ucb)
 
 
 #---------
@@ -398,6 +402,7 @@ elif myFitType == FitType.Exclusion:
 
 
 fitconfig.addSamples(bkg_samples + data_samples)
+
 
 # Stat uncertainties
 fitconfig.statErrThreshold = 0.01
@@ -421,7 +426,7 @@ validation_channels = []
 signal_channels     = []
 
 # ---------------
-# Signal regions 
+# Signal regions
 # ---------------
 
 # if not bkg-only only allow ONE SR.
@@ -433,7 +438,7 @@ for sr in srs:
     signal_channels.append(fitconfig.addChannel(variable, [sr], *binning))
 
 # -----------------
-#  Control regions 
+#  Control regions
 # -----------------
 CRQ = fitconfig.addChannel(variable, ['CRQ'], *binning)
 CRW = fitconfig.addChannel(variable, ['CRW'], *binning)
@@ -448,7 +453,7 @@ ttbarg_sample   .setNormRegions(['CRT', variable])
 photonjet_sample.setNormRegions(['CRQ', variable])
 
 # -------------------
-# Validation regions 
+# Validation regions
 # -------------------
 if do_validation:
 
@@ -533,17 +538,17 @@ if do_mc_syst:
             vr.getSample('zllgamma')   .addSystematic(syst_zgamma_theo_srl)
             vr.getSample('znunugamma') .addSystematic(syst_zgamma_theo_srl)
             vr.getSample('ttgamma')    .addSystematic(syst_tgamma_theo_srl)
-        elif vr.name.endswith('H'):        
+        elif vr.name.endswith('H'):
             vr.getSample('wgamma')     .addSystematic(syst_wgamma_theo_srh)
             vr.getSample('zllgamma')   .addSystematic(syst_zgamma_theo_srh)
             vr.getSample('znunugamma') .addSystematic(syst_zgamma_theo_srh)
             vr.getSample('ttgamma')    .addSystematic(syst_tgamma_theo_srh)
 
 
-# Add CR/VR/SR 
+# Add CR/VR/SR
 fitconfig.addBkgConstrainChannels(constraint_channels)
 
-if myFitType == FitType.Background: 
+if myFitType == FitType.Background:
     if do_validation:
         validation_channels += signal_channels #--- Define SR as validation region.
         fitconfig.addValidationChannels(validation_channels)
@@ -567,17 +572,17 @@ if myFitType == FitType.Discovery:
 if myFitType == FitType.Exclusion:
 
     points = []
-    
+
     try:
         sigSamples
     except NameError:
         sigSamples = None
-    
+
     for sig in sigSamples:
         print "Adding fit config for sample %s" % sig
         exclfit = configMgr.addFitConfigClone(fitconfig, sig)
 
-        sig_sample = Sample(sig, ROOT.kOrange+3) 
+        sig_sample = Sample(sig, ROOT.kOrange+3)
         sig_sample.setNormByTheory()
         sig_sample.setStatConfig(useStat)
         sig_sample.setNormFactor("mu_SIG", 1., 0., 5.)

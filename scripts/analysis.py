@@ -593,7 +593,7 @@ def main():
     # Extra options
     parser.add_argument('--conf', help='HistFitter config file')
     parser.add_argument('--unblind', action='store_true', help='Unblind Signal Regions! Use with caution, you can discover SUSY')
-    parser.add_argument('--val', action='store_true', help='Include Validation Regions')
+    parser.add_argument('--noval', action='store_true', help='Don\'t include Validation Regions')
     parser.add_argument('--mc', action='store_true', help='Use only MC')
 
     # Histogram options
@@ -619,8 +619,7 @@ def main():
     unblind = args.unblind
     data = args.data
     version = args.version
-    do_validation = args.val
-    do_validation = args.val
+    do_validation = (not args.noval)
     use_mc = args.mc
 
     do_det_syst = False
@@ -658,7 +657,7 @@ def main():
     ]
 
     sr_str = ','.join(srs)
-    if args.val:
+    if do_validation:
         regions = crs + vrs + srs
         regions_str = '%s,%s,%s' % (','.join(srs), ','.join(crs), ','.join(vrs))
     else:
@@ -715,11 +714,12 @@ def main():
 
     variables_str = ','.join(variables)
 
-    plot_bkgs = ['photonjet', 'wgamma','zgamma', 'fakes', 'ttgamma', 'diphoton']
+    #plot_bkgs = ['photonjet', 'wgamma','zgamma', 'fakes', 'ttgamma', 'diphoton']
+    plot_bkgs = ['photonjet', 'wgamma','zgamma', 'efake', 'jfake', 'ttgamma', 'diphoton']
 
     bkg_merge_dict = {
         'zgamma': ['zllgamma', 'znunugamma',],
-        'fakes': ['efake', 'jfake']
+        #'fakes': ['efake', 'jfake']
         }
 
     bkg_norm_dict = {
@@ -742,7 +742,6 @@ def main():
     susy_dir = os.environ['SUSY_ANALYSIS']
 
     results_dir = args.output_dir
-
 
     log_dir        = '%s/log'        % results_dir
     histograms_dir = '%s/histograms' % results_dir
