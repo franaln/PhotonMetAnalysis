@@ -303,7 +303,6 @@ def is_2d_variable(variable):
 def get_escaped_variable(variable):
     return variable.replace(':', '_').replace('/', '').replace('(', '').replace(')', '')
 
-
 def _get_multi_histograms(ds, **kwargs):
 
     """
@@ -492,10 +491,11 @@ def _get_multi_histograms(ds, **kwargs):
     for hist in histograms:
         hist.SetDirectory(0)
 
-    try:
-        file_.Close()
-    except:
+    if os.path.isdir(path):
         tree.Reset()
+        tree.Delete()
+    else:
+        file_.Close()
 
     return histograms
 
@@ -591,6 +591,8 @@ def get_histograms(name, **kwargs):
         else:
             for hall, hnew in zip(histograms, histograms_ds):
                 hall.Add(hnew, 1)
+
+        del histograms_ds
 
         if show_progress:
             print_progressbar(name, len(datasets), ids+1)

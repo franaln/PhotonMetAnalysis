@@ -21,7 +21,6 @@ def MakeTObjArray(the_list):
 
     return result
 
-
 def MultiDraw(self, *draw_list):
     """
     Draws (projects) many histograms in one loop over a tree.
@@ -36,11 +35,10 @@ def MultiDraw(self, *draw_list):
     """
 
 
-    hnames, variables, selections = [], [], []
+    histograms, variables, selections = [], [], []
 
     last_variable, last_selection = None, None
 
-    histograms = []
     for i, drawexp in enumerate(draw_list):
 
         # Expand out origFormula and weight, otherwise just use weight of 1.
@@ -58,6 +56,7 @@ def MultiDraw(self, *draw_list):
         # The previous value is used. This saves the recomputing of identical values
         if variable != last_variable:
             f = ROOT.TTreeFormula("variable%i" % i, variable, self)
+
             if not f.GetTree():
                 raise RuntimeError("TTreeFormula didn't compile: " + variable)
             f.SetQuickLoad(True)
@@ -67,6 +66,7 @@ def MultiDraw(self, *draw_list):
 
         if selection != last_selection:
             f = ROOT.TTreeFormula("selection%i" % i, selection, self)
+
             if not f.GetTree():
                 raise RuntimeError("TTreeFormula didn't compile: " + selection)
             f.SetQuickLoad(True)
@@ -86,6 +86,7 @@ def MultiDraw(self, *draw_list):
 
     # Ensure that formulae are told when tree changes
     fManager = ROOT.TTreeFormulaManager()
+
     for variable in variables + selections:
         if type(variable) == ROOT.TTreeFormula:
             fManager.Add(variable)
@@ -94,11 +95,19 @@ def MultiDraw(self, *draw_list):
     self.SetNotify(fManager)
 
     # Draw everything!
+    variables  = MakeTObjArray(variables)
+    selections = MakeTObjArray(selections)
+    histograms = MakeTObjArray(histograms)
+
     _MultiDraw(self,
-                MakeTObjArray(variables),
-                MakeTObjArray(selections),
-                MakeTObjArray(histograms),
+                variables,
+                selections,
+                histograms,
                 len(variables))
+
+    variables.Delete()
+    selections.Delete()
+    del fManager
 
     return
 
