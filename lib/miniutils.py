@@ -8,7 +8,7 @@ import glob
 from array import array
 
 import ROOT
-from rootutils import Value, histogram, histogram_equal_to
+from rootutils import Value, histogram_add_overflow_bin
 import multidraw
 
 from samples import samples_dict, samples_r20_dict;
@@ -301,7 +301,7 @@ def is_2d_variable(variable):
     return ':' in variable and not '::' in variable
 
 def get_escaped_variable(variable):
-    return variable.replace(':', '_').replace('/', '').replace('(', '').replace(')', '')
+    return variable.replace(':', '_').replace('/', '').replace('(', '').replace(')', '').replace('[','').replace(']', '')
 
 def _get_multi_histograms(ds, **kwargs):
 
@@ -324,7 +324,7 @@ def _get_multi_histograms(ds, **kwargs):
     use_purw    = kwargs.get('use_purw',    True)
     use_mcveto  = kwargs.get('use_mcveto',  True)
 
-    remove_var_cut  = kwargs.get('remove_var_cut',  False)
+    remove_var_cut = kwargs.get('remove_var_cut',  False)
 
     is_mc = ds['project'].startswith('mc')
     is_fake = ('efake' in ds['name'] or 'jfake' in ds['name'])
@@ -366,6 +366,8 @@ def _get_multi_histograms(ds, **kwargs):
         for variable in variables:
             for syst in systematics:
 
+                _selection = selection
+
                 systname = syst
 
                 # fix_events_by_interval = False
@@ -377,7 +379,7 @@ def _get_multi_histograms(ds, **kwargs):
                     binning = get_binning(variable)
 
                 # name to avoid the ROOT warning, not used
-                hname = 'h__%s__%s_%s_obs_%s' % (ds['did'], systname, region, variable)
+                hname = 'h__%s__%s_%s_obs_%s' % (ds['did'], systname, region, get_escaped_variable(variable))
 
                 if is_2d_variable(variable):
                     htemp = ROOT.TH2D(hname, hname, *binning)
@@ -402,14 +404,14 @@ def _get_multi_histograms(ds, **kwargs):
 
                 ## MC veto
                 if is_mc and use_mcveto:
-                    if selection:
-                        selection = '%s && mcveto==0' % selection
+                    if _selection:
+                        _selection = '%s && mcveto==0' % _selection
                     else:
-                        selection = 'mcveto==0'
+                        _selection = 'mcveto==0'
 
                 ## Remove variable from selection if n-1
-                if remove_var_cut and variable in selection and not variable == 'cuts':
-                    selection = '&&'.join([ cut for cut in selection.split('&&') if not split_cut(cut)[0] == variable ])
+                if remove_var_cut and variable in _selection and not variable == 'cuts':
+                    _selection = '&&'.join([ cut for cut in _selection.split('&&') if not split_cut(cut)[0] == variable ])
 
                 # if do_remove_var and (':' in variable):
                 #     if varx in selection:
@@ -421,7 +423,7 @@ def _get_multi_histograms(ds, **kwargs):
                 ## change selection and variable for systematics
                 if syst != 'Nom' and systematics_.affects_kinematics(syst):
                     for var in systematics_.get_affected_variables(syst):
-                        selection = replace_var(selection, var, '%s_%s' % (var, syst))
+                        _selection = replace_var(selection, var, '%s_%s' % (var, syst))
 
                 # Weights
                 w_list = []
@@ -466,10 +468,10 @@ def _get_multi_histograms(ds, **kwargs):
 
                 # Add histogram and draw tuple
                 varexp = ''
-                if selection and w_str:
-                    varexp = '(%s)*(%s)' % (selection, w_str)
-                elif selection:
-                    varexp = selection
+                if _selection and w_str:
+                    varexp = '(%s)*(%s)' % (_selection, w_str)
+                elif _selection:
+                    varexp = _selection
                 elif scale:
                     varexp = w_str
 
@@ -543,6 +545,7 @@ def get_histograms(name, **kwargs):
     is_mc = (not 'data' in name and not 'efake' in name and not 'jfake' in name)
 
     show_progress = kwargs.get('show_progress', True)
+    add_overflow_bin = kwargs.get('add_overflow_bin', True)
 
     if '+' in year and (not is_mc or year!='2015+2016'):
 
@@ -581,6 +584,7 @@ def get_histograms(name, **kwargs):
 
     if show_progress:
         print_progressbar(name, len(datasets), 0)
+
     for ids, ds in enumerate(datasets):
 
         histograms_ds = _get_multi_histograms(ds, **kwargs)
@@ -591,8 +595,6 @@ def get_histograms(name, **kwargs):
         else:
             for hall, hnew in zip(histograms, histograms_ds):
                 hall.Add(hnew, 1)
-
-        del histograms_ds
 
         if show_progress:
             print_progressbar(name, len(datasets), ids+1)
@@ -626,6 +628,11 @@ def get_histograms(name, **kwargs):
                 new_hname = new_hname.replace(i, j)
 
         hist.SetName(new_hname)
+
+        if add_overflow_bin:
+            histogram_add_overflow_bin(hist)
+
+
 
     return histograms
 

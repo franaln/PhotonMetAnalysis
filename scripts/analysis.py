@@ -35,7 +35,6 @@ from rootutils import set_atlas_style
 
 fzero = 0.0001
 
-
 def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_syst, year, version, unblind=False):
 
     # Systematics
@@ -354,7 +353,6 @@ def do_plots_histograms(output_path, regions, samples, variables, year, version,
 
     get_histograms = partial(miniutils.get_histograms, year=year, version=version, remove_var_cut=n1, syst=syst,
                              variables=variables, regions=regions, selections=selections)
-
 
     for sample in samples:
 

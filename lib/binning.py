@@ -19,7 +19,7 @@ binning_dict['ph_ptcone20']  = (50, -5., 20.)
 ## jets
 binning_dict['jet_n']   = (20, 0, 20)
 binning_dict['bjet_n']  = (10, 0, 10)
-binning_dict['jet_pt']  = (40, 0., 2000.)
+binning_dict['jet_pt']  = (50, 0., 2500.)
 binning_dict['jet_e']  = (40, 0., 2000.)
 binning_dict['jet_eta'] = (15, -3., 3.)
 binning_dict['jet_phi'] = (34, -3.4, 3.4)
@@ -27,7 +27,7 @@ binning_dict['jet_isb'] = (2, 0, 2)
 
 ## met
 binning_dict['met_et']  = (10, 0, 1000)
-#binning_dict['met_et']  = (0, 100, 200, 300, 400, 500, 600, 1000) 
+#binning_dict['met_et']  = (0, 100, 200, 300, 400, 500, 600, 1000)
 binning_dict['met_phi'] = (17, -3.4, 3.4)
 binning_dict['met_soft_et']  = (20, 0., 1000.)
 binning_dict['met_soft_phi'] = (17, -3.4, 3.4)

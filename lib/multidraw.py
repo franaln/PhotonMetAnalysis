@@ -34,7 +34,6 @@ def MultiDraw(self, *draw_list):
                         ("hname2", "met_et", "weightB" ) )
     """
 
-
     histograms, variables, selections = [], [], []
 
     last_variable, last_selection = None, None
@@ -59,6 +58,7 @@ def MultiDraw(self, *draw_list):
 
             if not f.GetTree():
                 raise RuntimeError("TTreeFormula didn't compile: " + variable)
+
             f.SetQuickLoad(True)
             variables.append(f)
         else:
@@ -69,6 +69,7 @@ def MultiDraw(self, *draw_list):
 
             if not f.GetTree():
                 raise RuntimeError("TTreeFormula didn't compile: " + selection)
+
             f.SetQuickLoad(True)
             selections.append(f)
         else:
