@@ -31,7 +31,7 @@ void MultiDraw(TTree *tree, TObjArray *formulae, TObjArray *weights, TObjArray *
     for (UInt_t j=0; j<list_len; j++) {
       // If the Value or the Weight is the same as the previous, then it can be re-used.
       // In which case, this element fails to dynamic_cast to a formula, and evaluates to NULL
-      if ( EL(TTreeFormula, formulae, j) && EL(TTreeFormula, formulae, j)->GetNdata() > 0)
+      if ( EL(TTreeFormula, formulae, j) )
         value = EL(TTreeFormula, formulae, j)->EvalInstance();
 
       if ( EL(TTreeFormula, weights, j) )
