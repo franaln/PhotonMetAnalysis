@@ -382,7 +382,7 @@ def prepare_histograms_for_plots(input_path, output_path, regions, backgrounds, 
         for variable in variables:
 
             ## data
-            h_data.append(get_histogram_from_file(file_, 'data', variable, region, syst))
+            h_data.append(get_histogram_from_file(file_, 'data', variable, region, ''))
 
             ## backgrounds
             for name in backgrounds:
@@ -431,7 +431,7 @@ def get_histogram_from_file(file_, sample, variable, region, syst='Nom'):
     if sample.startswith('data'):
         syst = ''
 
-    hname = 'h%s%s_%s_obs_%s' % (sample, syst, region, variable)
+    hname = 'h%s%s_%s_obs_%s' % (sample, syst, region, miniutils.get_escaped_variable(variable))
     hist = file_.Get(hname)
     hist.SetDirectory(0)
 
