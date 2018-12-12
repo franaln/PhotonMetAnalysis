@@ -377,11 +377,11 @@ def do_plot(plotname,
         can.RedrawAxis()
 
     if logy:
-        chist.SetMinimum(0.01)
+        chist.SetMinimum(0.015)
 
         ymax = chist.GetMaximum()
         if 'dphi' in variable:
-            chist.SetMaximum(ymax*1000)
+            chist.SetMaximum(ymax*100)
         else:
             chist.SetMaximum(ymax*100)
     else:
@@ -468,8 +468,8 @@ def do_plot(plotname,
         legymax = 0.88
 
         if legpos == 'left' or legpos == 'top':
-            legxmin = 0.20
-            legxmax = 0.53
+            legxmin = 0.13
+            legxmax = 0.57
         elif legpos == 'right':
             legxmin = 0.50
             legxmax = 0.94
@@ -937,7 +937,8 @@ def do_plot_cmp(outname,
                 logy=True,
                 conf=None,
                 text='',
-                drawopts='hist'):
+                drawopts='hist',
+                ymin=None, ymax=None):
 
 
     if isinstance(histograms, dict):
@@ -1088,7 +1089,7 @@ def do_plot_cmp(outname,
         else:
             chist.SetMaximum(chist.GetMaximum()*100)
     else:
-        chist.SetMaximum(chist.GetMaximum()*2)
+        chist.SetMaximum(chist.GetMaximum()*1.5)
 
     chist.GetXaxis().SetTitle(xtitle)
     chist.GetXaxis().SetTitleOffset(1.3)
@@ -1141,19 +1142,20 @@ def do_plot_cmp(outname,
     if do_ratio and len(histograms) > 1:
 
         ratios = []
+        ratios_drawopts = []
         if ratio_type == 'diff':
 
             reference = histograms[0][1]
 
             ratios = []
-            for (name, hist) in histograms[1:]:
+            for i, (name, hist) in enumerate(histograms[1:]):
 
                 ratio = hist.Clone()
                 ratio.Add(reference, -1)
                 ratio.Divide(reference)
 
                 ratios.append(ratio)
-
+                ratios_drawopts.append(drawopts[i+1])
         else:
 
             if ratio_cmp is not None:
@@ -1166,12 +1168,14 @@ def do_plot_cmp(outname,
                     ratio = histograms[oth][1].Clone()
                     ratio.Divide(histograms[nom][1])
                     ratios.append(ratio)
+                    ratios_drawopts.append(drawopts[oth])
             else:
-                for (name, hist) in histograms[1:]:
+                for i, (name, hist) in enumerate(histograms[1:]):
                     ratio = hist.Clone()
                     ratio.Divide(histograms[0][1])
 
                     ratios.append(ratio)
+                    ratios_drawopts.append(drawopts[i+1])
 
         cdown.cd()
         ratios[0].SetTitle('')
@@ -1210,12 +1214,12 @@ def do_plot_cmp(outname,
         xmax     = ratios[0].GetXaxis().GetBinUpEdge(lastbin)
         xmin     = ratios[0].GetXaxis().GetBinLowEdge(firstbin)
 
-        ratios[0].Draw(drawopts[0])
+        ratios[0].Draw(ratios_drawopts[0])
 
         draw_ratio_lines(xmin, xmax)
 
         for i, ratio in enumerate(ratios):
-            ratio.Draw('%s same' % drawopts[i+1])
+            ratio.Draw('%s same' % ratios_drawopts[i])
 
 
         outputname = outname.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace(' ', '').replace(',', '')

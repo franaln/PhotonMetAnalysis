@@ -116,8 +116,8 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
                 hlist.append((hname, mean, unc))
 
 
-        # # jet fakes
-        # elif sample == 'jfake':
+        # jet fakes
+        elif sample == 'jfake':
 
         #     # SRs
         #     if 'SRL200' in regions:
@@ -147,23 +147,28 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
         #         hlist.append(('hjfakeJFAKE_SYSTLow_SRH_obs_cuts',  fzero, fzero))
         #         hlist.append(('hjfakeJFAKE_SYSTHigh_SRH_obs_cuts', 0.09, 0.09))
 
-        #     for (hname, mean, unc) in histograms:
+            for (hname, mean, unc) in histograms:
 
-        #         if 'SR' in hname:
-        #             continue
+                # if 'SR' in hname:
+                #     continue
 
-        #         rname = hname.split('_')[1]
+                rname = hname.split('_')[1]
 
-        #         hlist.append((hname, mean, unc))
-        #         if 'Nom' in hname:
-        #             ratio = unc/mean
-        #             hlist.append((hname+'Norm', ratio, 0.))
+                hlist.append((hname, mean, unc))
+                if 'Nom' in hname:
 
-        #             hlist.append(('hjfakeJFAKE_STATLow_%s_obs_cuts' % rname,  mean-unc, 0.))
-        #             hlist.append(('hjfakeJFAKE_STATHigh_%s_obs_cuts' % rname, mean+unc, 0.))
+                    try:
+                        ratio = unc/mean
+                    except:
+                        ratio = 0.
 
-        # # e fakes
-        # elif sample == 'efake':
+                    hlist.append((hname+'Norm', ratio, 0.))
+
+                    hlist.append(('hjfakeJFAKE_STATLow_%s_obs_cuts' % rname,  mean-unc, 0.))
+                    hlist.append(('hjfakeJFAKE_STATHigh_%s_obs_cuts' % rname, mean+unc, 0.))
+
+        # e fakes
+        elif sample == 'efake':
 
         #     # SRH
         #     if 'SRH' in regions:
@@ -175,20 +180,22 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
         #         hlist.append(('hefakeEFAKE_SYSTLow_SRH_obs_cuts',  0.038, 0.038))
         #         hlist.append(('hefakeEFAKE_SYSTHigh_SRH_obs_cuts', 0.050, 0.050))
 
-        #     for (hname, mean, unc) in histograms:
+            for (hname, mean, unc) in histograms:
 
-        #         if 'SRH' in hname:
-        #             continue
+                rname = hname.split('_')[1]
 
-        #         rname = hname.split('_')[1]
+                hlist.append((hname, mean, unc))
+                if 'Nom' in hname:
 
-        #         hlist.append((hname, mean, unc))
-        #         if 'Nom' in hname:
-        #             ratio = unc/mean
-        #             hlist.append((hname+'Norm', ratio, 0.))
+                    try:
+                        ratio = unc/mean
+                    except:
+                        ratio = 0.
 
-        #             hlist.append(('hefakeEFAKE_STATLow_%s_obs_cuts' % rname,  mean-unc, 0.))
-        #             hlist.append(('hefakeEFAKE_STATHigh_%s_obs_cuts' % rname, mean+unc, 0.))
+                    hlist.append((hname+'Norm', ratio, 0.))
+
+                    hlist.append(('hefakeEFAKE_STATLow_%s_obs_cuts' % rname,  mean-unc, 0.))
+                    hlist.append(('hefakeEFAKE_STATHigh_%s_obs_cuts' % rname, mean+unc, 0.))
 
 
         # MC SUSY signal
@@ -343,7 +350,7 @@ def do_tables(ws, output_dir, backgrounds, regions, sr_str, do_validation, unbli
 
 
 
-def do_plots_histograms(output_path, regions, samples, variables, year, version, n1=True):
+def do_plots_histograms(output_path, regions, samples, variables, year, version):
 
     syst = 'Nom' # only nominal for now
 
@@ -351,7 +358,7 @@ def do_plots_histograms(output_path, regions, samples, variables, year, version,
     for region in regions:
         selections.append(getattr(regions_, region))
 
-    get_histograms = partial(miniutils.get_histograms, year=year, version=version, remove_var_cut=n1, syst=syst,
+    get_histograms = partial(miniutils.get_histograms, year=year, version=version, syst=syst,
                              variables=variables, regions=regions, selections=selections)
 
     for sample in samples:
@@ -650,7 +657,6 @@ def main():
         'VRM1L', 'VRM2L', 'VRM3L',
         'VRM1H', 'VRM2H', 'VRM3H',
         'VRL1', 'VRL2', 'VRL3', 'VRL4',
-
         'VRE'
     ]
 
@@ -695,12 +701,11 @@ def main():
     # -----
     # Plots
     # -----
-    variables = [
+    plot_variables = [
         'ph_pt[0]',
         'jet_n',
         'bjet_n',
         'jet_pt[0]',
-        'jet_pt[1]',
         'met_et',
         'ht',
         'meff',
@@ -710,21 +715,22 @@ def main():
         'rt4',
         ]
 
-    variables_str = ','.join(variables)
-
     #plot_bkgs = ['photonjet', 'wgamma','zgamma', 'fakes', 'ttgamma', 'diphoton']
     plot_bkgs = ['photonjet', 'wgamma','zgamma', 'efake', 'jfake', 'ttgamma', 'diphoton']
 
-    bkg_merge_dict = {
+    plot_regions = regions
+
+    plot_bkg_merge_dict = {
         'zgamma': ['zllgamma', 'znunugamma',],
         #'fakes': ['efake', 'jfake']
         }
 
-    bkg_norm_dict = {
+    plot_bkg_norm_dict = {
         'CRQ': 'photonjet',
         'CRW': 'wgamma',
         'CRT': 'ttgamma',
         }
+
 
     lumi = 0.
     for year in data.split('+'):
@@ -777,9 +783,10 @@ def main():
             os.remove(histograms_plots_path)
 
         if args.sample is not None:
-            do_plots_histograms(histograms_plots_path, regions, args.sample.split(','), variables, data, version, n1=True)
+            do_plots_histograms(histograms_plots_path, plot_regions, args.sample.split(','), plot_variables, data, version)
         else:
-            do_plots_histograms(histograms_plots_path, regions, samples, variables, data, version, n1=True)
+            do_plots_histograms(histograms_plots_path, plot_regions, samples, plot_variables, data, version)
+
 
     #--------------
     # Bkg-only Fit
@@ -801,7 +808,7 @@ def main():
     #--------
     if step_tables:
         print('Creating tables ...')
-        do_tables(ws, tables_dir, backgrounds, regions, sr_str, do_validation, unblind, (do_det_syst or do_mc_syst or do_dd_syst), bkg_norm_dict)
+        do_tables(ws, tables_dir, backgrounds, regions, sr_str, do_validation, unblind, (do_det_syst or do_mc_syst or do_dd_syst), plot_bkg_norm_dict)
 
 
     #-------
@@ -810,26 +817,25 @@ def main():
     if step_plots:
 
         print('Preparing histograms for plots...')
-        prepare_histograms_for_plots(histograms_plots_path, histograms_plots_before_path, regions, backgrounds, variables, merge_dict=bkg_merge_dict)
-        prepare_histograms_for_plots(histograms_plots_path, histograms_plots_after_path, regions, backgrounds, variables, ws=ws, merge_dict=bkg_merge_dict, norm_dict=bkg_norm_dict)
+        prepare_histograms_for_plots(histograms_plots_path, histograms_plots_before_path, plot_regions, backgrounds, plot_variables, merge_dict=plot_bkg_merge_dict)
+        prepare_histograms_for_plots(histograms_plots_path, histograms_plots_after_path,  plot_regions, backgrounds, plot_variables, merge_dict=plot_bkg_merge_dict, ws=ws, norm_dict=plot_bkg_norm_dict)
 
 
         ## Pull plot
         print('Creating pull plot ...')
-        do_regions_pull_plot(ws, plots_dir+'/regions_pull.pdf', backgrounds, plot_bkgs, regions, bkg_merge_dict, unblind=unblind, data_label=data_label)
+        do_regions_pull_plot(ws, plots_dir+'/regions_pull.pdf', backgrounds, plot_bkgs, regions, plot_bkg_merge_dict, unblind=unblind, data_label=data_label)
 
-        do_regions_pull_plot(ws, plots_dir+'/regions_pull_significance.pdf', backgrounds, plot_bkgs, regions, bkg_merge_dict, unblind=unblind, data_label=data_label, plot_significance=True)
-
+        #do_regions_pull_plot(ws, plots_dir+'/regions_pull_significance.pdf', backgrounds, plot_bkgs, regions, plot_bkg_merge_dict, unblind=unblind, data_label=data_label, plot_significance=True)
 
         set_atlas_style()
 
         # Before fit plots
         print('Creating before-fit plots ...')
-        do_plots(histograms_plots_before_path, plots_dir, regions, plot_bkgs, variables, data_label, unblind=unblind, output_label='beforeFit')
+        do_plots(histograms_plots_before_path, plots_dir, plot_regions, plot_bkgs, plot_variables, data_label, unblind=unblind, output_label='beforeFit')
 
         # After fit plots
         print('Creating after-fit plots ...')
-        do_plots(histograms_plots_after_path, plots_dir, regions, plot_bkgs, variables, data_label, unblind=unblind, output_label='afterFit')
+        do_plots(histograms_plots_after_path, plots_dir, plot_regions, plot_bkgs, plot_variables, data_label, unblind=unblind, output_label='afterFit')
 
 
 

@@ -372,8 +372,8 @@ if do_dd_syst:
     efake_sample.addSystematic(syst_feg)
     jfake_sample.addSystematic(syst_fjg)
 
-    efake_sample.addSystematic(syst_stat_feg)
-    jfake_sample.addSystematic(syst_stat_fjg)
+efake_sample.addSystematic(syst_stat_feg)
+jfake_sample.addSystematic(syst_stat_fjg)
 
 if do_mc_syst:
     photonjet_sample.addSystematic(syst_gamjet_theo_all)

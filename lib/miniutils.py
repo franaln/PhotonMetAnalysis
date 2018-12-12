@@ -386,8 +386,8 @@ def _get_multi_histograms(ds, **kwargs):
                     htemp.Sumw2()
                 else:
                     if len(binning) > 3:
-                        if nominal_width is not None:
-                            fix_events_by_interval = True
+                        # if nominal_width is not None:
+                        #     fix_events_by_interval = True
                         htemp = ROOT.TH1D(hname, hname, len(binning)-1, array('d', binning))
                     else:
                         htemp = ROOT.TH1D(hname, hname, int(binning[0]), binning[1], binning[2])
@@ -453,6 +453,9 @@ def _get_multi_histograms(ds, **kwargs):
                         else:
                             w_list.append('weight_pu')
 
+                    # if is_gamjet_w:
+                    #     w_list.append('weight_ff')
+
                 elif is_fake:
                     if syst == 'Nom':
                         w_list.append('weight_ff')
@@ -460,6 +463,8 @@ def _get_multi_histograms(ds, **kwargs):
                         w_list.append('weight_ff_dn')
                     elif syst == 'EFAKE_SYST__1up' or syst == 'JFAKE_SYST__1up':
                         w_list.append('weight_ff_up')
+
+
 
                 if scale:
                     w_str = '*'.join(w_list)

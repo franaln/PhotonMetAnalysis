@@ -9,7 +9,7 @@ labels_dict['vgamma']       = 'W#gamma/Z#gamma'
 labels_dict['zgamma']       = 'Z#gamma'
 labels_dict['wgamma']       = 'W#gamma'
 labels_dict['zllgamma']     = 'Z(ll)#gamma'
-labels_dict['znunugamma']   = 'Z(#nu#nu)#gamma' 
+labels_dict['znunugamma']   = 'Z(#nu#nu)#gamma'
 labels_dict['efake']        = 'e#rightarrow#gamma fake'
 labels_dict['jfake']        = 'jet#rightarrow#gamma fake'
 labels_dict['multijet']     = 'Multijet'
@@ -20,23 +20,22 @@ labels_dict['ttbar']        = 'tt'
 labels_dict['diphoton']     = '#gamma#gamma/W#gamma#gamma/Z#gamma#gamma'
 labels_dict['fakes']        = 'e#rightarrow#gamma/j#rightarrow#gamma'
 
-
 mn1_text = 'm_{#tilde{#chi} #kern[-0.8]{#lower[1.2]{#scale[0.6]{1}}} #kern[-1.6]{#lower[-0.6]{#scale[0.6]{0}}}}'
 
 
-# GGM MadGraph grid 
+# GGM MadGraph grid
 from signalgrid import mg_gg_grid, mg_cn_grid
 
 for (m3, mu), (mgl, mn1) in mg_gg_grid.iteritems():
     name = 'GGM_GG_bhmix_%i_%i' % (m3, mu)
-    
+
     label = 'm_{#tilde{g}} = %i, %s = %i GeV' % (mgl, mn1_text, mn1)
 
     labels_dict[name] = label
 
 for mu, mn1 in mg_cn_grid.iteritems():
     name = 'GGM_CN_bhmix_%i' % mu
-    
+
     label = '%s=%i GeV' % (mn1_text, mn1)
 
     labels_dict[name] = label
@@ -53,7 +52,7 @@ colors_dict['fakes']       = '#3b5998' ##1e42d0'
 
 colors_dict['zllgamma']    = '#f7fab4'
 colors_dict['znunugamma']  = '#f7fab5'
-colors_dict['vgamma']      = '#f8f59b' 
+colors_dict['vgamma']      = '#f8f59b'
 colors_dict['efake']       = '#a4cee6'
 colors_dict['jfake']       = '#348ABD'
 colors_dict['multijet']    = '#348ABD'
@@ -78,7 +77,7 @@ colors_dict['GGM_GG_bhmix_1900_1860']  = '#faa23a'
 
 colors_dict['GGM_CN_bhmix_150'] = '#059bfd' ##4e5de4'
 colors_dict['GGM_CN_bhmix_200'] = '#fd059b' #e44e5d'
-colors_dict['GGM_CN_bhmix_250'] = '#fd6705' 
+colors_dict['GGM_CN_bhmix_250'] = '#fd6705'
 colors_dict['GGM_CN_bhmix_450'] = '#6021fa'
 
 # Plot config

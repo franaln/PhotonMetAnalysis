@@ -7,7 +7,7 @@ binning_dict['cuts'] = (1, 0.5, 1.5)
 
 ## photon
 binning_dict['ph_n']  = (5, 0, 5)
-binning_dict['ph_pt']  = (14, 145., 1545) ##(150., 350, 550, 750, 950, 1250, 1550)  ##15, 145., 1645.)
+binning_dict['ph_pt']  = (145., 200, 250, 300, 450, 500, 550, 600, 700, 800, 900, 1000, 1250, 1500, 1750, 2000)
 binning_dict['ph_iso'] = (40, -20., 20.)
 binning_dict['ph_eta'] = (30, -3., 3.)
 binning_dict['ph_etas2'] = (30, -3., 3.)
@@ -26,7 +26,8 @@ binning_dict['jet_phi'] = (34, -3.4, 3.4)
 binning_dict['jet_isb'] = (2, 0, 2)
 
 ## met
-binning_dict['met_et']  = (10, 0, 1000)
+#binning_dict['met_et']  = (10, 0, 1000)
+binning_dict['met_et']  = (20, 0, 1000)
 #binning_dict['met_et']  = (0, 100, 200, 300, 400, 500, 600, 1000)
 binning_dict['met_phi'] = (17, -3.4, 3.4)
 binning_dict['met_soft_et']  = (20, 0., 1000.)
@@ -52,8 +53,8 @@ binning_dict['dphi_gammet']     = (17, 0., 3.4)
 binning_dict['dphi'] = (17, 0., 3.4)
 
 ## others
-binning_dict['ht0']             = (25, 0., 5000.)
-binning_dict['ht']              = (25, 0., 5000.)
+binning_dict['ht0']             = (30, 0., 6000.)
+binning_dict['ht']              = (30, 0., 6000.)
 binning_dict['meff']            = (12, 0., 6000.)
 #binning_dict['meff']            = (15, 0., 6000.)
 binning_dict['rt1']             = (22, 0., 1.1)
@@ -92,7 +93,7 @@ binning_dict['avgmu'] = (50, 0, 50)
 binning_dict['deta_gamjet'] = (60, 0., 6.)
 binning_dict['dr_gamjet'] = (60, 0., 6.)
 
-binning_dict['jet_pt[0]']  = (40, 0., 2000.)
+binning_dict['jet_pt[0]']  = (50, 0., 2500.)
 binning_dict['jet_pt[1]']  = (40, 0., 2000.)
 binning_dict['jet_pt[2]']  = (40, 0., 2000.)
 binning_dict['jet_pt[3]']  = (40, 0., 2000.)
