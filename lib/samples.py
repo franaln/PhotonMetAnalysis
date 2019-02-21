@@ -588,18 +588,6 @@ samples_dict = {
     'vgamma': 'zllgamma + znunugamma + wgamma',
 
 
-    'vgammagamma': [
-       'mc16_13TeV.364554.Sherpa_222_NNPDF30NNLO_eegammagamma_pty_140_E_CMS',
-       'mc16_13TeV.364559.Sherpa_222_NNPDF30NNLO_mumugammagamma_pty_140_E_CMS',
-       'mc16_13TeV.364564.Sherpa_222_NNPDF30NNLO_tautaugammagamma_pty_140_E_CMS',
-       'mc16_13TeV.364569.Sherpa_222_NNPDF30NNLO_nunugammagamma_pty_140_E_CMS',
-       'mc16_13TeV.364574.Sherpa_222_NNPDF30NNLO_enugammagamma_pty_140_E_CMS',
-       'mc16_13TeV.364579.Sherpa_222_NNPDF30NNLO_munugammagamma_pty_140_E_CMS',
-       'mc16_13TeV.364584.Sherpa_222_NNPDF30NNLO_taunugammagamma_pty_140_E_CMS',
-       ],
-
-
-
     'ttbar': ['mc16_13TeV.410470.PhPy8EG_A14_ttbar_hdamp258p75_nonallhad',
               'mc16_13TeV.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad',
              ],
@@ -729,6 +717,16 @@ samples_dict = {
         'mc16_13TeV.426141.Sherpa_CT10_jets_JZ11',
         'mc16_13TeV.426142.Sherpa_CT10_jets_JZ12',
         ],
+
+    'vgammagamma': [
+       'mc16_13TeV.364554.Sherpa_222_NNPDF30NNLO_eegammagamma_pty_140_E_CMS',
+       'mc16_13TeV.364559.Sherpa_222_NNPDF30NNLO_mumugammagamma_pty_140_E_CMS',
+       'mc16_13TeV.364564.Sherpa_222_NNPDF30NNLO_tautaugammagamma_pty_140_E_CMS',
+       'mc16_13TeV.364569.Sherpa_222_NNPDF30NNLO_nunugammagamma_pty_140_E_CMS',
+       'mc16_13TeV.364574.Sherpa_222_NNPDF30NNLO_enugammagamma_pty_140_E_CMS',
+       'mc16_13TeV.364579.Sherpa_222_NNPDF30NNLO_munugammagamma_pty_140_E_CMS',
+       'mc16_13TeV.364584.Sherpa_222_NNPDF30NNLO_taunugammagamma_pty_140_E_CMS',
+       ],
 
     'diphoton': [
         'mc16_13TeV.407022.Sherpa_CT10_enugammagammaPt50GeV',
