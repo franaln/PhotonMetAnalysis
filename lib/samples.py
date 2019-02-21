@@ -689,6 +689,19 @@ samples_dict = {
         'mc16_13TeV.303742.Sherpa_CT10_2DP20_myy_5000_inf',
         ],
 
+    'GGM_GG_bhmix_2000_250' : 'mc16_13TeV.377686.MGPy8EG_A14N23LO_GGM_GG_bhmix_2000_250',
+    'GGM_GG_bhmix_2000_1050': 'mc16_13TeV.377690.MGPy8EG_A14N23LO_GGM_GG_bhmix_2000_1050',
+    'GGM_GG_bhmix_2000_1950': 'mc16_13TeV.377695.MGPy8EG_A14N23LO_GGM_GG_bhmix_2000_1950',
+    'GGM_GG_bhmix_2200_250 ': 'mc16_13TeV.377698.MGPy8EG_A14N23LO_GGM_GG_bhmix_2200_250',
+    'GGM_GG_bhmix_2200_1050': 'mc16_13TeV.377702.MGPy8EG_A14N23LO_GGM_GG_bhmix_2200_1050',
+    'GGM_GG_bhmix_2200_2150': 'mc16_13TeV.377707.MGPy8EG_A14N23LO_GGM_GG_bhmix_2200_2150',
+    'GGM_GG_bhmix_2400_250' : 'mc16_13TeV.377710.MGPy8EG_A14N23LO_GGM_GG_bhmix_2400_250',
+    'GGM_GG_bhmix_2400_1050': 'mc16_13TeV.377714.MGPy8EG_A14N23LO_GGM_GG_bhmix_2400_1050',
+    'GGM_GG_bhmix_2400_2350': 'mc16_13TeV.377720.MGPy8EG_A14N23LO_GGM_GG_bhmix_2400_2350',
+
+
+
+
     }
 
 samples_dict['efake15'] = [ i.replace('data15_13TeV', 'efake15') for i in samples_dict['data15'] ]
