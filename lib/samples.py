@@ -492,6 +492,27 @@ samples_dict = {
          'mc16_13TeV.364547.Sherpa_222_NNPDF30NNLO_SinglePhoton_pty_1000_E_CMS',
          ],
 
+    'photonjet_w': [
+        'mc16_13TeV.361042.Sherpa_SinglePhoton_w_Pt70_140_CVetoBVeto',
+        'mc16_13TeV.361043.Sherpa_SinglePhoton_w_Pt70_140_CFilterBVeto',
+        'mc16_13TeV.361044.Sherpa_SinglePhoton_w_Pt70_140_BFilter',
+        'mc16_13TeV.361045.Sherpa_SinglePhoton_w_Pt140_280_CVetoBVeto',
+        'mc16_13TeV.361046.Sherpa_SinglePhoton_w_Pt140_280_CFilterBVeto',
+        'mc16_13TeV.361047.Sherpa_SinglePhoton_w_Pt140_280_BFilter',
+        'mc16_13TeV.361048.Sherpa_SinglePhoton_w_Pt280_500_CVetoBVeto',
+        'mc16_13TeV.361049.Sherpa_SinglePhoton_w_Pt280_500_CFilterBVeto',
+        'mc16_13TeV.361050.Sherpa_SinglePhoton_w_Pt280_500_BFilter',
+        'mc16_13TeV.361051.Sherpa_SinglePhoton_w_Pt500_1000_CVetoBVeto',
+        'mc16_13TeV.361052.Sherpa_SinglePhoton_w_Pt500_1000_CFilterBVeto',
+        'mc16_13TeV.361053.Sherpa_SinglePhoton_w_Pt500_1000_BFilter',
+        'mc16_13TeV.361054.Sherpa_SinglePhoton_w_Pt1000_2000_CVetoBVeto',
+        'mc16_13TeV.361055.Sherpa_SinglePhoton_w_Pt1000_2000_CFilterBVeto',
+        'mc16_13TeV.361056.Sherpa_SinglePhoton_w_Pt1000_2000_BFilter',
+        'mc16_13TeV.361057.Sherpa_SinglePhoton_w_Pt2000_4000_CVetoBVeto',
+        'mc16_13TeV.361058.Sherpa_SinglePhoton_w_Pt2000_4000_CFilterBVeto',
+        'mc16_13TeV.361059.Sherpa_SinglePhoton_w_Pt2000_4000_BFilter',
+        ],
+
     'ttgamma': [
         #'mc16_13TeV.410084.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma80_noallhad',
         'mc16_13TeV.407320.aMcAtNloPythia8EvtGen_MEN30NLO_A14N23LO_tta140',

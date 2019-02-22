@@ -314,7 +314,7 @@ def do_tables(ws, output_dir, backgrounds, regions, sr_str, do_validation, unbli
 
     ## VR
     if do_validation:
-        yieldstable(ws, backgrounds_str, 'VRM1L,VRM2L,VRM3L,VRM1H,VRM2H,VRM3H', output_dir+'/table_vrm.tex', 'VRM')
+        yieldstable(ws, backgrounds_str, 'VRQ,VRM1L,VRM2L,VRM1H,VRM2H', output_dir+'/table_vrm.tex', 'VRM')
 
         yieldstable(ws, backgrounds_str, 'VRL1,VRL2,VRL3,VRL4', output_dir+'/table_vrl.tex', 'VRL')
 
@@ -654,8 +654,9 @@ def main():
     srs = ['SRL200', 'SRL300', 'SRH']
     crs = ['CRQ', 'CRW', 'CRT']
     vrs = [
-        'VRM1L', 'VRM2L', 'VRM3L',
-        'VRM1H', 'VRM2H', 'VRM3H',
+        'VRQ',
+        'VRM1L', 'VRM2L',
+        'VRM1H', 'VRM2H',
         'VRL1', 'VRL2', 'VRL3', 'VRL4',
         'VRE'
     ]

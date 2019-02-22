@@ -131,8 +131,9 @@ srs = signal_region.split(',')
 regions = [
     'CRQ', 'CRW', 'CRT',
 
-    'VRM1L', 'VRM2L', 'VRM3L',
-    'VRM1H', 'VRM2H', 'VRM3H',
+    'VRQ',
+    'VRM1L', 'VRM2L',
+    'VRM1H', 'VRM2H',
 
     'VRL1', 'VRL2', 'VRL3', 'VRL4', 'VRE',
     ]
@@ -457,12 +458,11 @@ photonjet_sample.setNormRegions(['CRQ', variable])
 # -------------------
 if do_validation:
 
+    VRQ    = fitconfig.addChannel(variable, ['VRQ'], *binning)
     VRM1L  = fitconfig.addChannel(variable, ['VRM1L'], *binning)
     VRM2L  = fitconfig.addChannel(variable, ['VRM2L'], *binning)
-    VRM3L  = fitconfig.addChannel(variable, ['VRM3L'], *binning)
     VRM1H  = fitconfig.addChannel(variable, ['VRM1H'], *binning)
     VRM2H  = fitconfig.addChannel(variable, ['VRM2H'], *binning)
-    VRM3H  = fitconfig.addChannel(variable, ['VRM3H'], *binning)
 
     VRL1  = fitconfig.addChannel(variable, ['VRL1'], *binning)
     VRL2  = fitconfig.addChannel(variable, ['VRL2'], *binning)
@@ -471,12 +471,11 @@ if do_validation:
 
     VRE  = fitconfig.addChannel(variable, ['VRE'], *binning)
 
+    validation_channels.append(VRQ)
     validation_channels.append(VRM1L)
     validation_channels.append(VRM2L)
-    validation_channels.append(VRM3L)
     validation_channels.append(VRM1H)
     validation_channels.append(VRM2H)
-    validation_channels.append(VRM3H)
     validation_channels.append(VRL1)
     validation_channels.append(VRL2)
     validation_channels.append(VRL3)

@@ -324,10 +324,13 @@ def _get_multi_histograms(ds, **kwargs):
     use_purw    = kwargs.get('use_purw',    True)
     use_mcveto  = kwargs.get('use_mcveto',  True)
 
+    use_gamjet_w  = kwargs.get('use_gamjet_w',  False)
+
     remove_var_cut = kwargs.get('remove_var_cut',  False)
 
     is_mc = ds['project'].startswith('mc')
     is_fake = ('efake' in ds['name'] or 'jfake' in ds['name'])
+    is_gamjet = ('photonjet' in ds['name'])
 
     #-----------
     # File/Chain
@@ -453,8 +456,8 @@ def _get_multi_histograms(ds, **kwargs):
                         else:
                             w_list.append('weight_pu')
 
-                    # if is_gamjet_w:
-                    #     w_list.append('weight_ff')
+                    if use_gamjet_w and is_gamjet:
+                        w_list.append('weight_ff')
 
                 elif is_fake:
                     if syst == 'Nom':
