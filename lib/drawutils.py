@@ -934,6 +934,7 @@ def do_plot_cmp(outname,
                 ratio_cmp=None,
                 ratio_text='Ratio',
                 normalize=False,
+                normalize1=False,
                 logy=True,
                 conf=None,
                 text='',
@@ -955,6 +956,14 @@ def do_plot_cmp(outname,
                 hist.Scale(hist0norm/hist.Integral())
             except ZeroDivisionError:
                 pass
+    elif normalize1:
+        for (name, hist) in histograms:
+            try:
+                hist.Scale(1/hist.Integral())
+            except ZeroDivisionError:
+                pass
+
+
 
     if conf is not None:
         pass
@@ -1083,13 +1092,17 @@ def do_plot_cmp(outname,
     else:
         chist.SetMinimum(0.01)
 
-    if logy and conf['logy']:
-        if 'dphi' in variable:
-            chist.SetMaximum(chist.GetMaximum()*100000)
-        else:
-            chist.SetMaximum(chist.GetMaximum()*100)
+    if ymin is not None and ymax is not None:
+        chist.SetMinimum(ymin)
+        chist.SetMaximum(ymax)
     else:
-        chist.SetMaximum(chist.GetMaximum()*1.5)
+        if logy and conf['logy']:
+            if 'dphi' in variable:
+                chist.SetMaximum(chist.GetMaximum()*100000)
+            else:
+                chist.SetMaximum(chist.GetMaximum()*100)
+        else:
+            chist.SetMaximum(chist.GetMaximum()*1.5)
 
     chist.GetXaxis().SetTitle(xtitle)
     chist.GetXaxis().SetTitleOffset(1.3)
@@ -1222,8 +1235,8 @@ def do_plot_cmp(outname,
             ratio.Draw('%s same' % ratios_drawopts[i])
 
 
-        outputname = outname.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace(' ', '').replace(',', '')
-        can.Print(outputname)
+    outputname = outname.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace(' ', '').replace(',', '')
+    can.Print(outputname)
 
 
 ## Limits

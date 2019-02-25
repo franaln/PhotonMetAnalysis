@@ -203,8 +203,20 @@ plots_conf = {
         },
 
     'ph_iso': {
-        'xtitle': 'E_{T}^{iso} - 0.022 #times  p_{T} [GeV]',
+        'xtitle': 'E_{T}^{cone20} - 0.022 #times  p_{T} [GeV]',
         'ytitle': 'Events / BIN GeV',
+        'legpos': 'right',
+        'xmin': None,
+        'xmax': None,
+        'ymin': None,
+        'ymax': None,
+        'logx': False,
+        'logy': True,
+        },
+
+    'ph_trackiso': {
+        'xtitle': 'p_{T}^{cone20} / p_{T}',
+        'ytitle': 'Events / BIN ',
         'legpos': 'right',
         'xmin': None,
         'xmax': None,

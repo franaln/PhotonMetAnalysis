@@ -15,6 +15,8 @@ binning_dict['ph_phi'] = (17, -3.4, 3.4)
 binning_dict['ph_truth_pt']  = (100, 145., 2045.)
 binning_dict['ph_etcone40']  = (50, -5., 20.)
 binning_dict['ph_ptcone20']  = (50, -5., 20.)
+binning_dict['ph_trackiso']  = (120, 0., 0.3)
+
 
 ## jets
 binning_dict['jet_n']   = (20, 0, 20)

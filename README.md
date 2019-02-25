@@ -18,7 +18,7 @@ ROOT, HistFitter, rootutils
     git apply ../HistFitter_patch.diff ## fix fit strategy and add random seed to compute p0
 
     cd src
-    make 
+    make
     cd ../..
 
     mkdir -p run/data run/config run/results
@@ -32,5 +32,4 @@ ROOT, HistFitter, rootutils
 
 ## Update cross-section database (data/CrossSectionData.txt) from here:
 
-    http://atlas.web.cern.ch/Atlas/GROUPS/DATABASE/GroupData/dev/PMGTools/PMGxsecDB_mc16.txt
-
+    /cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PMGTools/PMGxsecDB_mc16.txt
