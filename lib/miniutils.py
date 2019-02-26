@@ -211,6 +211,8 @@ def get_lumi_weight(ds, lumi, fs=None):
 
 r_ds = re.compile('(mc15_13TeV|mc16_13TeV|data15_13TeV|data16_13TeV|data17_13TeV|data18_13TeV|efake15|efake16|efake17|efake18|jfake15|jfake16|jfake17|jfake18)\.([0-9]*)\.(.*)')
 
+r_period_ds = re.compile('(mc15_13TeV|mc16_13TeV|data15_13TeV|data16_13TeV|data17_13TeV|data18_13TeV|efake15|efake16|efake17|efake18|jfake15|jfake16|jfake17|jfake18)\.(period[A-Z])\.(.*)')
+
 def find_path(project, did, short_name, version, mc_campaign):
 
     if project.startswith('mc') and mc_campaign is not None:
@@ -270,7 +272,12 @@ def get_datasets(name, version=None, mc_campaign=None, ignore_missing=False):
             m = r_ds.match(ds)
             project, did, short_name = m.group(1), m.group(2), m.group(3)
         except:
-            raise Exception(ds)
+            try:
+                m = r_period_ds.match(ds)
+                project, did, short_name = m.group(1), m.group(2), m.group(3)
+            except:
+                raise Exception(ds)
+
 
         path = find_path(project, did, short_name, version, mc_campaign)
 
@@ -294,9 +301,9 @@ def get_datasets(name, version=None, mc_campaign=None, ignore_missing=False):
     return datasets
 
 
-#---------------
+#-----------
 # Histogram
-#---------------
+#-----------
 def is_2d_variable(variable):
     return ':' in variable and not '::' in variable
 
@@ -332,9 +339,9 @@ def _get_multi_histograms(ds, **kwargs):
     is_fake = ('efake' in ds['name'] or 'jfake' in ds['name'])
     is_gamjet = ('photonjet' in ds['name'])
 
-    #-----------
+    #------------
     # File/Chain
-    #-----------
+    #------------
     path = ds['path']
 
     if os.path.isdir(path):
@@ -351,9 +358,9 @@ def _get_multi_histograms(ds, **kwargs):
     if is_mc and use_lumiw:
         lumi_weight = get_lumi_weight(ds, lumi)
 
-    #---------------------------------------------
+    #----------------------------------------------
     # Create histograms and "tuples" for MultiDraw
-    #---------------------------------------------
+    #----------------------------------------------
     draw_list  = []
     histograms = []
 
@@ -639,7 +646,6 @@ def get_histograms(name, **kwargs):
 
         if add_overflow_bin:
             histogram_add_overflow_bin(hist)
-
 
 
     return histograms
