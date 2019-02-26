@@ -339,6 +339,8 @@ def _get_multi_histograms(ds, **kwargs):
     is_fake = ('efake' in ds['name'] or 'jfake' in ds['name'])
     is_gamjet = ('photonjet' in ds['name'])
 
+    debug = kwargs.get('debug', False)
+
     #------------
     # File/Chain
     #------------
@@ -433,7 +435,7 @@ def _get_multi_histograms(ds, **kwargs):
                 ## change selection and variable for systematics
                 if syst != 'Nom' and systematics_.affects_kinematics(syst):
                     for var in systematics_.get_affected_variables(syst):
-                        _selection = replace_var(selection, var, '%s_%s' % (var, syst))
+                        _selection = replace_var(_selection, var, '%s_%s' % (var, syst))
 
                 # Weights
                 w_list = []
@@ -503,6 +505,8 @@ def _get_multi_histograms(ds, **kwargs):
         tree.MultiDraw(*draw_list)
     else:
         hname, variable, selection = draw_list[0]
+        if debug:
+            print(hname, variable, selection)
         tree.Project(hname, variable, selection)
 
     for hist in histograms:

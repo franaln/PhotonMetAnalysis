@@ -35,7 +35,8 @@ from rootutils import set_atlas_style
 
 fzero = 0.0001
 
-def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_syst, year, version, unblind=False):
+def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_syst, year, version, unblind=False,
+                  ignore_missing=False):
 
     # Systematics
     ## high-low systematics
@@ -65,7 +66,7 @@ def do_histograms(output_path, regions, samples, do_det_syst, do_dd_syst, do_mc_
 
         get_events = partial(miniutils.get_multi_events, sample,
                              variables=['cuts'], regions=regions, selections=selections,
-                             year=year, version=version)
+                             year=year, version=version, ignore_missing=ignore_missing)
 
 
         systematics_list = ['Nom',]
@@ -324,33 +325,32 @@ def do_tables(ws, output_dir, backgrounds, regions, sr_str, do_validation, unbli
     yieldstable(ws, backgrounds_str, sr_str, output_dir+'/table_sr.tex', 'Signal Regions', unblind=unblind)
 
     # Systematic tables
-    # if do_syst_tables:
-    #     systable(ws, '', 'SRL200', '%s/table_syst_srl200.tex' % output_dir)
-    #     systable(ws, '', 'SRL300', '%s/table_syst_srl300.tex' % output_dir)
-    #     systable(ws, '', 'SRH',    '%s/table_syst_srh.tex' % output_dir)
+    if do_syst_tables:
+        systable(ws, '', 'SRL200', '%s/table_syst_srl200.tex' % output_dir)
+        systable(ws, '', 'SRL300', '%s/table_syst_srl300.tex' % output_dir)
+        systable(ws, '', 'SRH',    '%s/table_syst_srh.tex' % output_dir)
 
-    #     systable(ws, '', 'CRQ', '%s/table_syst_crq.tex' % output_dir)
-    #     systable(ws, '', 'CRW', '%s/table_syst_crw.tex' % output_dir)
-    #     systable(ws, '', 'CRT', '%s/table_syst_crt.tex' % output_dir)
+        systable(ws, '', 'CRQ', '%s/table_syst_crq.tex' % output_dir)
+        systable(ws, '', 'CRW', '%s/table_syst_crw.tex' % output_dir)
+        systable(ws, '', 'CRT', '%s/table_syst_crt.tex' % output_dir)
 
-    #     for bkg in backgrounds:
-    #         systable(ws, bkg,             sr_str, '%s/table_syst_%s.tex' % (output_dir, bkg))
+        # for bkg in backgrounds:
+        #     systable(ws, bkg,             sr_str, '%s/table_syst_%s.tex' % (output_dir, bkg))
 
-    #     if do_validation:
-    #         systable(ws, '', 'VRL1', '%s/table_syst_vrl1.tex' % output_dir)
-    #         systable(ws, '', 'VRL2', '%s/table_syst_vrl2.tex' % output_dir)
-    #         systable(ws, '', 'VRL3', '%s/table_syst_vrl3.tex' % output_dir)
-    #         systable(ws, '', 'VRL4', '%s/table_syst_vrl4.tex' % output_dir)
-    #         systable(ws, '', 'VRM1L', '%s/table_syst_vrm1l.tex' % output_dir)
-    #         systable(ws, '', 'VRM1H', '%s/table_syst_vrm1h.tex' % output_dir)
-    #         systable(ws, '', 'VRM2L', '%s/table_syst_vrm2l.tex' % output_dir)
-    #         systable(ws, '', 'VRM2H', '%s/table_syst_vrm2h.tex' % output_dir)
-    #         systable(ws, '', 'VRM3L', '%s/table_syst_vrm3l.tex' % output_dir)
-    #         systable(ws, '', 'VRM3H', '%s/table_syst_vrm3h.tex' % output_dir)
-
+        if do_validation:
+            systable(ws, '', 'VRL1', '%s/table_syst_vrl1.tex' % output_dir)
+            systable(ws, '', 'VRL2', '%s/table_syst_vrl2.tex' % output_dir)
+            systable(ws, '', 'VRL3', '%s/table_syst_vrl3.tex' % output_dir)
+            systable(ws, '', 'VRL4', '%s/table_syst_vrl4.tex' % output_dir)
+            systable(ws, '', 'VRQ',   '%s/table_syst_vrq.tex' % output_dir)
+            systable(ws, '', 'VRM1L', '%s/table_syst_vrm1l.tex' % output_dir)
+            systable(ws, '', 'VRM1H', '%s/table_syst_vrm1h.tex' % output_dir)
+            systable(ws, '', 'VRM2L', '%s/table_syst_vrm2l.tex' % output_dir)
+            systable(ws, '', 'VRM2H', '%s/table_syst_vrm2h.tex' % output_dir)
 
 
-def do_plots_histograms(output_path, regions, samples, variables, year, version):
+
+def do_plots_histograms(output_path, regions, samples, variables, year, version, ignore_missing=False):
 
     syst = 'Nom' # only nominal for now
 
@@ -359,7 +359,7 @@ def do_plots_histograms(output_path, regions, samples, variables, year, version)
         selections.append(getattr(regions_, region))
 
     get_histograms = partial(miniutils.get_histograms, year=year, version=version, syst=syst,
-                             variables=variables, regions=regions, selections=selections)
+                             variables=variables, regions=regions, selections=selections, ignore_missing=ignore_missing)
 
     for sample in samples:
 
@@ -573,7 +573,7 @@ def do_regions_pull_plot(ws, output_name, backgrounds, plot_bkgs, regions, merge
 
 def main():
 
-    parser = argparse.ArgumentParser(description='do_analysis.py')
+    parser = argparse.ArgumentParser(description='analysis.py')
 
     # Input/output
     # version, data
@@ -604,6 +604,8 @@ def main():
     # Histogram options
     parser.add_argument('--force',  action='store_true', help='Force histogram creation')
     parser.add_argument('-s', '--sample', help='Only update histograms for this sample')
+
+    parser.add_argument('--ignore-missing', dest='ignore_missing', action='store_true', help='Ignore missing samples. Do not use this option! ')
 
 
     args = parser.parse_args()
@@ -770,7 +772,8 @@ def main():
 
     if step_chist and (not os.path.isfile(histograms_path) or args.force):
         print('Creating cuts histograms ...')
-        do_histograms(histograms_path, regions, samples, do_det_syst, do_dd_syst, do_mc_syst, data, version, unblind)
+        do_histograms(histograms_path, regions, samples, do_det_syst, do_dd_syst, do_mc_syst, data, version, unblind,
+                      ignore_missing=args.ignore_missing)
 
     # Observables distributions
     histograms_plots_path           = '%s/histograms_plots.root' % (histograms_dir)
@@ -786,7 +789,7 @@ def main():
         if args.sample is not None:
             do_plots_histograms(histograms_plots_path, plot_regions, args.sample.split(','), plot_variables, data, version)
         else:
-            do_plots_histograms(histograms_plots_path, plot_regions, samples, plot_variables, data, version)
+            do_plots_histograms(histograms_plots_path, plot_regions, samples, plot_variables, data, version, ignore_missing=args.ignore_missing)
 
 
     #--------------

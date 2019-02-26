@@ -256,27 +256,70 @@ configMgr.nomName = 'Nom'
 def HistSys(name='', kind='overallSys'):
     #return Systematic(name, nom_name, '_'+name+'Up', '_'+name+'Down', 'tree', kind)
     return Systematic(name, nom_name, '_'+name+'High', '_'+name+'Low', 'tree', kind)
+    #return Systematic(name, nom_name, '_'+name+'__1up', '_'+name+'__1down', 'tree', kind)
 
 # Detector uncertainties
 syst_to_all = [
     # egamma
     HistSys("EG_RESOLUTION_ALL"),
+    HistSys("EG_SCALE_AF2"),
     HistSys("EG_SCALE_ALL"),
 
-    Systematic('PH_Iso_DDonoff', nom_name, '_PH_Iso_DDonoffHigh', nom_name, 'tree', 'histoSysOneSide'),
     HistSys('PH_EFF_ID_Uncertainty'),
+    HistSys('PH_EFF_ISO_Uncertainty'),
+    HistSys('PH_EFF_TRIGGER_Uncertainty'),
+
+    HistSys('EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR'),
+    HistSys('EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR'),
+
+    # muons
+    HistSys('MUON_MS'),
+    HistSys('MUON_ID'),
+    HistSys('MUON_SAGITTA_RESBIAS'),
+    HistSys('MUON_SAGITTA_RHO'),
+    HistSys('MUON_SCALE'),
+
+    HistSys('MUON_EFF_BADMUON_STAT'),
+    HistSys('MUON_EFF_BADMUON_SYS'),
+    HistSys('MUON_EFF_ISO_STAT'),
+    HistSys('MUON_EFF_ISO_SYS'),
+    HistSys('MUON_EFF_RECO_STAT'),
+    HistSys('MUON_EFF_RECO_SYS'),
+    HistSys('MUON_EFF_TTVA_STAT'),
+    HistSys('MUON_EFF_TTVA_SYS'),
+
 
     # jets
-    HistSys('JET_EtaIntercalibration_NonClosure'),
-    HistSys('JET_JvtEfficiency'),
+    HistSys('JET_EtaIntercalibration_NonClosure_highE'),
+    HistSys('JET_EtaIntercalibration_NonClosure_negEta'),
+    HistSys('JET_EtaIntercalibration_NonClosure_posEta'),
+    HistSys('JET_Flavor_Response'),
     HistSys('JET_GroupedNP_1'),
     HistSys('JET_GroupedNP_2'),
     HistSys('JET_GroupedNP_3'),
-    Systematic('JET_JER_SINGLE_NP', nom_name, '_JET_JER_SINGLE_NPHigh', nom_name, 'tree','histoSysOneSide'),
+    HistSys('JET_JER_DataVsMC'),
+    HistSys('JET_JER_EffectiveNP_1'),
+    HistSys('JET_JER_EffectiveNP_2'),
+    HistSys('JET_JER_EffectiveNP_3'),
+    HistSys('JET_JER_EffectiveNP_4'),
+    HistSys('JET_JER_EffectiveNP_5'),
+    HistSys('JET_JER_EffectiveNP_6'),
+    HistSys('JET_JER_EffectiveNP_7restTerm'),
+
+    HistSys('JET_JvtEfficiency'),
+    HistSys('JET_fJvtEfficiency'),
+
+    HistSys('FT_EFF_B_systematics'),
+    HistSys('FT_EFF_C_systematics'),
+    HistSys('FT_EFF_Light_systematics'),
+    HistSys('FT_EFF_extrapolation'),
+    HistSys('FT_EFF_extrapolation_from_charm'),
 
     # met
-    Systematic('MET_SoftTrk_ResoPara', nom_name, '_MET_SoftTrk_ResoParaHigh', nom_name, 'tree', 'histoSysOneSide'),
-    Systematic('MET_SoftTrk_ResoPerp', nom_name, '_MET_SoftTrk_ResoPerpHigh', nom_name, 'tree', 'histoSysOneSide'),
+    # Systematic('MET_SoftTrk_ResoPara', nom_name, '_MET_SoftTrk_ResoParaHigh', nom_name, 'tree', 'histoSysOneSide'),
+    # Systematic('MET_SoftTrk_ResoPerp', nom_name, '_MET_SoftTrk_ResoPerpHigh', nom_name, 'tree', 'histoSysOneSide'),
     Systematic('MET_SoftTrk_Scale',    nom_name, '_MET_SoftTrk_ScaleHigh', '_MET_SoftTrk_ScaleLow', 'tree', 'overallSys'),
 
     # pile-up
