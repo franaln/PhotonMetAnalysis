@@ -16,9 +16,9 @@ def _create_xs_db():
             line = line.replace('\n', '')
             if not line or line.startswith('#'):
                 continue
-            
+
             try:
-                dsid, name, gen_xs, filter_eff, kfact, unc, gen_name = line.split()
+                dsid, name, gen_xs, filter_eff, kfact, unc_up, unc_dn, gen_name = line.split()
             except:
                 continue
 
