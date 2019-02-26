@@ -19,6 +19,7 @@ samples_dict = {
         'data16_13TeV.periodE.physics_Main',
         'data16_13TeV.periodF.physics_Main',
         'data16_13TeV.periodG.physics_Main',
+        'data16_13TeV.periodI.physics_Main',
         'data16_13TeV.periodK.physics_Main',
         'data16_13TeV.periodL.physics_Main',
         ],
