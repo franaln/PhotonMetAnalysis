@@ -19,21 +19,18 @@ from ROOT import Util
 from cmdLineUtils import getPdfInRegions, getName
 
 systdict = {
-
-    'alpha_JET_EtaIntercalibration_NonClosure': 'Jet eta intercalibration non-closure',
-    'alpha_JET_GroupedNP_1': 'Jet energy scale NP1',
-    'alpha_JET_GroupedNP_2': 'Jet energy scale NP2',
-    'alpha_JET_GroupedNP_3': 'Jet energy scale NP3',
-    'alpha_JET_JER_SINGLE_NP': 'Jet energy resolution',
-
-    'alpha_MET_SoftTrk_ResoPara': 'MET SoftTrk resolution (Para)',
-    'alpha_MET_SoftTrk_ResoPerp': 'MET SoftTrk resolution (Perp)',
-    'alpha_MET_SoftTrk_Scale':    'MET SoftTrk scale',
-
     'alpha_EG_RESOLUTION_ALL': '$e/\\gamma$ resolution',
     'alpha_EG_SCALE_ALL':      '$e/\\gamma$ scale',
+    'alpha_EG_SCALE_AF2':      '$e/\\gamma$ scale (AF2)',
 
-    'alpha_PH_Iso_DDonoff': 'Photon isolation',
+    'alpha_PH_EFF_ID_Uncertainty': 'Photon ID',
+    'alpha_PH_EFF_ISO_Uncertainty': 'Photon Isolation',
+    'alpha_PH_EFF_TRIGGER_Uncertainty': 'Photon Trigger',
+
+    'alpha_EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron ID eff.',
+    'alpha_EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron iso. eff.',
+    'alpha_EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron reco. eff.',
+    'alpha_EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron trigger eff.',
 
     'alpha_MUON_SCALE': 'Muon scale',
     'alpha_MUON_MS': 'Muon MS',
@@ -41,19 +38,45 @@ systdict = {
     'alpha_MUON_SAGITTA_RESBIAS': 'Muon SAGITTA ResBias',
     'alpha_MUON_SAGITTA_RHO': 'Muon SAGITTA RHO...',
 
-    'alpha_PH_EFF_ID_Uncertainty': 'Photon ID',
-    'alpha_JET_JvtEfficiency': 'JVT efficiency',
-    'alpha_EL_EFF_ID_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron ID eff.',
-    'alpha_EL_EFF_Iso_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron iso. eff.',
-    'alpha_EL_EFF_Reco_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron reco. eff.',
-    'alpha_EL_EFF_Trigger_TOTAL_1NPCOR_PLUS_UNCOR': 'Electron trigger eff.',
+    'alpha_MUON_EFF_RECO_STAT': 'Muon reco. efficiency stat.',
+    'alpha_MUON_EFF_RECO_SYS':  'Muon reco. efficiency syst.',
+    'alpha_MUON_EFF_ISO_STAT':  'Muon isolation efficiency stat.',
+    'alpha_MUON_EFF_ISO_SYS':   'Muon isolation efficiency syst.',
+    'alpha_MUON_EFF_TTVA_STAT': 'Muon TTVA efficiency stat.',
+    'alpha_MUON_EFF_TTVA_SYS':  'Muon TTVA efficiency syst.',
+    'alpha_MUON_EFF_BADMUON_STAT': 'Muon bad-muon efficiency stat.',
+    'alpha_MUON_EFF_BADMUON_SYS':  'Muon bad-muon efficiency syst.',
 
-    'alpha_MUON_EFF_STAT': 'Muon efficiency stat.',
-    'alpha_MUON_EFF_SYS': 'Muon efficiency syst.',
-    'alpha_MUON_ISO_STAT': 'Muon isolation stat.',
-    'alpha_MUON_ISO_SYS': 'Muon isolation syst.',
-    'alpha_MUON_TTVA_STAT': 'Muon TTVA stat.',
-    'alpha_MUON_TTVA_SYS': 'Muon TTVA syst.',
+
+    'alpha_JET_EtaIntercalibration_NonClosure_highE':  'Jet eta intercalibration non-closure (highE)',
+    'alpha_JET_EtaIntercalibration_NonClosure_negEta': 'Jet eta intercalibration non-closure (negEta)',
+    'alpha_JET_EtaIntercalibration_NonClosure_posEta': 'Jet eta intercalibration non-closure (posEta)',
+    'alpha_JET_Flavor_Response': 'Jet flavor response',
+    'alpha_JET_GroupedNP_1': 'Jet energy scale NP1',
+    'alpha_JET_GroupedNP_2': 'Jet energy scale NP2',
+    'alpha_JET_GroupedNP_3': 'Jet energy scale NP3',
+
+    'alpha_JET_JER_DataVsMC': 'Jet energy resolution (DataVsMC)',
+    'alpha_JET_JER_EffectiveNP_1': 'Jet energy resolution (NP1)',
+    'alpha_JET_JER_EffectiveNP_2': 'Jet energy resolution (NP2)',
+    'alpha_JET_JER_EffectiveNP_3': 'Jet energy resolution (NP3)',
+    'alpha_JET_JER_EffectiveNP_4': 'Jet energy resolution (NP4)',
+    'alpha_JET_JER_EffectiveNP_5': 'Jet energy resolution (NP5)',
+    'alpha_JET_JER_EffectiveNP_6': 'Jet energy resolution (NP6)',
+    'alpha_JET_JER_EffectiveNP_7restTerm': 'Jet energy resolution (NP7)',
+    'alpha_JET_JvtEfficiency': 'JVT efficiency',
+    'alpha_JET_fJvtEfficiency': 'fJVT efficiency',
+
+    'alpha_FT_EFF_B_systematics': 'FT efficiency (B)',
+    'alpha_FT_EFF_C_systematics': 'FT efficiency (C)',
+    'alpha_FT_EFF_Light_systematics': 'FT efficiency (Light)',
+    'alpha_FT_EFF_extrapolation': 'FT efficiency extrapolation',
+    'alpha_FT_EFF_extrapolation_from_charm': 'FT efficiency extrapolation from charm',
+
+    'alpha_MET_SoftTrk_ResoPara': 'MET SoftTrk resolution (Para)',
+    'alpha_MET_SoftTrk_ResoPerp': 'MET SoftTrk resolution (Perp)',
+    'alpha_MET_SoftTrk_Scale':    'MET SoftTrk scale',
+
     'alpha_PRW_DATASF': 'Pile-up re-weighting',
 
     'alpha_EFAKE_SYST': '$e\\to\\gamma$ fakes syst.',
@@ -130,9 +153,9 @@ systdict_root = {
 
 def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
     """
-    Method: set all parameters constant, except for the one you're interested in, 
+    Method: set all parameters constant, except for the one you're interested in,
     calculate the systematic/error propagated due to that parameter
-    
+
     filename: The filename containing afterFit workspace
     resultname: The name of fit result (typically='RooExpandedFitResult_afterFit' or 'RooExpandedFitResult_beforeFit'
     region: The region to be used for systematics breakdown calculation
@@ -146,7 +169,7 @@ def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
     w = Util.GetWorkspaceFromFile(filename,workspacename)
     if w is None:
         print "ERROR : Cannot open workspace:", workspacename
-        sys.exit(1) 
+        sys.exit(1)
 
     #pickup RooExpandedFitResult from workspace with name resultName (either before or after fit)
     result = w.obj(resultName)
@@ -163,7 +186,7 @@ def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
     if data_set is None:
         print "ERROR : Cannot open dataset: ", "data_set"
         sys.exit(1)
-      
+
     #pick up channel category (RooCategory) from workspace
     region_cat = w.obj("channelCat")
     data_set.table(region_cat).Print("v");
@@ -173,21 +196,21 @@ def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
 
     # set a boolean whether we're looking at a sample or the full (multi-sample) pdf/model
     chosen_sample = bool(sample)
-        
+
     # define regSys set, for all names/numbers to be saved in
     reg_sys = {}
 
     # define channelCat call for this region and reduce the dataset to this category/region
     region_cat_str = 'channelCat==channelCat::' + region_full_name.Data()
     data_region = data_set.reduce(region_cat_str)
-  
+
     # retrieve and save number of observed (=data) events in region
     nobs_region = 0.
     if data_region:
         nobs_region = data_region.sumEntries()
     else:
         print " ERROR : dataset-category dataRegion not found"
-        
+
     # if looking at a sample, there is no equivalent N_obs (only for the full model)
     if chosen_sample:
         reg_sys['sqrtnobsa'] = 0.
@@ -224,13 +247,13 @@ def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
     reg_sys['sqrtnfitted'] = ROOT.TMath.Sqrt(n_fitted_in_region)
     reg_sys['nfitted'] = n_fitted_in_region
 
-    pdf_fitted_err_in_region = Util.GetPropagatedError(pdf_in_region, result, doAsym) 
+    pdf_fitted_err_in_region = Util.GetPropagatedError(pdf_in_region, result, doAsym)
     reg_sys['totsyserr'] = pdf_fitted_err_in_region
 
 
     # calculate error per (floating) parameter in fitresult
     # get a list of floating parameters to loop over
-    fpf = result.floatParsFinal() 
+    fpf = result.floatParsFinal()
 
     # set all floating parameters constant
     for idx in xrange(fpf.getSize()):
@@ -243,7 +266,7 @@ def latexfitresults(filename, region, sample, resultName, dataname, doAsym):
         par = w.var(parname)
         par.setConstant(False)
         reg_sys['syserr_'+parname] =  Util.GetPropagatedError(pdf_in_region, result, doAsym)
-        par.setConstant(True) 
+        par.setConstant(True)
 
     return reg_sys
 
@@ -260,7 +283,7 @@ def systable(workspace, samples, channels, output_name):
         from cmdLineUtils import cmdStringToListOfLists
         sample_list = cmdStringToListOfLists(samples)
         chosen_sample = True
-    
+
     show_percent = True
     doAsym = True
 
@@ -286,7 +309,7 @@ def systable(workspace, samples, channels, output_name):
             for sample in sample_list:
                 sample_name = getName(sample)
 
-                reg_sys = latexfitresults(workspace, chan, sample, result_name, 'obsData', doAsym) 
+                reg_sys = latexfitresults(workspace, chan, sample, result_name, 'obsData', doAsym)
                 chan_sys[chan+"_"+sample_name] = reg_sys
                 chan_list.append(chan+"_"+sample_name)
 
@@ -323,7 +346,7 @@ def systable(workspace, samples, channels, output_name):
     row = [ 'Total background systematic', ]
 
     for region in chan_list:
-        percentage = chan_sys[region]['totsyserr']/chan_sys[region]['nfitted'] * 100.0    
+        percentage = chan_sys[region]['totsyserr']/chan_sys[region]['nfitted'] * 100.0
         row.append("$\\pm %.2f\ [%.2f\%%]$" % (chan_sys[region]['totsyserr'], percentage))
 
     tablel.add_row(row)
@@ -331,7 +354,7 @@ def systable(workspace, samples, channels, output_name):
     tablel.add_line()
 
     # print systematic uncertainty per floated parameter (or set of parameters, if requested)
-    d = chan_sys[chan_list[0]] 
+    d = chan_sys[chan_list[0]]
     m_listofkeys = sorted(d.iterkeys(), key=lambda k: d[k], reverse=True)
 
 
@@ -353,7 +376,7 @@ def systable(workspace, samples, channels, output_name):
         for index, region in enumerate(chan_list):
             percentage = chan_sys[region][name]/chan_sys[region]['nfitted'] * 100.0
 
-            if ('%.4f' % chan_sys[region][name]) != '0.0000' and ('%.2f' % percentage) != '0.00': 
+            if ('%.4f' % chan_sys[region][name]) != '0.0000' and ('%.2f' % percentage) != '0.00':
                 zero = False
 
         if zero:
@@ -368,7 +391,7 @@ def systable(workspace, samples, channels, output_name):
 
         elif printname.startswith('gamma_shape_EFAKE_STAT_efake'):
             label = '$e\\to\\gamma$ fakes stat.'
-            
+
         else:
             if printname in systdict and systdict[printname]:
                 label = systdict[printname]
@@ -393,7 +416,7 @@ def systable(workspace, samples, channels, output_name):
                     unc_dict[label].append("$\\pm %.2f\ [%.2f\%%]$" % (chan_sys[region][name], percentage))
                 else:
                     unc_dict[label].append("$\\pm %.2f\ [%.1f\%%]$" % (chan_sys[region][name], percentage))
-                    
+
 
 
     # fill table

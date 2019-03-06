@@ -608,8 +608,8 @@ def main():
     parser.add_argument('--ignore-missing', dest='ignore_missing', action='store_true', help='Ignore missing samples. Do not use this option! ')
 
 
-    args = parser.parse_args()
 
+    args = parser.parse_args()
 
     step_chist   = args.chist
     step_dhist   = args.dhist
