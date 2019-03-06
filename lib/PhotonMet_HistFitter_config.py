@@ -501,7 +501,7 @@ photonjet_sample.setNormRegions(['CRQ', variable])
 # -------------------
 if do_validation:
 
-    VRQ    = fitconfig.addChannel(variable, ['VRQ'], *binning)
+    VRQ  = fitconfig.addChannel(variable, ['VRQ'], *binning)
     VRM1L  = fitconfig.addChannel(variable, ['VRM1L'], *binning)
     VRM2L  = fitconfig.addChannel(variable, ['VRM2L'], *binning)
     VRM1H  = fitconfig.addChannel(variable, ['VRM1H'], *binning)
@@ -514,11 +514,12 @@ if do_validation:
 
     VRE  = fitconfig.addChannel(variable, ['VRE'], *binning)
 
-    validation_channels.append(VRQ)
     validation_channels.append(VRM1L)
     validation_channels.append(VRM2L)
     validation_channels.append(VRM1H)
     validation_channels.append(VRM2H)
+    validation_channels.append(VRQ)
+
     validation_channels.append(VRL1)
     validation_channels.append(VRL2)
     validation_channels.append(VRL3)

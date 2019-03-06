@@ -27,7 +27,7 @@ lumi_dict = {
     '2015':  3219.56,
     '2016': 32965.30,
     '2017': 44307.40,
-    '2018': 59937.20,
+    '2018': 59937.20, ## valid for v61_0 but UPDATE with new tag when samples are available
     }
 
 # --------
@@ -380,7 +380,7 @@ def _get_multi_histograms(ds, **kwargs):
 
                 _selection = selection
 
-                systname = syst
+                systname = syst.replace('__1down', 'Low').replace('__1up', 'High')
 
                 # fix_events_by_interval = False
                 if is_2d_variable(variable):
@@ -475,7 +475,6 @@ def _get_multi_histograms(ds, **kwargs):
                         w_list.append('weight_ff_dn')
                     elif syst == 'EFAKE_SYST__1up' or syst == 'JFAKE_SYST__1up':
                         w_list.append('weight_ff_up')
-
 
 
                 if scale:
